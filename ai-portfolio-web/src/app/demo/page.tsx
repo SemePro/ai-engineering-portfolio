@@ -142,7 +142,7 @@ export default function DemoPage() {
                 Run <code className="bg-muted px-1 rounded">docker compose up</code> to start all services.
               </p>
               <Button variant="outline" asChild>
-                <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+                <a href="https://github.com/SemePro/ai-engineering-portfolio" target="_blank" rel="noopener noreferrer">
                   View Setup Instructions
                 </a>
               </Button>

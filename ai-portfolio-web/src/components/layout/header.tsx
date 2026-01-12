@@ -48,7 +48,7 @@ export function Header() {
             </Link>
           ))}
           <a
-            href="https://github.com"
+            href="https://github.com/SemePro/ai-engineering-portfolio"
             target="_blank"
             rel="noopener noreferrer"
             className="text-muted-foreground hover:text-primary transition-colors"

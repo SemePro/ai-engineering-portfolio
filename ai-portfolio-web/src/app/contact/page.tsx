@@ -7,7 +7,7 @@ const links = [
     name: "GitHub",
     description: "View source code and project repositories",
     icon: Github,
-    href: "https://github.com",
+    href: "https://github.com/SemePro/ai-engineering-portfolio",
   },
   {
     name: "LinkedIn",
@@ -61,7 +61,7 @@ export default function ContactPage() {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button asChild>
-                <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+                <a href="https://github.com/SemePro/ai-engineering-portfolio" target="_blank" rel="noopener noreferrer">
                   <Github className="mr-2 h-4 w-4" />
                   GitHub
                 </a>

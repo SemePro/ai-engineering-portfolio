@@ -94,7 +94,7 @@ export function Footer() {
             <h4 className="font-semibold mb-4">Connect</h4>
             <div className="flex space-x-4">
               <a
-                href="https://github.com"
+                href="https://github.com/SemePro/ai-engineering-portfolio"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-primary transition-colors"

@@ -38,7 +38,7 @@ export default function ArchitectureProjectPage() {
               </Link>
             </Button>
             <Button variant="outline" asChild>
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+              <a href="https://github.com/SemePro/ai-engineering-portfolio" target="_blank" rel="noopener noreferrer">
                 <Github className="mr-2 h-4 w-4" />
                 View Source
               </a>

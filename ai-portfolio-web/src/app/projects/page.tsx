@@ -58,7 +58,7 @@ const projects: Project[] = [
       { method: "GET", path: "/sources", description: "List sources" },
     ],
     demoUrl: "/demo/rag",
-    githubUrl: "https://github.com",
+    githubUrl: "https://github.com/SemePro/ai-engineering-portfolio",
     architectureDiagram: `
 ┌──────────────────────────────────────────────────────────────┐
 │                    RAG Knowledge Assistant                    │
@@ -151,7 +151,7 @@ const projects: Project[] = [
       { method: "GET", path: "/runs/{id}", description: "Get specific run" },
     ],
     demoUrl: "/demo/eval",
-    githubUrl: "https://github.com",
+    githubUrl: "https://github.com/SemePro/ai-engineering-portfolio",
     architectureDiagram: `
 ┌──────────────────────────────────────────────────────────────┐
 │                     LLM Eval Harness                          │
@@ -245,7 +245,7 @@ const projects: Project[] = [
       { method: "POST", path: "/eval/run", description: "Proxy to Eval service" },
     ],
     demoUrl: "/demo/gateway",
-    githubUrl: "https://github.com",
+    githubUrl: "https://github.com/SemePro/ai-engineering-portfolio",
     architectureDiagram: `
 ┌──────────────────────────────────────────────────────────────┐
 │                    Secure AI Gateway                          │
@@ -344,7 +344,7 @@ const projects: Project[] = [
       { method: "POST", path: "/incident/cases/{id}/rerun", description: "Rerun analysis" },
     ],
     demoUrl: "/demo/incident",
-    githubUrl: "https://github.com",
+    githubUrl: "https://github.com/SemePro/ai-engineering-portfolio",
     architectureDiagram: `
 ┌──────────────────────────────────────────────────────────────┐
 │                  AI Incident Investigator                     │
@@ -449,7 +449,7 @@ const projects: Project[] = [
       { method: "GET", path: "/devops/changes/{id}", description: "Get change details" },
     ],
     demoUrl: "/demo/devops",
-    githubUrl: "https://github.com",
+    githubUrl: "https://github.com/SemePro/ai-engineering-portfolio",
     architectureDiagram: `
 ┌──────────────────────────────────────────────────────────────┐
 │                  AI DevOps Control Plane                      │
@@ -555,7 +555,7 @@ const projects: Project[] = [
       { method: "POST", path: "/architecture/reviews/{id}/feedback", description: "Submit feedback" },
     ],
     demoUrl: "/demo/architecture",
-    githubUrl: "https://github.com",
+    githubUrl: "https://github.com/SemePro/ai-engineering-portfolio",
     architectureDiagram: `
 ┌─────────────────────────────────────────────────────────────────┐
 │                 AI Solution Architecture Review                  │

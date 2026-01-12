@@ -34,7 +34,7 @@ const projects = [
     description: "Evidence-based answers with citations and strict refusal.",
     tech: ["FastAPI", "ChromaDB", "OpenAI", "Python"],
     demoUrl: "/demo/rag",
-    githubUrl: "https://github.com",
+    githubUrl: "https://github.com/SemePro/ai-engineering-portfolio",
   },
   {
     id: "eval",
@@ -42,7 +42,7 @@ const projects = [
     description: "Automated quality gates for LLM outputs in CI/CD.",
     tech: ["FastAPI", "Pydantic", "GitHub Actions", "Python"],
     demoUrl: "/demo/eval",
-    githubUrl: "https://github.com",
+    githubUrl: "https://github.com/SemePro/ai-engineering-portfolio",
   },
   {
     id: "gateway",
@@ -50,7 +50,7 @@ const projects = [
     description: "PII redaction, prompt injection defense, rate limiting, and cost tracking.",
     tech: ["FastAPI", "Token Bucket", "Regex", "Python"],
     demoUrl: "/demo/gateway",
-    githubUrl: "https://github.com",
+    githubUrl: "https://github.com/SemePro/ai-engineering-portfolio",
   },
   {
     id: "incident",
@@ -58,7 +58,7 @@ const projects = [
     description: "Timeline reconstruction and root-cause analysis with evidence and human feedback.",
     tech: ["FastAPI", "ChromaDB", "OpenAI", "Python"],
     demoUrl: "/demo/incident",
-    githubUrl: "https://github.com",
+    githubUrl: "https://github.com/SemePro/ai-engineering-portfolio",
   },
   {
     id: "devops",
@@ -66,7 +66,7 @@ const projects = [
     description: "Pre-deployment risk scoring, rollout recommendations, and change impact analysis.",
     tech: ["FastAPI", "ChromaDB", "OpenAI", "Python"],
     demoUrl: "/demo/devops",
-    githubUrl: "https://github.com",
+    githubUrl: "https://github.com/SemePro/ai-engineering-portfolio",
   },
   {
     id: "architecture",
@@ -74,7 +74,7 @@ const projects = [
     description: "Architecture recommendations with tradeoffs — including when AI should NOT be used.",
     tech: ["FastAPI", "ChromaDB", "OpenAI", "Python"],
     demoUrl: "/demo/architecture",
-    githubUrl: "https://github.com",
+    githubUrl: "https://github.com/SemePro/ai-engineering-portfolio",
   },
 ];
 
