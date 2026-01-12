@@ -1,0 +1,18 @@
+{
+  "title": "Real-time Fraud Detection",
+  "description": "Expected recommendation: Rules or No-AI (NOT LLM)",
+  "request": {
+    "problem_statement": "We need a system to detect fraudulent transactions in real-time as they occur. The system must analyze each transaction within 50ms to avoid blocking legitimate purchases. It will process credit card transactions with full PAN data and must comply with PCI-DSS requirements. False positives are costly but false negatives are worse.",
+    "constraints": {
+      "latency": "low",
+      "scale": "large",
+      "data_sensitivity": "regulated",
+      "cost_sensitivity": "low",
+      "compliance": ["SOC2"]
+    },
+    "data_availability": "sufficient",
+    "team_maturity": "high",
+    "user_notes": "We have 3 years of labeled transaction data with fraud flags. Current rule-based system catches 70% of fraud."
+  },
+  "expected_approach": "rules"
+}

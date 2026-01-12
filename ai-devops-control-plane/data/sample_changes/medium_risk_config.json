@@ -1,0 +1,16 @@
+{
+  "change_type": "config",
+  "service": "api-gateway",
+  "version": null,
+  "metadata": {
+    "commit_sha": "b7e2d41f",
+    "pipeline_id": "config-deploy-892",
+    "author": "sre@company.com",
+    "env": "production",
+    "branch": "main",
+    "labels": ["config", "timeout", "gateway"]
+  },
+  "diff_summary": "Configuration change to API gateway timeouts:\n\n- upstream_timeout: 30s -> 60s\n- downstream_timeout: 15s -> 30s\n- keepalive_timeout: 60s -> 120s\n- max_retries: 3 -> 5\n\nReason: Address intermittent 504 errors during peak load.\n\nRisk assessment notes:\n- Higher timeouts may mask slow upstream services\n- Increased retry count could amplify load during failures\n- No circuit breaker changes included\n\nFiles changed:\n- config/gateway.yaml (+4, -4)",
+  "description": "Increase gateway timeouts to reduce 504 errors during peak traffic. This is a reactive change based on monitoring alerts.",
+  "related_incidents": []
+}

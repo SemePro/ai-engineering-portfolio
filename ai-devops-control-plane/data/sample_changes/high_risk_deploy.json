@@ -1,0 +1,17 @@
+{
+  "change_type": "deploy",
+  "service": "order-service",
+  "version": "v2.5.0",
+  "metadata": {
+    "commit_sha": "a3f8c91e",
+    "pipeline_id": "ci-12847",
+    "author": "engineer@company.com",
+    "env": "production",
+    "branch": "feature/new-recommendations",
+    "pr_number": 1234,
+    "labels": ["database", "performance", "high-impact"]
+  },
+  "diff_summary": "Major changes to database query patterns for product recommendations:\n\n- Added new recommendation engine with segment-based queries\n- Changed RECOMMENDATION_BATCH_SIZE from 100 to 500\n- New JOIN operations on products and recommendations tables\n- Removed connection pooling timeout (was 30s)\n- Added bulk insert for pre-computed recommendations\n\nDatabase impact:\n- New index required on recommendations.segment_id\n- Estimated 3x increase in query complexity\n- Higher connection pool utilization expected\n\nFiles changed:\n- src/recommendations/engine.py (+450, -120)\n- src/db/queries.py (+89, -12)\n- config/database.yaml (+5, -2)",
+  "description": "Deploy new product recommendation engine with enhanced database queries for personalization. This is a significant change to the core recommendation pipeline.",
+  "related_incidents": []
+}

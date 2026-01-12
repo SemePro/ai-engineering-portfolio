@@ -1,0 +1,36 @@
+{
+  "title": "DB Connection Pool Exhaustion after Deploy",
+  "incident_summary": "Starting at 14:32 UTC, users reported slow response times and timeouts on the checkout flow. Error rates spiked to 15% on the order service. The incident correlated with a deployment at 14:15 UTC that introduced a new product recommendation feature with heavier database queries.",
+  "artifacts": [
+    {
+      "type": "logs",
+      "source_id": "order-service-pod-1",
+      "content": "2024-01-15T14:32:15.234Z ERROR [order-service] Failed to acquire database connection: pool exhausted, all 50 connections in use\n2024-01-15T14:32:15.456Z ERROR [order-service] Request timeout after 30000ms waiting for DB connection\n2024-01-15T14:32:16.789Z WARN [order-service] Connection pool utilization at 100%, queue depth: 234\n2024-01-15T14:32:17.123Z ERROR [order-service] SQLException: Connection timed out after 30s\n2024-01-15T14:32:18.456Z ERROR [order-service] Failed to process checkout for user_id=12345: database unavailable\n2024-01-15T14:33:22.789Z ERROR [order-service] Pool exhausted - 50/50 connections active, 312 requests waiting\n2024-01-15T14:34:15.234Z INFO [order-service] Connection acquired after 28543ms wait time\n2024-01-15T14:35:00.000Z ERROR [order-service] Circuit breaker OPEN for database calls"
+    },
+    {
+      "type": "logs",
+      "source_id": "product-service-pod-2",
+      "content": "2024-01-15T14:20:00.123Z INFO [product-service] Starting new recommendation query for user segment\n2024-01-15T14:20:05.456Z DEBUG [product-service] Recommendation query execution time: 4523ms\n2024-01-15T14:25:12.789Z WARN [product-service] Slow query detected: SELECT * FROM products p JOIN recommendations r ON p.id = r.product_id WHERE r.segment_id IN (SELECT ...) - 8234ms\n2024-01-15T14:30:00.000Z DEBUG [product-service] Active DB connections: 45\n2024-01-15T14:32:00.000Z WARN [product-service] Query timeout: recommendation aggregation query exceeded 30s\n2024-01-15T14:32:30.123Z ERROR [product-service] Connection pool exhausted while executing recommendation batch"
+    },
+    {
+      "type": "deploy_history",
+      "source_id": "argocd-deploy-log",
+      "content": "2024-01-15T14:15:00Z Deployment started: product-service v2.3.0 -> v2.4.0\n2024-01-15T14:15:30Z Image: product-service:v2.4.0-abc123\n2024-01-15T14:16:00Z Deployment complete: 3/3 pods ready\n2024-01-15T14:16:05Z Config change: RECOMMENDATION_BATCH_SIZE: 100 -> 500\n2024-01-15T14:16:10Z Config change: ENABLE_PERSONALIZED_RECOMMENDATIONS: false -> true\n\nChangelog v2.4.0:\n- Added personalized product recommendations\n- New recommendation engine with segment-based queries\n- Increased batch size for recommendation pre-computation"
+    },
+    {
+      "type": "alerts",
+      "source_id": "datadog-alerts",
+      "content": "2024-01-15T14:32:00Z ALERT TRIGGERED: High Error Rate\n  service: order-service\n  severity: critical\n  metric: error_rate\n  threshold: 5%\n  current_value: 15.3%\n  symptom: Checkout failures increasing\n\n2024-01-15T14:33:00Z ALERT TRIGGERED: Database Connection Pool\n  service: order-service\n  severity: warning\n  metric: db_pool_utilization\n  threshold: 80%\n  current_value: 100%\n  symptom: All connections exhausted\n\n2024-01-15T14:35:00Z ALERT TRIGGERED: P99 Latency\n  service: order-service\n  severity: critical\n  metric: p99_latency_ms\n  threshold: 5000\n  current_value: 28500\n  symptom: Severe latency degradation"
+    },
+    {
+      "type": "runbook",
+      "source_id": "runbook-db-pool",
+      "content": "# Database Connection Pool Troubleshooting\n\n## Symptoms\n- Connection pool exhausted errors\n- High wait times for connections\n- Request timeouts\n\n## Investigation Steps\n1. Check current pool utilization: `SELECT count(*) FROM pg_stat_activity`\n2. Identify long-running queries: `SELECT * FROM pg_stat_activity WHERE state = 'active' ORDER BY query_start`\n3. Check for query plan changes after recent deployments\n4. Review connection pool configuration (min/max connections)\n\n## Common Causes\n- New queries without proper indexing\n- Increased query complexity from feature changes\n- Missing connection timeouts\n- Connection leaks\n\n## Mitigation\n1. Immediate: Rollback recent deployment if query-related\n2. Short-term: Increase pool size temporarily\n3. Long-term: Optimize queries, add indices, implement query caching"
+    },
+    {
+      "type": "metrics_snapshot",
+      "source_id": "grafana-metrics",
+      "content": "Timestamp: 2024-01-15T14:35:00Z\n\norder-service:\n  request_rate: 1250 req/s\n  error_rate: 15.3%\n  p50_latency: 2340ms\n  p99_latency: 28500ms\n  db_pool_active: 50/50\n  db_pool_pending: 312\n\nproduct-service:\n  request_rate: 890 req/s\n  error_rate: 8.2%\n  avg_query_time: 4523ms\n  db_connections: 48/50\n\ndatabase (postgres):\n  active_connections: 98\n  max_connections: 100\n  avg_query_duration: 3200ms\n  slow_queries_count: 145"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "documents": [
+    {
+      "source": "hr-policy/vacation.md",
+      "content": "# Vacation Policy\n\nAll full-time employees are entitled to 20 days of paid vacation per year. Vacation days accrue monthly at a rate of 1.67 days per month. Unused vacation days can be carried over to the next year, up to a maximum of 5 days. Employees must submit vacation requests at least 2 weeks in advance for approval by their manager. During peak business periods (Q4), vacation requests may be limited."
+    },
+    {
+      "source": "hr-policy/remote-work.md",
+      "content": "# Remote Work Policy\n\nEmployees may work remotely up to 3 days per week with manager approval. Remote work arrangements must be documented and reviewed quarterly. All remote workers must maintain a dedicated workspace, reliable internet connection, and be available during core hours (10 AM - 3 PM local time). Equipment allowances of up to $500 are available for home office setup."
+    },
+    {
+      "source": "engineering/code-review.md",
+      "content": "# Code Review Guidelines\n\nAll code changes require at least one approval before merging. Reviewers should check for: code correctness, test coverage (minimum 80%), adherence to style guides, and documentation updates. Reviews should be completed within 24 business hours. Use conventional comments: 'nit' for minor suggestions, 'blocking' for required changes."
+    },
+    {
+      "source": "engineering/incident-response.md",
+      "content": "# Incident Response Procedure\n\nSeverity 1 (Critical): Production down, customer impact. Response within 15 minutes. Page on-call engineer immediately.\nSeverity 2 (High): Major feature degraded. Response within 1 hour.\nSeverity 3 (Medium): Minor feature issues. Response within 4 hours.\nSeverity 4 (Low): No customer impact. Response within 24 hours.\n\nAll incidents require a post-mortem within 5 business days."
+    },
+    {
+      "source": "onboarding/first-week.md",
+      "content": "# First Week Checklist\n\nDay 1: Complete HR paperwork, set up laptop, meet your manager and team.\nDay 2: Complete security training, set up development environment.\nDay 3: Review team documentation, shadow a team member.\nDay 4: Pick up a small starter task, attend team standup.\nDay 5: Complete first code review, 1:1 with manager.\n\nYour buddy will be assigned to help you during your first month."
+    },
+    {
+      "source": "security/data-handling.md",
+      "content": "# Data Handling Policy\n\nCustomer data must be encrypted at rest and in transit. PII (Personally Identifiable Information) requires additional protections: access logging, retention limits (max 2 years), and deletion upon customer request. Never log PII in application logs. All data access must follow the principle of least privilege. Regular audits are conducted quarterly."
+    }
+  ]
+}

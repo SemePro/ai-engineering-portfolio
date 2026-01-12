@@ -1,0 +1,11 @@
+Place architecture diagrams here:
+
+- architecture-overview.png (system diagram)
+- rag-flow.png (RAG pipeline diagram)
+- eval-flow.png (eval harness diagram)
+- gateway-flow.png (gateway middleware diagram)
+
+Recommended tools for diagrams:
+- Excalidraw (hand-drawn style)
+- Mermaid (code-based)
+- draw.io (traditional)

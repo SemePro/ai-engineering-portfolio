@@ -1,0 +1,18 @@
+{
+  "title": "Customer Support Knowledge Base",
+  "description": "Expected recommendation: RAG",
+  "request": {
+    "problem_statement": "We need to build an AI-powered customer support assistant that can answer questions about our products using our existing documentation. The support team currently spends 60% of their time answering repetitive questions that are already documented in our knowledge base. We have about 500 product documents, FAQs, and troubleshooting guides. The assistant should provide accurate answers with references to the source documents so agents can verify and learn.",
+    "constraints": {
+      "latency": "medium",
+      "scale": "medium",
+      "data_sensitivity": "internal",
+      "cost_sensitivity": "medium",
+      "compliance": []
+    },
+    "data_availability": "sufficient",
+    "team_maturity": "medium",
+    "user_notes": "We already have a document management system with all our content in markdown format."
+  },
+  "expected_approach": "rag"
+}

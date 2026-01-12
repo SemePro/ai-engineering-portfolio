@@ -1,0 +1,36 @@
+{
+  "title": "Auth Token Validation Failure due to Clock Skew",
+  "incident_summary": "Starting at 09:15 UTC, users reported being unable to log in. The auth service was rejecting valid JWT tokens with 'token not yet valid' and 'token expired' errors simultaneously. Investigation revealed the issue started after a container base image update that affected NTP synchronization.",
+  "artifacts": [
+    {
+      "type": "logs",
+      "source_id": "auth-service-pod-1",
+      "content": "2024-01-20T09:15:32.123Z ERROR [auth-service] JWT validation failed: Token not yet valid (iat claim)\n2024-01-20T09:15:32.456Z ERROR [auth-service] Token issued at: 2024-01-20T09:15:30Z, server time: 2024-01-20T09:12:32Z\n2024-01-20T09:15:33.789Z ERROR [auth-service] JWT validation failed: Token expired (exp claim)\n2024-01-20T09:15:34.012Z WARN [auth-service] Clock skew detected: server time differs from token time by 180 seconds\n2024-01-20T09:15:35.234Z ERROR [auth-service] Rejecting login for user user@example.com: invalid token\n2024-01-20T09:16:00.567Z ERROR [auth-service] 423 login failures in the last minute\n2024-01-20T09:16:15.890Z INFO [auth-service] Current server time: 2024-01-20T09:13:15Z\n2024-01-20T09:16:16.123Z WARN [auth-service] NTP sync status: UNSYNCHRONIZED"
+    },
+    {
+      "type": "logs",
+      "source_id": "auth-service-pod-2",
+      "content": "2024-01-20T09:15:40.111Z ERROR [auth-service] JWT exp claim validation failed\n2024-01-20T09:15:40.222Z DEBUG [auth-service] Token exp: 2024-01-20T09:45:30Z, now: 2024-01-20T09:12:40Z, leeway: 30s\n2024-01-20T09:15:41.333Z ERROR [auth-service] validateClaims: nbf check failed - token used before valid time\n2024-01-20T09:15:42.444Z ERROR [auth-service] Session creation failed: cannot validate auth token\n2024-01-20T09:16:00.555Z WARN [auth-service] System clock appears to be 3 minutes behind\n2024-01-20T09:16:30.666Z INFO [auth-service] Attempting NTP resync...\n2024-01-20T09:16:35.777Z ERROR [auth-service] NTP sync failed: no response from time.google.com"
+    },
+    {
+      "type": "deploy_history",
+      "source_id": "github-actions-deploy",
+      "content": "2024-01-20T08:00:00Z Deployment started: auth-service v1.8.2 -> v1.8.3\n2024-01-20T08:00:30Z Base image updated: node:18-alpine3.17 -> node:18-alpine3.19\n2024-01-20T08:01:00Z Deployment complete: 2/2 pods ready\n\nChangelog v1.8.3:\n- Security: Updated base image to latest alpine\n- Deps: Bumped jsonwebtoken to 9.0.2\n- No application code changes\n\n2024-01-20T08:30:00Z Infrastructure change: Kubernetes node pool recycled\n2024-01-20T08:45:00Z Note: New alpine image removes ntpd, uses chronyd instead"
+    },
+    {
+      "type": "alerts",
+      "source_id": "pagerduty-alerts",
+      "content": "2024-01-20T09:16:00Z ALERT TRIGGERED: Authentication Failures\n  service: auth-service\n  severity: critical\n  metric: auth_failure_rate\n  threshold: 10%\n  current_value: 89.5%\n  symptom: Users cannot log in\n\n2024-01-20T09:17:00Z ALERT TRIGGERED: Login Success Rate\n  service: auth-service  \n  severity: critical\n  metric: login_success_rate\n  threshold: 95%\n  current_value: 10.5%\n  symptom: Near-complete login failure\n\n2024-01-20T09:18:00Z ALERT TRIGGERED: User Complaints\n  source: zendesk-integration\n  severity: high\n  metric: support_tickets_1h\n  threshold: 50\n  current_value: 234\n  symptom: Flood of cannot login tickets"
+    },
+    {
+      "type": "runbook",
+      "source_id": "runbook-jwt-auth",
+      "content": "# JWT Authentication Troubleshooting\n\n## Common JWT Errors\n\n### Token not yet valid (nbf/iat)\n- Server clock is behind the token issuer\n- Check NTP synchronization\n- Compare server time with external source\n\n### Token expired (exp)\n- Server clock is ahead of token issuer\n- Token genuinely expired\n- Check token lifetime configuration\n\n## Clock Skew Investigation\n1. Check server time: `date -u`\n2. Check NTP status: `timedatectl status` or `chronyc tracking`\n3. Compare with external: `curl -I https://google.com 2>&1 | grep Date`\n4. Check container time vs host time\n\n## Mitigation\n1. Immediate: Increase JWT leeway/clock tolerance\n2. Short-term: Force NTP resync or restart chronyd\n3. Long-term: Ensure NTP is properly configured in container images\n\n## Prevention\n- Always verify NTP in container base images\n- Add clock skew monitoring\n- Set reasonable JWT leeway (30-60 seconds)"
+    },
+    {
+      "type": "metrics_snapshot",
+      "source_id": "prometheus-metrics",
+      "content": "Timestamp: 2024-01-20T09:20:00Z\n\nauth-service:\n  login_attempts: 2340/min\n  login_success: 245/min\n  login_failure: 2095/min\n  jwt_validation_errors: 2095/min\n  jwt_error_type_iat: 1247\n  jwt_error_type_exp: 612\n  jwt_error_type_nbf: 236\n\nsystem:\n  pod_1_time_drift_seconds: -178\n  pod_2_time_drift_seconds: -182\n  ntp_synchronized: false\n  chronyd_status: inactive"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "change_type": "deploy",
+  "service": "docs-website",
+  "version": "v1.8.2",
+  "metadata": {
+    "commit_sha": "c9a4f83d",
+    "pipeline_id": "ci-12901",
+    "author": "tech-writer@company.com",
+    "env": "production",
+    "branch": "docs/api-updates",
+    "pr_number": 1456,
+    "labels": ["documentation", "frontend", "low-impact"]
+  },
+  "diff_summary": "Documentation and frontend-only updates:\n\n- Updated API documentation for v2 endpoints\n- Fixed typos in getting-started guide\n- Added new code examples for authentication\n- Updated copyright year in footer\n- Improved mobile navigation styling\n\nNo backend changes.\nNo database changes.\nNo configuration changes.\n\nFiles changed:\n- docs/api/v2-endpoints.md (+120, -45)\n- docs/getting-started.md (+5, -5)\n- src/components/Footer.tsx (+1, -1)\n- src/components/MobileNav.css (+12, -8)",
+  "description": "Routine documentation update with minor frontend styling fixes. No operational impact expected.",
+  "related_incidents": []
+}

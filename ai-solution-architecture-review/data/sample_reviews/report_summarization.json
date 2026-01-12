@@ -1,0 +1,18 @@
+{
+  "title": "Internal Report Summarization",
+  "description": "Expected recommendation: RAG with batch processing",
+  "request": {
+    "problem_statement": "Our analysts spend hours reading through lengthy quarterly reports from different departments to create executive summaries. We want an AI system that can automatically summarize these reports and highlight key metrics, trends, and action items. Reports are generated monthly and summaries are needed within 24 hours of report submission. Total volume is about 50-100 reports per month.",
+    "constraints": {
+      "latency": "high",
+      "scale": "small",
+      "data_sensitivity": "internal",
+      "cost_sensitivity": "medium",
+      "compliance": []
+    },
+    "data_availability": "sufficient",
+    "team_maturity": "medium",
+    "user_notes": "Reports are in PDF format with tables and charts. We need to preserve key numbers accurately."
+  },
+  "expected_approach": "rag"
+}

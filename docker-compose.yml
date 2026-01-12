@@ -1,0 +1,221 @@
+# AI Engineering Portfolio - Docker Compose Configuration
+# See README.md for setup instructions
+#
+# Start all services: docker compose up --build
+# Start only web: docker compose up web
+# View logs: docker compose logs -f
+
+services:
+  # Secure AI Gateway - Entry point for all API calls
+  gateway:
+    build:
+      context: ./secure-ai-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - RAG_SERVICE_URL=http://rag:8001
+      - EVAL_SERVICE_URL=http://eval:8002
+      - INCIDENT_SERVICE_URL=http://incident:8003
+      - DEVOPS_SERVICE_URL=http://devops:8004
+      - ARCHITECTURE_SERVICE_URL=http://architecture:8005
+      - RATE_LIMIT_TOKENS=100
+      - RATE_LIMIT_REFILL_RATE=10.0
+      - RATE_LIMIT_PER_IP=true
+      - ENABLE_PII_REDACTION=true
+      - ENABLE_INJECTION_DETECTION=true
+      - LOG_REQUESTS=true
+    depends_on:
+      rag:
+        condition: service_healthy
+      eval:
+        condition: service_healthy
+      incident:
+        condition: service_healthy
+      devops:
+        condition: service_healthy
+      architecture:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - ai-network
+    restart: unless-stopped
+
+  # RAG Knowledge Assistant
+  rag:
+    build:
+      context: ./rag-knowledge-assistant
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_BASE=${OPENAI_API_BASE:-https://api.openai.com/v1}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-text-embedding-3-small}
+      - CHAT_MODEL=${CHAT_MODEL:-gpt-4o-mini}
+      - CHUNK_SIZE=500
+      - CHUNK_OVERLAP=50
+      - TOP_K=5
+      - CONFIDENCE_THRESHOLD=0.7
+    volumes:
+      - rag-data:/app/chroma_db
+      - ./rag-knowledge-assistant/data:/app/data:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - ai-network
+    restart: unless-stopped
+
+  # LLM Eval Harness
+  eval:
+    build:
+      context: ./llm-eval-harness
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_BASE=${OPENAI_API_BASE:-https://api.openai.com/v1}
+      - DEFAULT_MODEL=${CHAT_MODEL:-gpt-4o-mini}
+      - CONSISTENCY_RUNS=3
+      - HALLUCINATION_THRESHOLD=0.8
+      - RAG_SERVICE_URL=http://rag:8001
+    volumes:
+      - eval-runs:/app/runs
+      - ./llm-eval-harness/suites:/app/suites:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - ai-network
+    restart: unless-stopped
+
+  # AI Incident Investigator
+  incident:
+    build:
+      context: ./ai-incident-investigator
+      dockerfile: Dockerfile
+    ports:
+      - "8003:8003"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_BASE=${OPENAI_API_BASE:-https://api.openai.com/v1}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-text-embedding-3-small}
+      - CHAT_MODEL=${CHAT_MODEL:-gpt-4o-mini}
+      - DEFAULT_TOP_K=8
+      - DEFAULT_HYPOTHESIS_COUNT=3
+      - CONFIDENCE_THRESHOLD=0.6
+    volumes:
+      - incident-cases:/app/cases
+      - incident-chroma:/app/chroma_db
+      - ./ai-incident-investigator/data:/app/data:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - ai-network
+    restart: unless-stopped
+
+  # AI DevOps Control Plane
+  devops:
+    build:
+      context: ./ai-devops-control-plane
+      dockerfile: Dockerfile
+    ports:
+      - "8004:8004"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_BASE=${OPENAI_API_BASE:-https://api.openai.com/v1}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-text-embedding-3-small}
+      - CHAT_MODEL=${CHAT_MODEL:-gpt-4o-mini}
+      - INCIDENT_SERVICE_URL=http://incident:8003
+      - CONFIDENCE_THRESHOLD=0.6
+    volumes:
+      - devops-changes:/app/changes
+      - devops-chroma:/app/chroma_db
+      - ./ai-devops-control-plane/data:/app/data:ro
+    depends_on:
+      incident:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - ai-network
+    restart: unless-stopped
+
+  # AI Solution Architecture Review
+  architecture:
+    build:
+      context: ./ai-solution-architecture-review
+      dockerfile: Dockerfile
+    ports:
+      - "8005:8005"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_BASE=${OPENAI_API_BASE:-https://api.openai.com/v1}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-text-embedding-3-small}
+      - CHAT_MODEL=${CHAT_MODEL:-gpt-4o-mini}
+      - CONFIDENCE_THRESHOLD=0.6
+    volumes:
+      - architecture-reviews:/app/reviews
+      - architecture-chroma:/app/chroma_db
+      - ./ai-solution-architecture-review/data:/app/data:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - ai-network
+    restart: unless-stopped
+
+  # Portfolio Website (Next.js)
+  web:
+    build:
+      context: ./ai-portfolio-web
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_GATEWAY_URL=http://localhost:8000
+      - NEXT_PUBLIC_RAG_URL=http://localhost:8001
+      - NEXT_PUBLIC_EVAL_URL=http://localhost:8002
+    depends_on:
+      - gateway
+    networks:
+      - ai-network
+    restart: unless-stopped
+
+networks:
+  ai-network:
+    driver: bridge
+
+volumes:
+  rag-data:
+  eval-runs:
+  incident-cases:
+  incident-chroma:
+  devops-changes:
+  devops-chroma:
+  architecture-reviews:
+  architecture-chroma:

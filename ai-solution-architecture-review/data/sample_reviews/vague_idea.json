@@ -1,0 +1,18 @@
+{
+  "title": "Vague Idea - Should Refuse",
+  "description": "Expected: Refusal due to insufficient information",
+  "request": {
+    "problem_statement": "We want to use AI.",
+    "constraints": {
+      "latency": "medium",
+      "scale": "medium",
+      "data_sensitivity": "internal",
+      "cost_sensitivity": "medium",
+      "compliance": []
+    },
+    "data_availability": "none",
+    "team_maturity": "low",
+    "user_notes": null
+  },
+  "expected_approach": "refused"
+}

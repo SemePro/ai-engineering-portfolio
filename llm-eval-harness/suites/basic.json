@@ -1,0 +1,67 @@
+{
+  "name": "Basic Evaluation Suite",
+  "version": "1.0.0",
+  "description": "Core evaluation tests for LLM responses",
+  "test_cases": [
+    {
+      "id": "json-output-001",
+      "name": "JSON Output Format",
+      "description": "Tests that the model can produce valid JSON output",
+      "prompt": "Generate a JSON object representing a user with fields: name (string), age (number), email (string). Respond with only the JSON.",
+      "expected_schema": {
+        "type": "object",
+        "required": ["name", "age", "email"],
+        "properties": {
+          "name": {"type": "string"},
+          "age": {"type": "number"},
+          "email": {"type": "string"}
+        }
+      }
+    },
+    {
+      "id": "citation-001",
+      "name": "Citation in RAG Response",
+      "description": "Tests that citations are included when answering from context",
+      "prompt": "What is the vacation policy? Include source citations in your answer.",
+      "context": "Company Policy Document:\n\nVacation Policy: All full-time employees receive 20 days of paid vacation per year. Vacation requests must be submitted 2 weeks in advance.",
+      "expected_citations": true
+    },
+    {
+      "id": "hallucination-001",
+      "name": "Grounded Response",
+      "description": "Tests that the model doesn't hallucinate information",
+      "prompt": "Based on the context, what is the maximum vacation carryover?",
+      "context": "Vacation Policy:\n- Full-time employees: 20 days per year\n- Part-time employees: 10 days per year\n- Requests require 2 weeks notice",
+      "check_hallucination": true
+    },
+    {
+      "id": "consistency-001",
+      "name": "Response Consistency",
+      "description": "Tests that the model gives consistent answers",
+      "prompt": "What is 2 + 2?",
+      "check_consistency": true
+    },
+    {
+      "id": "json-list-001",
+      "name": "JSON Array Output",
+      "description": "Tests JSON array generation",
+      "prompt": "Generate a JSON array of 3 colors with 'name' and 'hex' fields. Respond with only the JSON.",
+      "expected_schema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["name", "hex"],
+          "properties": {
+            "name": {"type": "string"},
+            "hex": {"type": "string"}
+          }
+        },
+        "minItems": 3
+      }
+    }
+  ],
+  "metadata": {
+    "author": "AI Portfolio",
+    "purpose": "Basic LLM capability testing"
+  }
+}
