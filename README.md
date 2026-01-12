@@ -1,4 +1,6 @@
-# AI Engineer Portfolio
+# Applied AI Engineering Portfolio
+
+[![Deploy Status](https://img.shields.io/badge/status-live-brightgreen)](https://sec-gateway-production.up.railway.app/health)
 
 A cohesive AI portfolio demonstrating production-grade LLM engineering: RAG systems, evaluation pipelines, security gateways, and modern DevOps practices.
 
