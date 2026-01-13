@@ -13,7 +13,7 @@ const links = [
     name: "LinkedIn",
     description: "Connect professionally",
     icon: Linkedin,
-    href: "https://linkedin.com",
+    href: "https://www.linkedin.com/in/kodjo-semeglo-7993969a/",
   },
 ];
 
@@ -67,7 +67,7 @@ export default function ContactPage() {
                 </a>
               </Button>
               <Button variant="outline" asChild>
-                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
+                <a href="https://www.linkedin.com/in/kodjo-semeglo-7993969a/" target="_blank" rel="noopener noreferrer">
                   <Linkedin className="mr-2 h-4 w-4" />
                   LinkedIn
                 </a>

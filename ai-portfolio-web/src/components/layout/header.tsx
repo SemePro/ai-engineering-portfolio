@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Github, Menu, X } from "lucide-react";
+import { Github, Linkedin, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -47,6 +47,14 @@ export function Header() {
               {item.name}
             </Link>
           ))}
+          <a
+            href="https://www.linkedin.com/in/kodjo-semeglo-7993969a/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground hover:text-primary transition-colors"
+          >
+            <Linkedin className="h-5 w-5" />
+          </a>
           <a
             href="https://github.com/SemePro/ai-engineering-portfolio"
             target="_blank"
