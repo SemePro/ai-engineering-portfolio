@@ -27,8 +27,8 @@ export default function AboutPage() {
             <p>
               I'm a Senior Software Engineer with over a decade of experience 
               working across quality engineering, automation, DevOps, and platform 
-              reliability. I started my career focused on how systems fail — not 
-              just how they succeed — which shaped how I approach software 
+              reliability. I started my career focused on how systems fail, not 
+              just how they succeed, which shaped how I approach software 
               engineering today.
             </p>
             <p>
@@ -61,7 +61,7 @@ export default function AboutPage() {
           <div className="space-y-4 text-muted-foreground leading-relaxed">
             <p>
               The projects here are not demos. They are applied AI systems designed 
-              for real engineering environments — with strict evaluation, clear 
+              for real engineering environments with strict evaluation, clear 
               refusal paths, security controls, and human-in-the-loop decision-making. 
               I believe AI should support engineers, not replace judgment, and that 
               production AI systems should be explainable, observable, and safe by default.
