@@ -1,129 +1,109 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle, Github } from "lucide-react";
+import { ArrowRight, Github, CheckCircle } from "lucide-react";
 import Link from "next/link";
 
 const principles = [
-  {
-    title: "Reliability-first AI behavior",
-    description: "Systems that work correctly and predictably, with graceful degradation when things go wrong.",
-  },
-  {
-    title: "Evidence and citations",
-    description: "Every claim is grounded in retrieved evidence. No unsupported statements in production outputs.",
-  },
-  {
-    title: "Strict refusal when uncertain",
-    description: "When confidence is low or evidence is insufficient, the system refuses rather than guesses.",
-  },
-  {
-    title: "Guardrails (security + privacy)",
-    description: "Defense in depth with rate limiting, PII redaction, and prompt injection detection.",
-  },
-  {
-    title: "Automated evaluation and regression testing",
-    description: "Continuous quality gates that catch regressions before they reach production.",
-  },
+  "Reliability-first AI behavior",
+  "Evidence and citations where applicable",
+  "Strict refusal when uncertainty is high",
+  "Guardrails (security + privacy)",
+  "Automated evaluation and regression testing",
+  "Human-in-the-loop decision making",
 ];
-
-const skills = {
-  "AI/ML": ["RAG Systems", "LLM Evaluation", "Prompt Engineering", "Vector Databases", "Embeddings"],
-  "Backend": ["Python", "FastAPI", "Pydantic", "Async/Await", "REST APIs"],
-  "Infrastructure": ["Docker", "GitHub Actions", "Railway", "Vercel", "CI/CD"],
-  "Frontend": ["TypeScript", "Next.js", "React", "TailwindCSS"],
-  "Testing": ["pytest", "Unit Testing", "Integration Testing", "Regression Testing"],
-};
 
 export default function AboutPage() {
   return (
     <div className="container mx-auto px-4 py-16">
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto max-w-2xl">
         {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold tracking-tight mb-4">About This Portfolio</h1>
-          <p className="text-muted-foreground text-lg">
-            Production-minded AI systems for real engineering workflows
+        <h1 className="text-4xl font-bold tracking-tight mb-12">About</h1>
+
+        {/* Section 1: Career Context */}
+        <section className="mb-12">
+          <h2 className="text-xl font-semibold mb-4 text-foreground">
+            Career Context
+          </h2>
+          <div className="space-y-4 text-muted-foreground leading-relaxed">
+            <p>
+              I'm a Senior Software Engineer with over a decade of experience 
+              working across quality engineering, automation, DevOps, and platform 
+              reliability. I started my career focused on how systems fail — not 
+              just how they succeed — which shaped how I approach software 
+              engineering today.
+            </p>
+            <p>
+              Over time, my work expanded from test automation into system-level 
+              validation, CI/CD pipelines, and cloud-based platforms. This 
+              background gave me a deep appreciation for reliability, observability, 
+              and the importance of understanding failure modes in distributed systems.
+            </p>
+          </div>
+        </section>
+
+        {/* Section 2: How I Think About AI */}
+        <section className="mb-12">
+          <h2 className="text-xl font-semibold mb-4 text-foreground">
+            How I Think About AI
+          </h2>
+          <p className="text-muted-foreground leading-relaxed">
+            As AI systems became part of everyday engineering workflows, I noticed 
+            a gap: many AI solutions focused on capability, but very few focused on 
+            reliability, evaluation, or operational safety. This portfolio exists 
+            to explore that gap.
           </p>
-        </div>
+        </section>
 
-        {/* Main Narrative */}
-        <Card className="mb-12">
-          <CardContent className="pt-6">
-            <p className="text-lg leading-relaxed mb-6">
-              This Applied AI Engineering Portfolio showcases systems I built to explore how AI should behave in production environments.
+        {/* Section 3: What This Portfolio Represents */}
+        <section className="mb-12">
+          <h2 className="text-xl font-semibold mb-4 text-foreground">
+            What This Portfolio Represents
+          </h2>
+          <div className="space-y-4 text-muted-foreground leading-relaxed">
+            <p>
+              The projects here are not demos. They are applied AI systems designed 
+              for real engineering environments — with strict evaluation, clear 
+              refusal paths, security controls, and human-in-the-loop decision-making. 
+              I believe AI should support engineers, not replace judgment, and that 
+              production AI systems should be explainable, observable, and safe by default.
             </p>
-            <p className="text-lg leading-relaxed mb-6">
-              The focus is on reliability, explainability, evaluation, security, and human-in-the-loop design — not demos or prompt experiments.
+            <p>
+              This portfolio reflects how I think about AI: as a system that must 
+              earn trust through evidence, not assumptions.
             </p>
-            <p className="text-lg leading-relaxed">
-              Each project reflects real engineering workflows such as incident response, DevOps risk analysis, and automated quality validation.
-            </p>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Core Principles */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Core Principles</h2>
-          <div className="space-y-4">
+          {/* Principles List */}
+          <ul className="mt-8 space-y-3">
             {principles.map((principle, i) => (
-              <Card key={i}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    {principle.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">{principle.description}</p>
-                </CardContent>
-              </Card>
+              <li key={i} className="flex items-start gap-3">
+                <CheckCircle className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                <span className="text-muted-foreground">{principle}</span>
+              </li>
             ))}
-          </div>
-        </div>
-
-        {/* Skills */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Technical Skills</h2>
-          <div className="space-y-4">
-            {Object.entries(skills).map(([category, items]) => (
-              <div key={category}>
-                <h3 className="font-semibold mb-2">{category}</h3>
-                <div className="flex flex-wrap gap-2">
-                  {items.map((skill) => (
-                    <Badge key={skill} variant="secondary">
-                      {skill}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+          </ul>
+        </section>
 
         {/* CTA */}
-        <Card className="bg-muted/30">
-          <CardContent className="pt-6 text-center">
-            <h3 className="text-xl font-semibold mb-2">Explore the Portfolio</h3>
-            <p className="text-muted-foreground mb-6">
-              See these principles in action through the live demos and project documentation.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button asChild>
-                <Link href="/demo">
-                  View All Demos
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button variant="outline" asChild>
-                <a href="https://github.com/SemePro/ai-engineering-portfolio" target="_blank" rel="noopener noreferrer">
-                  <Github className="mr-2 h-4 w-4" />
-                  View on GitHub
-                </a>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="pt-8 border-t border-border">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <Button asChild>
+              <Link href="/demo">
+                Explore the Demos
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <a 
+                href="https://github.com/SemePro/ai-engineering-portfolio" 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                <Github className="mr-2 h-4 w-4" />
+                View Code on GitHub
+              </a>
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );
