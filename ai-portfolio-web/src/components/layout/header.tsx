@@ -27,8 +27,8 @@ export function Header() {
           <Image
             src="/logo.png"
             alt="Logo"
-            width={36}
-            height={36}
+            width={48}
+            height={48}
             className="rounded-md"
           />
           <span className="hidden font-semibold sm:inline-block">
