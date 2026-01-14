@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Github, Linkedin, Mail } from "lucide-react";
 
 export function Footer() {
@@ -7,10 +8,14 @@ export function Footer() {
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground font-bold">
-                AI
-              </div>
+            <div className="flex items-center space-x-3">
+              <Image
+                src="/logo.png"
+                alt="Logo"
+                width={36}
+                height={36}
+                className="rounded-md"
+              />
               <span className="font-semibold">Applied AI Engineering Portfolio</span>
             </div>
             <p className="text-sm text-muted-foreground">
