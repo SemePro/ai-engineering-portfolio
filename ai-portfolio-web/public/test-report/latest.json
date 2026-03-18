@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-03-18T17:53:10.157Z",
+  "generatedAt": "2026-03-18T18:17:22.790Z",
   "environment": "production",
   "targetUrl": "https://www.semefit.com",
   "playwright": {
@@ -57,15 +57,24 @@
       }
     ],
     "failures": [],
-    "durationMsTotal": 18609
+    "durationMsTotal": 14516
   },
   "cypress": {
     "ok": true,
     "exitCode": 0,
-    "note": "cypress/e2e/prod-smoke (headless)"
+    "note": "cypress/e2e/prod-smoke (Electron headless)",
+    "passed": 0,
+    "failed": 0,
+    "total": 0,
+    "passRate": 100,
+    "byFile": [],
+    "tests": [],
+    "failures": [],
+    "hasDetail": false
   },
-  "workflowRunUrl": "https://github.com/SemePro/ai-engineering-portfolio/actions/runs/23259113011",
-  "commitSha": "592e7ed",
+  "workflowRunUrl": "https://github.com/SemePro/ai-engineering-portfolio/actions/runs/23260125190",
+  "commitSha": "3265660",
+  "githubRunId": "23260125190",
   "overallOk": true,
   "placeholder": false
 }
