@@ -20,11 +20,9 @@
 
 ## Scheduled production report
 
-**Add the workflow file:** if your git token cannot push `.github/workflows/*`, copy
-[`docs/github-workflow-scheduled-prod-tests.yml`](./github-workflow-scheduled-prod-tests.yml)
-to `.github/workflows/scheduled-prod-tests.yml` via the GitHub web UI (or use a PAT with `workflow` scope).
+**Workflow on `main`:** `.github/workflows/scheduled-prod-tests.yml` (template copy: [`docs/github-workflow-scheduled-prod-tests.yml`](./github-workflow-scheduled-prod-tests.yml)).
 
-Workflow **Scheduled prod smoke & report**:
+**Scheduled prod smoke & report**:
 
 - Runs **every night** at **05:00 UTC** (plus **workflow_dispatch**)
 - Executes Playwright **@prod-safe** tests against `https://www.semefit.com`
