@@ -11,7 +11,7 @@
     "test:playwright:prod": "cross-env TEST_MODE=prod-smoke TEST_BASE_URL=https://www.semefit.com playwright test",
     "test:playwright:ui": "playwright test --ui",
     "test:cypress": "start-server-and-test \"npm run dev -- -p 3001\" http://127.0.0.1:3001 \"cypress run --config baseUrl=http://127.0.0.1:3001 --spec 'cypress/e2e/local/**/*.cy.ts'\"",
-    "test:cypress:prod": "cross-env TEST_BASE_URL=https://www.semefit.com cypress run --spec \"cypress/e2e/prod-smoke/**/*.cy.ts\" --reporter junit --reporter-options mochaFile=test-results/cypress-junit.xml,toConsole=false",
+    "test:cypress:prod": "cross-env TEST_BASE_URL=https://www.semefit.com CI_REPORT_JUNIT=1 cypress run --spec \"cypress/e2e/prod-smoke/**/*.cy.ts\"",
     "test:cypress:open": "cypress open",
     "test:api": "vitest run",
     "test:api:prod": "cross-env TEST_MODE=prod-smoke vitest run",

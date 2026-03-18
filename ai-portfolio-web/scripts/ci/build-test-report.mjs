@@ -212,9 +212,15 @@ function aggregateCypress() {
   try {
     if (fs.existsSync(cyJUnitPath)) {
       detail = parseCypressJUnit(fs.readFileSync(cyJUnitPath, "utf8"));
+    } else if (process.env.CI === "true" && ok) {
+      console.warn(
+        "[test-report] Cypress passed but missing",
+        cyJUnitPath,
+        "— set CI_REPORT_JUNIT=1 in Cypress step (see cypress.config.ts)"
+      );
     }
-  } catch {
-    /* keep empty detail */
+  } catch (e) {
+    console.warn("[test-report] Cypress JUnit parse error:", e?.message || e);
   }
   const hasTests = detail.total > 0;
   return {
