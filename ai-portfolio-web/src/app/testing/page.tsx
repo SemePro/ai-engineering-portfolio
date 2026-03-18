@@ -22,6 +22,7 @@ import {
   TESTING_LANDING_CARDS,
   type TestingLandingIconId,
 } from "@/lib/testing-nav";
+import { ImplementationStatus } from "@/components/testing/implementation-status";
 
 const LANDING_ICONS: Record<
   TestingLandingIconId,
@@ -93,6 +94,8 @@ export default function TestingPage() {
             reliability-first engineering workflow.
           </p>
         </div>
+
+        <ImplementationStatus />
 
         <section className="mb-16">
           <h2 className="text-xl font-semibold mb-6">Philosophy</h2>

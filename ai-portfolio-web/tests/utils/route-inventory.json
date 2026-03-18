@@ -1,0 +1,24 @@
+{
+  "description": "Public marketing and demo routes for coverage / AI-assisted gap analysis",
+  "routes": [
+    { "path": "/", "name": "Home" },
+    { "path": "/projects", "name": "Projects" },
+    { "path": "/demo", "name": "Demos hub" },
+    { "path": "/demo/rag", "name": "RAG demo" },
+    { "path": "/demo/eval", "name": "Eval demo" },
+    { "path": "/demo/gateway", "name": "Gateway demo" },
+    { "path": "/demo/incident", "name": "Incident demo" },
+    { "path": "/demo/devops", "name": "DevOps demo" },
+    { "path": "/demo/architecture", "name": "Architecture demo" },
+    { "path": "/architecture", "name": "Architecture doc" },
+    { "path": "/testing", "name": "Testing overview" },
+    { "path": "/testing/automation", "name": "Testing — Automation" },
+    { "path": "/testing/playwright", "name": "Testing — Playwright" },
+    { "path": "/testing/cypress", "name": "Testing — Cypress" },
+    { "path": "/testing/ui-tests", "name": "Testing — UI" },
+    { "path": "/testing/api-tests", "name": "Testing — API" },
+    { "path": "/testing/integration-tests", "name": "Testing — Integration" },
+    { "path": "/about", "name": "About" },
+    { "path": "/contact", "name": "Contact" }
+  ]
+}

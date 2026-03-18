@@ -42,11 +42,13 @@ const coverageAreas = [
   "Responsive UI checks",
 ];
 
-const coverageRows = [
-  "Home & static pages",
-  "Demo routes (RAG, eval, gateway, …)",
-  "Projects & architecture docs",
-  "Contact & about",
+const coverageRows: { area: string; status: "implemented" | "planned" }[] = [
+  { area: "Home & static pages", status: "implemented" },
+  { area: "Demo routes (RAG, eval, gateway, …)", status: "implemented" },
+  { area: "Projects & architecture docs", status: "implemented" },
+  { area: "Testing section & subpages", status: "implemented" },
+  { area: "LinkedIn absence (contact, footer)", status: "implemented" },
+  { area: "Mobile + desktop (local)", status: "implemented" },
 ];
 
 export default function PlaywrightPage() {
@@ -121,11 +123,19 @@ export default function PlaywrightPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {coverageRows.map((area) => (
-                    <tr key={area} className="border-b border-border/60">
-                      <td className="px-4 py-3">{area}</td>
+                  {coverageRows.map((row) => (
+                    <tr key={row.area} className="border-b border-border/60">
+                      <td className="px-4 py-3">{row.area}</td>
                       <td className="px-4 py-3">
-                        <Badge variant="secondary">Planned coverage</Badge>
+                        <Badge
+                          variant={
+                            row.status === "implemented" ? "default" : "secondary"
+                          }
+                        >
+                          {row.status === "implemented"
+                            ? "Implemented"
+                            : "Planned"}
+                        </Badge>
                       </td>
                     </tr>
                   ))}

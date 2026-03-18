@@ -41,11 +41,13 @@ const coverageAreas = [
   "Demo interactions (forms, buttons, results)",
 ];
 
-const coverageRows = [
-  { area: "Core nav + footer links", status: "planned" as const },
-  { area: "Demo: RAG / eval / gateway", status: "planned" as const },
-  { area: "Demo: incident / DevOps / architecture", status: "planned" as const },
-  { area: "Error and empty states (intercepted API)", status: "planned" as const },
+const coverageRows: { area: string; status: "implemented" | "planned" }[] = [
+  { area: "Journeys: home → demos → projects", status: "implemented" },
+  { area: "Testing hub + return home", status: "implemented" },
+  { area: "Footer consistency (multi-page)", status: "implemented" },
+  { area: "Contact + LinkedIn regression", status: "implemented" },
+  { area: "Prod smoke (read-only)", status: "implemented" },
+  { area: "API intercept / error UI (planned extension)", status: "planned" },
 ];
 
 export default function CypressPage() {
@@ -97,7 +99,7 @@ export default function CypressPage() {
           <CardHeader className="border-b bg-primary/5">
             <CardTitle>Planned / implemented coverage</CardTitle>
             <CardDescription>
-              Distinct visual treatment from Playwright; same Phase 2 rollout.
+              Cypress e2e specs under <code className="text-xs">cypress/e2e/</code>.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
@@ -121,7 +123,15 @@ export default function CypressPage() {
                     <tr key={row.area} className="border-b border-border/60">
                       <td className="px-4 py-3">{row.area}</td>
                       <td className="px-4 py-3">
-                        <Badge variant="secondary">Planned coverage</Badge>
+                        <Badge
+                          variant={
+                            row.status === "implemented" ? "default" : "secondary"
+                          }
+                        >
+                          {row.status === "implemented"
+                            ? "Implemented"
+                            : "Planned"}
+                        </Badge>
                       </td>
                     </tr>
                   ))}

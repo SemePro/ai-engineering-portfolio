@@ -1,0 +1,10 @@
+# Test artifacts
+test-results/
+playwright-report/
+tests/reports/playwright-html/
+tests/reports/ai-*.md
+tests/reports/ai-*.json
+!tests/reports/.gitkeep
+cypress/screenshots/
+cypress/videos/
+coverage/
