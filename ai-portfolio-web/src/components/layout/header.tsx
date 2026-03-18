@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Github, Linkedin, Menu, X } from "lucide-react";
+import { Github, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -12,6 +12,7 @@ const navigation = [
   { name: "Projects", href: "/projects" },
   { name: "Demos", href: "/demo" },
   { name: "Architecture", href: "/architecture" },
+  { name: "Testing", href: "/testing" },
   { name: "About", href: "/about" },
   { name: "Contact", href: "/contact" },
 ];
@@ -53,14 +54,6 @@ export function Header() {
             </Link>
           ))}
           <a
-            href="https://www.linkedin.com/in/kodjo-semeglo-7993969a/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-primary transition-colors"
-          >
-            <Linkedin className="h-5 w-5" />
-          </a>
-          <a
             href="https://github.com/SemePro/ai-engineering-portfolio"
             target="_blank"
             rel="noopener noreferrer"
@@ -95,7 +88,8 @@ export function Header() {
                 href={item.href}
                 className={cn(
                   "block py-2 text-sm font-medium transition-colors",
-                  pathname === item.href
+                  pathname === item.href ||
+                    pathname.startsWith(item.href + "/")
                     ? "text-primary"
                     : "text-muted-foreground"
                 )}
@@ -104,6 +98,16 @@ export function Header() {
                 {item.name}
               </Link>
             ))}
+            <a
+              href="https://github.com/SemePro/ai-engineering-portfolio"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 py-2 text-sm font-medium text-muted-foreground hover:text-primary"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <Github className="h-5 w-5" />
+              GitHub
+            </a>
           </div>
         </div>
       )}

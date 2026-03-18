@@ -20,6 +20,7 @@ A professional portfolio built with Next.js 14 (App Router), TypeScript, and Tai
 │  │  • /demo/gateway Playground │    │
 │  │  • /about      Career story │    │
 │  │  • /contact    Links        │    │
+│  │  • /testing   Testing IA   │    │
 │  └─────────────────────────────┘    │
 │                 │                   │
 │                 ▼                   │
@@ -38,7 +39,8 @@ A professional portfolio built with Next.js 14 (App Router), TypeScript, and Tai
 - **Eval Demo**: Dashboard showing test results
 - **Gateway Demo**: API playground with security feedback
 - **About**: Career narrative and skills
-- **Contact**: GitHub and LinkedIn links
+- **Contact**: GitHub link
+- **Testing**: Overview and subpages (automation, Playwright, Cypress, UI/API/integration)
 
 ### UI Components
 - shadcn/ui-style components (Button, Card, Badge, Input)

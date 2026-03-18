@@ -1,12 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Github, Linkedin, Mail } from "lucide-react";
+import { Github, Mail } from "lucide-react";
 
 export function Footer() {
   return (
     <footer className="border-t bg-muted/30">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
               <Image
@@ -96,6 +96,47 @@ export function Footer() {
           </div>
 
           <div>
+            <h4 className="font-semibold mb-4">Testing</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li>
+                <Link href="/testing" className="hover:text-primary transition-colors">
+                  Overview
+                </Link>
+              </li>
+              <li>
+                <Link href="/testing/automation" className="hover:text-primary transition-colors">
+                  Automation
+                </Link>
+              </li>
+              <li>
+                <Link href="/testing/playwright" className="hover:text-primary transition-colors">
+                  Playwright
+                </Link>
+              </li>
+              <li>
+                <Link href="/testing/cypress" className="hover:text-primary transition-colors">
+                  Cypress
+                </Link>
+              </li>
+              <li>
+                <Link href="/testing/ui-tests" className="hover:text-primary transition-colors">
+                  UI tests
+                </Link>
+              </li>
+              <li>
+                <Link href="/testing/api-tests" className="hover:text-primary transition-colors">
+                  API tests
+                </Link>
+              </li>
+              <li>
+                <Link href="/testing/integration-tests" className="hover:text-primary transition-colors">
+                  Integration
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div>
             <h4 className="font-semibold mb-4">Connect</h4>
             <div className="flex space-x-4">
               <a
@@ -105,14 +146,6 @@ export function Footer() {
                 className="text-muted-foreground hover:text-primary transition-colors"
               >
                 <Github className="h-5 w-5" />
-              </a>
-              <a
-                href="https://www.linkedin.com/in/kodjo-semeglo-7993969a/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-primary transition-colors"
-              >
-                <Linkedin className="h-5 w-5" />
               </a>
               <a
                 href="mailto:contact@example.com"
