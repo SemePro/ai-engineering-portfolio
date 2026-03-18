@@ -39,13 +39,11 @@ export function ImplementationStatus() {
           <Card key={s.id}>
             <CardHeader className="pb-2">
               <CardTitle className="text-base">{s.name}</CardTitle>
-              <CardDescription>
+              <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1 mt-1.5">
                 {s.areas.map((a) => (
-                  <span key={a} className="mr-2 inline-block">
-                    • {a}
-                  </span>
+                  <li key={a}>{a}</li>
                 ))}
-              </CardDescription>
+              </ul>
             </CardHeader>
             <CardContent className="pt-0">
               <pre className="text-xs bg-muted/50 rounded-md p-3 overflow-x-auto text-muted-foreground">

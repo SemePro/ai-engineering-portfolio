@@ -257,12 +257,23 @@ function ReportsBody({
             </CardHeader>
             <CardContent className="overflow-x-auto">
               <table className="w-full text-sm">
+                <caption className="sr-only">
+                  Playwright test counts grouped by spec file
+                </caption>
                 <thead>
                   <tr className="border-b text-left text-muted-foreground">
-                    <th className="py-2 pr-4 font-medium">File</th>
-                    <th className="py-2 pr-4 font-medium w-20">Pass</th>
-                    <th className="py-2 pr-4 font-medium w-20">Fail</th>
-                    <th className="py-2 font-medium w-20">Skip</th>
+                    <th scope="col" className="py-2 pr-4 font-medium">
+                      File
+                    </th>
+                    <th scope="col" className="py-2 pr-4 font-medium w-20">
+                      Pass
+                    </th>
+                    <th scope="col" className="py-2 pr-4 font-medium w-20">
+                      Fail
+                    </th>
+                    <th scope="col" className="py-2 font-medium w-20">
+                      Skip
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -293,9 +304,9 @@ function ReportsBody({
               <CardDescription>Latest run — human review required</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {pw.failures.map((f, i) => (
+              {pw.failures.map((f) => (
                 <div
-                  key={i}
+                  key={`${f.file}::${f.title}`}
                   className="rounded-lg border border-border/80 bg-background/50 p-4 text-sm"
                 >
                   <p className="font-mono text-xs text-muted-foreground mb-1">

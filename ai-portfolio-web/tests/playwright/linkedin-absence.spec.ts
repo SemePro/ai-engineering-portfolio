@@ -1,23 +1,28 @@
 import { test, expect } from "@playwright/test";
 
 /**
- * Enforces removal of LinkedIn from public surfaces (contact, footer, header).
+ * No LinkedIn links in header, footer, or main content areas (avoids false
+ * positives from incidental body copy mentioning "linkedin.com").
  */
 test.describe("LinkedIn absent @prod-safe", () => {
   const pages = ["/", "/contact", "/projects", "/about", "/testing"];
 
   for (const path of pages) {
-    test(`no LinkedIn on ${path} @prod-safe`, async ({ page }) => {
+    test(`no LinkedIn links in chrome on ${path} @prod-safe`, async ({
+      page,
+    }) => {
       await page.goto(path);
-      await expect(page.locator('a[href*="linkedin.com"]')).toHaveCount(0);
-      await expect(page.locator('a[href*="linkedin"]')).toHaveCount(0);
-      const html = (await page.content()).toLowerCase();
-      expect(html).not.toContain("linkedin.com");
+      const chrome = page.locator("header, footer, main");
+      await expect(chrome.locator('a[href*="linkedin.com"]')).toHaveCount(0);
+      await expect(chrome.locator('a[href*="linkedin"]')).toHaveCount(0);
     });
   }
 
-  test("contact page has no LinkedIn text @prod-safe", async ({ page }) => {
+  test("contact has no LinkedIn label or card @prod-safe", async ({
+    page,
+  }) => {
     await page.goto("/contact");
     await expect(page.getByText(/^LinkedIn$/i)).toHaveCount(0);
+    await expect(page.locator("main").getByText(/linkedin/i)).toHaveCount(0);
   });
 });

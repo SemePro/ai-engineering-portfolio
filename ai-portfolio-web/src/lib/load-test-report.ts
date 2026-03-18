@@ -1,9 +1,32 @@
 import { readFileSync } from "fs";
 import { join } from "path";
 
-/** Default: public JSON on default branch (override with TEST_REPORT_JSON_URL). */
+/** Default: public JSON on default branch (forks: set TEST_REPORT_JSON_URL, same allowlist rules). */
 const DEFAULT_REPORT_URL =
   "https://raw.githubusercontent.com/SemePro/ai-engineering-portfolio/main/ai-portfolio-web/public/test-report/latest.json";
+
+function allowedHosts(): Set<string> {
+  const extra = process.env.TEST_REPORT_JSON_ALLOWED_HOSTS || "";
+  const hosts = [
+    "raw.githubusercontent.com",
+    ...extra.split(",").map((h) => h.trim().toLowerCase()).filter(Boolean),
+  ];
+  return new Set(hosts);
+}
+
+/**
+ * Only fetch from HTTPS + allowlisted hosts (mitigates SSRF via env).
+ * Custom URL: server env TEST_REPORT_JSON_URL only — not NEXT_PUBLIC_*.
+ */
+export function isAllowedReportUrl(urlString: string): boolean {
+  try {
+    const u = new URL(urlString);
+    if (u.protocol !== "https:") return false;
+    return allowedHosts().has(u.hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
 
 export type TestReportData = {
   schemaVersion: number;
@@ -51,30 +74,43 @@ const FALLBACK: TestReportData = {
   cypress: null,
 };
 
+function resolveReportUrl(): string {
+  const custom = process.env.TEST_REPORT_JSON_URL?.trim();
+  if (custom && isAllowedReportUrl(custom)) return custom;
+  if (custom && !isAllowedReportUrl(custom)) {
+    if (process.env.NODE_ENV === "development") {
+      console.warn(
+        "[test-report] TEST_REPORT_JSON_URL rejected (use HTTPS + allowed host; extend TEST_REPORT_JSON_ALLOWED_HOSTS if needed). Using default."
+      );
+    }
+  }
+  return DEFAULT_REPORT_URL;
+}
+
 /**
- * Loads the latest nightly report. Production: fetches from GitHub raw URL so
- * the page updates as soon as the scheduled job commits — no redeploy needed.
+ * Loads the latest nightly report. Fetches allowlisted HTTPS URLs only.
  */
 export async function loadTestReport(): Promise<{
   data: TestReportData;
   source: "remote" | "local" | "fallback";
 }> {
-  const url =
-    process.env.TEST_REPORT_JSON_URL ||
-    process.env.NEXT_PUBLIC_TEST_REPORT_JSON_URL ||
-    DEFAULT_REPORT_URL;
+  const url = resolveReportUrl();
 
-  try {
-    const res = await fetch(url, {
-      cache: "no-store",
-      headers: { Accept: "application/json" },
-    });
-    if (res.ok) {
-      const data = (await res.json()) as TestReportData;
-      return { data, source: "remote" };
+  if (!isAllowedReportUrl(url)) {
+    /* should not happen for DEFAULT */
+  } else {
+    try {
+      const res = await fetch(url, {
+        cache: "no-store",
+        headers: { Accept: "application/json" },
+      });
+      if (res.ok) {
+        const data = (await res.json()) as TestReportData;
+        return { data, source: "remote" };
+      }
+    } catch {
+      /* local fallback */
     }
-  } catch {
-    /* try local */
   }
 
   try {

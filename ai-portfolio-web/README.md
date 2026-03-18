@@ -153,8 +153,8 @@ npm run dev
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `TEST_REPORT_JSON_URL` | (Server) URL for `/testing/reports` JSON — defaults to GitHub raw on `main` | — |
-| `NEXT_PUBLIC_TEST_REPORT_JSON_URL` | Client-visible override for report JSON URL | — |
+| `TEST_REPORT_JSON_URL` | Server-only URL for report JSON (HTTPS + allowlisted host; default fetches GitHub raw) | — |
+| `TEST_REPORT_JSON_ALLOWED_HOSTS` | Extra allowed hosts for `TEST_REPORT_JSON_URL` (comma-separated) | — |
 | `NEXT_PUBLIC_GATEWAY_URL` | Gateway API URL | `http://localhost:8000` |
 | `NEXT_PUBLIC_RAG_URL` | RAG API URL | `http://localhost:8001` |
 | `NEXT_PUBLIC_EVAL_URL` | Eval API URL | `http://localhost:8002` |

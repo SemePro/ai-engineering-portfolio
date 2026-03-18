@@ -31,7 +31,7 @@ Workflow **Scheduled prod smoke & report**:
 - Commits `ai-portfolio-web/public/test-report/latest.json` (`[skip ci]`)
 - **`/testing/reports`** fetches that JSON from **GitHub raw** on each request, so new results show **without redeploying** the frontend
 
-Override URL (e.g. fork or private repo): set **`TEST_REPORT_JSON_URL`** or **`NEXT_PUBLIC_TEST_REPORT_JSON_URL`** to your raw JSON URL.
+Override report URL (server only): **`TEST_REPORT_JSON_URL`** — must be **HTTPS** and host allowlisted (default: `raw.githubusercontent.com`). Add hosts via comma-separated **`TEST_REPORT_JSON_ALLOWED_HOSTS`** if needed.
 
 If `main` is branch-protected, grant **Actions** write access to contents or use a PAT with `contents: write`.
 

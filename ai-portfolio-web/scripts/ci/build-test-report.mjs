@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Aggregates Playwright (and optional Cypress) JSON into public/test-report/latest.json
+ * Aggregates Playwright JSON into public/test-report/latest.json.
+ * Exits 1 if tests did not pass (workflow should use `if: always()` on commit step).
  */
 import fs from "fs";
 import path from "path";
@@ -36,12 +37,21 @@ function walkSuites(suites, visitor) {
           projectName,
           status,
           durationMs: last?.duration ?? 0,
-          errors: last?.errors?.map((e) => (typeof e === "string" ? e : e?.message || String(e))) || [],
+          errors:
+            last?.errors?.map((e) =>
+              typeof e === "string" ? e : e?.message || String(e)
+            ) || [],
         });
       }
     }
     walkSuites(s.suites, visitor);
   }
+}
+
+function classifyStatus(st) {
+  if (st === "passed") return "passed";
+  if (st === "skipped") return "skipped";
+  return "failed";
 }
 
 function aggregatePlaywright() {
@@ -76,29 +86,25 @@ function aggregatePlaywright() {
   walkSuites(raw.suites, (row) => {
     durationMsTotal += row.durationMs;
     const st = row.status;
-    if (st === "passed") passed++;
-    else if (st === "skipped") skipped++;
-    else if (st === "timedOut") {
-      timedOut++;
+    const bucket = classifyStatus(st);
+
+    if (bucket === "passed") passed++;
+    else if (bucket === "skipped") skipped++;
+    else {
       failed++;
+      if (st === "timedOut") timedOut++;
+      let err =
+        st === "timedOut"
+          ? "Timed out"
+          : st === "interrupted"
+            ? "Interrupted"
+            : st === "unknown"
+              ? "Unknown status"
+              : row.errors[0] || "Failed";
       failures.push({
         file: row.file,
         title: `${row.title} (${row.projectName})`,
-        error: "Timed out",
-      });
-    } else if (st === "failed" || st === "unexpected") {
-      failed++;
-      failures.push({
-        file: row.file,
-        title: `${row.title} (${row.projectName})`,
-        error: row.errors[0] || "Failed",
-      });
-    } else if (st === "interrupted") {
-      failed++;
-      failures.push({
-        file: row.file,
-        title: row.title,
-        error: "Interrupted",
+        error: err,
       });
     }
 
@@ -107,15 +113,15 @@ function aggregatePlaywright() {
       byFileMap.set(key, { file: key, passed: 0, failed: 0, skipped: 0 });
     }
     const agg = byFileMap.get(key);
-    if (st === "passed") agg.passed++;
-    else if (st === "skipped") agg.skipped++;
+    if (bucket === "passed") agg.passed++;
+    else if (bucket === "skipped") agg.skipped++;
     else agg.failed++;
   });
 
   const total = passed + failed + skipped;
   const exitCode2 = readExit(pwExitPath);
   return {
-    ok: failed === 0 && timedOut === 0 && (exitCode2 === null || exitCode2 === 0),
+    ok: failed === 0 && (exitCode2 === null || exitCode2 === 0),
     exitCode: exitCode2,
     passed,
     failed,
@@ -130,7 +136,6 @@ function aggregatePlaywright() {
 }
 
 const pw = aggregatePlaywright();
-/** Cypress prod smoke is run locally/CI separately; optional extension point */
 const cypress = null;
 
 const repo = process.env.GITHUB_REPOSITORY || "SemePro/ai-engineering-portfolio";
@@ -158,7 +163,9 @@ fs.writeFileSync(outPath, JSON.stringify(report, null, 2), "utf8");
 console.log("Wrote", outPath);
 console.log(
   JSON.stringify({
-    playwright: { passed: pw.passed, failed: pw.failed, total: pw.total },
+    playwright: { passed: pw.passed, failed: pw.failed, total: pw.total, ok: pw.ok },
     cypress,
   })
 );
+
+process.exit(pw.ok ? 0 : 1);
