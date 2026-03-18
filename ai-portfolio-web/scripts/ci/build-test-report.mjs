@@ -181,4 +181,5 @@ console.log(
 );
 
 const allGreen = pw.ok && (cypress === null || cypress.ok);
-process.exit(allGreen ? 0 : 1);
+/** In GitHub Actions (CI=true), always exit 0 so commit runs; workflow fails in a final step if !overallOk. */
+process.exit(process.env.CI === "true" ? 0 : allGreen ? 0 : 1);

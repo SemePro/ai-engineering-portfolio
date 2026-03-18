@@ -33,6 +33,8 @@ Override report URL (server only): **`TEST_REPORT_JSON_URL`** — must be **HTTP
 
 If `main` is branch-protected, grant **Actions** write access to contents or use a PAT with `contents: write`.
 
+The workflow uses **actions/checkout@v6** and **actions/setup-node@v5** (Node 24–compatible action runtimes) and **Node 22** for `npm`/Playwright/Cypress. The report step exits 0 on CI so the commit always runs; the last step fails the job if `overallOk` is false.
+
 ## Scripts
 
 | Script | What it does |

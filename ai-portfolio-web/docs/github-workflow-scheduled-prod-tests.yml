@@ -17,15 +17,13 @@ permissions:
 jobs:
   smoke-and-report:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
           cache-dependency-path: ai-portfolio-web/package-lock.json
 
@@ -53,7 +51,6 @@ jobs:
           echo $? > test-results/cypress-exit.txt
           set -e
 
-      # Exits 1 when Playwright or Cypress fails — commit still runs via if: always()
       - name: Build test report JSON
         if: always()
         working-directory: ai-portfolio-web
@@ -76,3 +73,19 @@ jobs:
             git commit -m "chore(test-report): nightly prod smoke $(date -u +%Y-%m-%dT%H:%MZ) [skip ci]"
             git push
           fi
+
+      - name: Fail if smoke tests did not pass
+        if: always()
+        working-directory: ai-portfolio-web
+        run: |
+          node -e "
+            const fs = require('fs');
+            const p = 'public/test-report/latest.json';
+            if (!fs.existsSync(p)) { console.error('Missing report'); process.exit(1); }
+            const j = JSON.parse(fs.readFileSync(p, 'utf8'));
+            if (j.overallOk !== true) {
+              console.error('overallOk is false — see Playwright/Cypress steps and latest.json');
+              process.exit(1);
+            }
+            console.log('All smoke checks passed (overallOk=true)');
+          "
