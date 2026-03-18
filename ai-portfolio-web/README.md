@@ -20,6 +20,7 @@ A professional portfolio built with Next.js 14 (App Router), TypeScript, and Tai
 │  │  • /demo/gateway Playground │    │
 │  │  • /about      Career story │    │
 │  │  • /contact    Links        │    │
+│  │  • /testing   Testing IA   │    │
 │  └─────────────────────────────┘    │
 │                 │                   │
 │                 ▼                   │
@@ -38,7 +39,8 @@ A professional portfolio built with Next.js 14 (App Router), TypeScript, and Tai
 - **Eval Demo**: Dashboard showing test results
 - **Gateway Demo**: API playground with security feedback
 - **About**: Career narrative and skills
-- **Contact**: GitHub and LinkedIn links
+- **Contact**: GitHub link
+- **Testing**: Overview and subpages (automation, Playwright, Cypress, UI/API/integration)
 
 ### UI Components
 - shadcn/ui-style components (Button, Card, Badge, Input)
@@ -72,17 +74,29 @@ src/app/
 │       └── page.tsx    # Gateway playground
 ├── about/
 │   └── page.tsx        # About/career page
-└── contact/
-    └── page.tsx        # Contact links
+├── contact/
+│   └── page.tsx        # Contact links
+└── testing/
+    ├── page.tsx        # Testing overview
+    ├── automation/page.tsx
+    ├── playwright/page.tsx
+    ├── cypress/page.tsx
+    ├── ui-tests/page.tsx
+    ├── api-tests/page.tsx
+    └── integration-tests/page.tsx
 ```
 
 ## Component Structure
 
 ```
+src/lib/
+└── testing-nav.ts      # Shared Testing routes (nav, footer, landing cards)
 src/components/
 ├── layout/
 │   ├── header.tsx      # Navigation header
 │   └── footer.tsx      # Site footer
+├── testing/
+│   └── testing-area-nav.tsx
 └── ui/
     ├── button.tsx      # Button component
     ├── card.tsx        # Card component

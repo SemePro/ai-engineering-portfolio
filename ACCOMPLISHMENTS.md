@@ -233,7 +233,14 @@ python -m src.cli latest
 | `/demo/eval` | Evaluation dashboard with run history |
 | `/demo/gateway` | API playground showing security features |
 | `/about` | Career narrative and skills |
-| `/contact` | GitHub and LinkedIn links |
+| `/contact` | GitHub link |
+| `/testing` | Testing portfolio overview |
+| `/testing/automation` | Automation testing strategy |
+| `/testing/playwright` | Playwright coverage |
+| `/testing/cypress` | Cypress coverage |
+| `/testing/ui-tests` | UI testing matrix |
+| `/testing/api-tests` | API testing focus |
+| `/testing/integration-tests` | Integration testing |
 
 **UI Components Built**:
 - ✅ Button (with variants: default, outline, secondary, ghost, link)
