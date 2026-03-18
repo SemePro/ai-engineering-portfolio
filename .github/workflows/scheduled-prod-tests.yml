@@ -1,0 +1,67 @@
+name: Scheduled prod smoke & report
+
+on:
+  schedule:
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: scheduled-prod-tests
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  smoke-and-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: ai-portfolio-web/package-lock.json
+
+      - name: Install dependencies
+        run: cd ai-portfolio-web && npm ci
+
+      - name: Install Playwright Chromium
+        run: cd ai-portfolio-web && npx playwright install chromium --with-deps
+
+      - name: Playwright prod smoke (@prod-safe)
+        working-directory: ai-portfolio-web
+        run: |
+          mkdir -p test-results
+          set +e
+          npx playwright test -c playwright.scheduled.config.ts
+          echo $? > test-results/pw-exit.txt
+          set -e
+
+      # Exits 1 when tests fail — job still commits report via if: always()
+      - name: Build test report JSON
+        if: always()
+        working-directory: ai-portfolio-web
+        env:
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: node scripts/ci/build-test-report.mjs
+
+      - name: Commit and push report
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ai-portfolio-web/public/test-report/latest.json
+          if git diff --staged --quiet; then
+            echo "No changes to report"
+          else
+            git commit -m "chore(test-report): nightly prod smoke $(date -u +%Y-%m-%dT%H:%MZ) [skip ci]"
+            git push
+          fi
