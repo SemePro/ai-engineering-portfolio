@@ -1,23 +1,67 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "1970-01-01T00:00:00.000Z",
+  "generatedAt": "2026-03-18T17:20:15.565Z",
   "environment": "production",
   "targetUrl": "https://www.semefit.com",
   "playwright": {
     "ok": true,
-    "passed": 0,
+    "exitCode": 0,
+    "passed": 29,
     "failed": 0,
     "skipped": 0,
     "timedOut": 0,
-    "total": 0,
-    "passRate": 0,
-    "byFile": [],
+    "total": 29,
+    "passRate": 100,
+    "byFile": [
+      {
+        "file": "about-contact.spec.ts",
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "file": "demo-smoke.spec.ts",
+        "passed": 6,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "file": "linkedin-absence.spec.ts",
+        "passed": 6,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "file": "navigation.spec.ts",
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "file": "smoke-pages.spec.ts",
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "file": "testing-section.spec.ts",
+        "passed": 7,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "file": "ui-integrity.spec.ts",
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0
+      }
+    ],
     "failures": [],
-    "durationMsTotal": 0
+    "durationMsTotal": 15068
   },
   "cypress": null,
-  "workflowRunUrl": null,
-  "commitSha": null,
+  "workflowRunUrl": "https://github.com/SemePro/ai-engineering-portfolio/actions/runs/23257676993",
+  "commitSha": "87bb14a",
   "overallOk": true,
-  "placeholder": true
+  "placeholder": false
 }
