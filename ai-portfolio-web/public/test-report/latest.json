@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-03-18T18:29:43.096Z",
+  "generatedAt": "2026-03-18T18:49:45.306Z",
   "environment": "production",
   "targetUrl": "https://www.semefit.com",
   "playwright": {
@@ -57,24 +57,46 @@
       }
     ],
     "failures": [],
-    "durationMsTotal": 14988
+    "durationMsTotal": 14583
   },
   "cypress": {
     "ok": true,
     "exitCode": 0,
     "note": "cypress/e2e/prod-smoke (Electron headless)",
-    "passed": 0,
+    "passed": 3,
     "failed": 0,
-    "total": 0,
+    "total": 3,
     "passRate": 100,
-    "byFile": [],
-    "tests": [],
+    "byFile": [
+      {
+        "file": "core.cy.ts",
+        "passed": 3,
+        "failed": 0
+      }
+    ],
+    "tests": [
+      {
+        "title": "home and testing overview",
+        "file": "core.cy.ts",
+        "ok": true
+      },
+      {
+        "title": "testing reports page loads",
+        "file": "core.cy.ts",
+        "ok": true
+      },
+      {
+        "title": "main routes respond",
+        "file": "core.cy.ts",
+        "ok": true
+      }
+    ],
     "failures": [],
-    "hasDetail": false
+    "hasDetail": true
   },
-  "workflowRunUrl": "https://github.com/SemePro/ai-engineering-portfolio/actions/runs/23260632106",
-  "commitSha": "55a2870",
-  "githubRunId": "23260632106",
+  "workflowRunUrl": "https://github.com/SemePro/ai-engineering-portfolio/actions/runs/23261486193",
+  "commitSha": "e0a7d90",
+  "githubRunId": "23261486193",
   "overallOk": true,
   "placeholder": false
 }
