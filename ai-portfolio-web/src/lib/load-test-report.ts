@@ -5,6 +5,16 @@ import { join } from "path";
 const DEFAULT_REPORT_URL =
   "https://raw.githubusercontent.com/SemePro/ai-engineering-portfolio/main/ai-portfolio-web/public/test-report/latest.json";
 
+/** CDN mirror — Vercel/serverless often gets 403 from raw.githubusercontent.com without a browser UA. */
+const DEFAULT_REPORT_CDN_URL =
+  "https://cdn.jsdelivr.net/gh/SemePro/ai-engineering-portfolio@main/ai-portfolio-web/public/test-report/latest.json";
+
+const FETCH_HEADERS = {
+  Accept: "application/json",
+  "User-Agent":
+    "SemeFit-TestReport/1.0 (+https://www.semefit.com/testing/reports)",
+} as const;
+
 function allowedHosts(): Set<string> {
   const extra = process.env.TEST_REPORT_JSON_ALLOWED_HOSTS || "";
   const hosts = [
@@ -100,29 +110,36 @@ function resolveReportUrl(): string {
   return DEFAULT_REPORT_URL;
 }
 
+function reportUrlsToTry(): string[] {
+  const primary = resolveReportUrl();
+  const urls = [primary];
+  if (primary === DEFAULT_REPORT_URL) {
+    urls.push(DEFAULT_REPORT_CDN_URL);
+  }
+  return urls;
+}
+
 /**
- * Loads the latest nightly report. Fetches allowlisted HTTPS URLs only.
+ * Loads the latest nightly report. Tries GitHub raw, then jsDelivr (raw often 403 from serverless).
  */
 export async function loadTestReport(): Promise<{
   data: TestReportData;
   source: "remote" | "local" | "fallback";
 }> {
-  const url = resolveReportUrl();
-
-  if (!isAllowedReportUrl(url)) {
-    /* should not happen for DEFAULT */
-  } else {
+  for (const url of reportUrlsToTry()) {
+    if (!url.startsWith("https://")) continue;
     try {
       const res = await fetch(url, {
         cache: "no-store",
-        headers: { Accept: "application/json" },
+        next: { revalidate: 0 },
+        headers: { ...FETCH_HEADERS },
       });
       if (res.ok) {
         const data = (await res.json()) as TestReportData;
         return { data, source: "remote" };
       }
     } catch {
-      /* local fallback */
+      /* try next URL */
     }
   }
 
@@ -161,6 +178,20 @@ function resolveHistoryIndexUrl(): string | null {
   return null;
 }
 
+function historyIndexUrlsToTry(): string[] {
+  const u = resolveHistoryIndexUrl();
+  if (!u) return [];
+  const urls = [u];
+  if (u.includes("raw.githubusercontent.com")) {
+    const cdn = u.replace(
+      /^https:\/\/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)$/,
+      "https://cdn.jsdelivr.net/gh/$1/$2@$3/$4"
+    );
+    if (cdn !== u) urls.push(cdn);
+  }
+  return urls;
+}
+
 /** Base URL for raw JSON under public/test-report (for snapshot links). */
 export function testReportPublicBaseUrl(): string {
   return resolveReportUrl().replace(/\/latest\.json\/?$/, "");
@@ -173,23 +204,27 @@ export async function loadTestReportHistory(): Promise<{
   data: ReportHistoryIndex | null;
   source: "remote" | "local" | "none";
 }> {
-  const url = resolveHistoryIndexUrl();
-  if (!url || !isAllowedReportUrl(url)) {
+  const urls = historyIndexUrlsToTry();
+  if (urls.length === 0) {
     return { data: null, source: "none" };
   }
-  try {
-    const res = await fetch(url, {
-      cache: "no-store",
-      headers: { Accept: "application/json" },
-    });
-    if (res.ok) {
-      const data = (await res.json()) as ReportHistoryIndex;
-      if (data?.runs && Array.isArray(data.runs)) {
-        return { data, source: "remote" };
+  for (const url of urls) {
+    if (!url.startsWith("https://")) continue;
+    try {
+      const res = await fetch(url, {
+        cache: "no-store",
+        next: { revalidate: 0 },
+        headers: { ...FETCH_HEADERS },
+      });
+      if (res.ok) {
+        const data = (await res.json()) as ReportHistoryIndex;
+        if (data?.runs && Array.isArray(data.runs)) {
+          return { data, source: "remote" };
+        }
       }
+    } catch {
+      /* next */
     }
-  } catch {
-    /* local */
   }
   try {
     const p = join(

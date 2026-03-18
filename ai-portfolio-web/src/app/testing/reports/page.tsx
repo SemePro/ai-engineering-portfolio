@@ -16,6 +16,7 @@ import {
   type ReportHistoryIndex,
 } from "@/lib/load-test-report";
 import type { Metadata } from "next";
+import { unstable_noStore as noStore } from "next/cache";
 import Link from "next/link";
 import {
   ExternalLink,
@@ -36,6 +37,7 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 function formatDuration(ms: number) {
   if (ms < 1000) return `${ms}ms`;
@@ -85,9 +87,9 @@ function ReportsBody({
             </Badge>
           )}
           {source === "local" && (
-            <Badge variant="outline" className="gap-1 font-normal">
+            <Badge variant="outline" className="gap-1 font-normal border-amber-500/50">
               <HardDrive className="h-3 w-3" />
-              Local file
+              Bundled deploy (stale)
             </Badge>
           )}
           {data.overallOk === true && !isPlaceholder && (
@@ -109,9 +111,24 @@ function ReportsBody({
           A GitHub Action runs <strong>every night</strong> (Playwright +
           Cypress prod smoke), commits <strong>latest.json</strong> on every run
           (overwritten), and keeps a <strong>history</strong> of snapshots in
-          the repo. This page reads live JSON from GitHub raw — no redeploy
-          needed for new numbers.
+          the repo. This page loads live JSON from the repo (GitHub raw or CDN
+          mirror) — no redeploy needed when fetch succeeds.
         </p>
+
+        {source === "local" && (
+          <div className="mb-6 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/90">
+            <strong className="text-amber-200">Not live:</strong> Production
+            could not fetch the report from GitHub, so you are seeing the{" "}
+            <code className="text-xs bg-black/20 px-1 rounded">latest.json</code>{" "}
+            bundled with the last Vercel deploy. After the next deploy this fix
+            tries a CDN fallback; also confirm the workflow{" "}
+            <strong>pushes to main</strong> and the repo path matches{" "}
+            <code className="text-xs break-all">
+              SemePro/ai-engineering-portfolio/.../latest.json
+            </code>
+            .
+          </div>
+        )}
 
         {isPlaceholder && (
           <Card className="mb-10 border-dashed bg-muted/20">
@@ -627,6 +644,7 @@ function ReportsBody({
 }
 
 export default async function TestReportsPage() {
+  noStore();
   const [{ data, source }, { data: history, source: historySource }] =
     await Promise.all([loadTestReport(), loadTestReportHistory()]);
   return (

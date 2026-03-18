@@ -33,6 +33,12 @@ Override report URL (server only): **`TEST_REPORT_JSON_URL`** — must be **HTTP
 
 Each workflow run **overwrites** `public/test-report/latest.json` and **appends** `history/runs/{GITHUB_RUN_ID}.json` plus updates `history/index.json` (rolling list of 500). Older snapshots remain in git.
 
+### Reports page not updating on semefit.com
+
+1. **Badge “Live from repo”** — fetch works; numbers match GitHub. **“Bundled deploy (stale)”** — production never reached live JSON (was using the file from the last deploy). Deploy the latest app: it tries **GitHub raw**, then **jsDelivr** as fallback.
+2. **GitHub Actions** must **commit and push** `latest.json` to **main** (branch protection / missing `contents: write` blocks updates).
+3. Optional Vercel env **`TEST_REPORT_JSON_URL`**: set to your raw `latest.json` URL if the repo or branch differs from the default.
+
 If `main` is branch-protected, grant **Actions** write access to contents or use a PAT with `contents: write`.
 
 The workflow uses **actions/checkout@v6** and **actions/setup-node@v5** (Node 24–compatible action runtimes) and **Node 22** for `npm`/Playwright/Cypress. The report step exits 0 on CI so the commit always runs; the last step fails the job if `overallOk` is false.
