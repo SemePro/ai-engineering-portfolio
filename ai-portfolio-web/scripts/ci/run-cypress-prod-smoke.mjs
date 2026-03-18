@@ -85,7 +85,7 @@ async function main() {
         byFile: [...byFileMap.values()].sort((a, b) =>
           a.file.localeCompare(b.file)
         ),
-        tests: tests.slice(0, 120),
+        tests: tests.slice(0, 200),
       },
       null,
       2

@@ -71,7 +71,7 @@ The workflow uses **actions/checkout@v6** and **actions/setup-node@v5** (Node 24
 Asserted in:
 
 - Playwright prod: `live-report-hub.spec.ts`, `smoke-pages.spec.ts`, `testing-section.spec.ts`, etc.
-- Cypress local: `contact-linkedin.cy.ts`, footer specs; prod nightly: `cypress/e2e/prod-smoke/core.cy.ts`
+- Cypress prod-smoke: `core.cy.ts` (journeys) + `prod-routes.cy.ts` (~23 route checks, aligned with Playwright breadth)
 
 ## Layout
 

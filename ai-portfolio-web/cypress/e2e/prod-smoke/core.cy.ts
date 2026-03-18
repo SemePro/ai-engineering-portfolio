@@ -15,11 +15,4 @@ describe("Prod smoke @prod-safe", () => {
     cy.contains("h1", /production test report/i);
     cy.contains(/pass rate|nightly|playwright/i);
   });
-
-  it("main routes respond", () => {
-    for (const path of ["/projects", "/demo", "/about", "/architecture"]) {
-      cy.visit(path);
-      cy.get("main").should("be.visible");
-    }
-  });
 });

@@ -215,7 +215,7 @@ function aggregateCypress() {
         total: m.total,
         passRate: m.passRate,
         byFile: m.byFile || [],
-        tests: (m.tests || []).slice(0, 80),
+        tests: (m.tests || []).slice(0, 200),
         failures: (m.tests || []).filter((t) => !t.ok),
         hasDetail: m.total > 0,
       };
