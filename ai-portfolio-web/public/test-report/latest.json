@@ -1,16 +1,16 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-03-18T17:20:15.565Z",
+  "generatedAt": "2026-03-18T17:45:44.865Z",
   "environment": "production",
   "targetUrl": "https://www.semefit.com",
   "playwright": {
     "ok": true,
     "exitCode": 0,
-    "passed": 29,
+    "passed": 25,
     "failed": 0,
     "skipped": 0,
     "timedOut": 0,
-    "total": 29,
+    "total": 25,
     "passRate": 100,
     "byFile": [
       {
@@ -26,8 +26,8 @@
         "skipped": 0
       },
       {
-        "file": "linkedin-absence.spec.ts",
-        "passed": 6,
+        "file": "live-report-hub.spec.ts",
+        "passed": 2,
         "failed": 0,
         "skipped": 0
       },
@@ -57,11 +57,15 @@
       }
     ],
     "failures": [],
-    "durationMsTotal": 15068
+    "durationMsTotal": 16904
   },
-  "cypress": null,
-  "workflowRunUrl": "https://github.com/SemePro/ai-engineering-portfolio/actions/runs/23257676993",
-  "commitSha": "87bb14a",
+  "cypress": {
+    "ok": true,
+    "exitCode": 0,
+    "note": "cypress/e2e/prod-smoke (headless)"
+  },
+  "workflowRunUrl": "https://github.com/SemePro/ai-engineering-portfolio/actions/runs/23258789576",
+  "commitSha": "7ee610e",
   "overallOk": true,
   "placeholder": false
 }
