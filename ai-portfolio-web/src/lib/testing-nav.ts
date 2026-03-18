@@ -27,6 +27,11 @@ export const TESTING_NAV_ITEMS = [
     navLabel: "Integration",
     footerLabel: "Integration",
   },
+  {
+    href: "/testing/reports",
+    navLabel: "Reports",
+    footerLabel: "Live report",
+  },
 ] as const;
 
 export type TestingLandingIconId =
@@ -84,5 +89,12 @@ export const TESTING_LANDING_CARDS: ReadonlyArray<{
     description:
       "Frontend through gateway to backend: end-to-end system behavior and fallbacks.",
     icon: "bot",
+  },
+  {
+    href: "/testing/reports",
+    title: "Production test report",
+    description:
+      "Scheduled smoke results, pass rate, spec breakdown, and GitHub Actions link.",
+    icon: "network",
   },
 ];

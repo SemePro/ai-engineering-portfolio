@@ -48,6 +48,12 @@ yarn-error.log*
 .next/
 out/
 
+# Frontend test artifacts (ai-portfolio-web)
+ai-portfolio-web/test-results/
+ai-portfolio-web/playwright-report/
+ai-portfolio-web/cypress/screenshots/
+ai-portfolio-web/cypress/videos/
+
 # Testing
 .coverage
 htmlcov/

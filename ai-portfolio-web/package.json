@@ -6,7 +6,21 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:playwright": "playwright test",
+    "test:playwright:prod": "cross-env TEST_MODE=prod-smoke TEST_BASE_URL=https://www.semefit.com playwright test",
+    "test:playwright:ui": "playwright test --ui",
+    "test:cypress": "start-server-and-test \"npm run dev -- -p 3001\" http://127.0.0.1:3001 \"cypress run --config baseUrl=http://127.0.0.1:3001 --spec 'cypress/e2e/local/**/*.cy.ts'\"",
+    "test:cypress:prod": "cross-env TEST_BASE_URL=https://www.semefit.com cypress run --spec \"cypress/e2e/prod-smoke/**/*.cy.ts\"",
+    "test:cypress:open": "cypress open",
+    "test:api": "vitest run",
+    "test:api:prod": "cross-env TEST_MODE=prod-smoke vitest run",
+    "test:integration": "playwright test tests/playwright/integration-demo.local.spec.ts",
+    "test:integration:prod": "cross-env TEST_MODE=prod-smoke TEST_BASE_URL=https://www.semefit.com playwright test tests/playwright/demo-smoke.spec.ts",
+    "test:all": "npm run test:api && npm run test:playwright && npm run test:cypress",
+    "testing:ai:suggest": "node scripts/testing-ai/suggest-tests.mjs",
+    "testing:ai:triage": "node scripts/testing-ai/triage-failure.mjs",
+    "testing:ai:gap": "node scripts/testing-ai/gap-analysis.mjs"
   },
   "dependencies": {
     "next": "14.1.0",
@@ -20,14 +34,19 @@
     "@radix-ui/react-tabs": "^1.0.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.49.1",
     "@types/node": "^20.11.0",
     "@types/react": "^18.2.48",
     "@types/react-dom": "^18.2.18",
     "autoprefixer": "^10.4.17",
+    "cross-env": "^7.0.3",
+    "cypress": "^13.17.0",
     "eslint": "^8.56.0",
     "eslint-config-next": "14.1.0",
     "postcss": "^8.4.33",
+    "start-server-and-test": "^2.0.10",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^2.1.6"
   }
 }

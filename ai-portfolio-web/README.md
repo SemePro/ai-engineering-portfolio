@@ -153,6 +153,8 @@ npm run dev
 
 | Variable | Description | Default |
 |----------|-------------|---------|
+| `TEST_REPORT_JSON_URL` | Server-only URL for report JSON (HTTPS + allowlisted host; default fetches GitHub raw) | — |
+| `TEST_REPORT_JSON_ALLOWED_HOSTS` | Extra allowed hosts for `TEST_REPORT_JSON_URL` (comma-separated) | — |
 | `NEXT_PUBLIC_GATEWAY_URL` | Gateway API URL | `http://localhost:8000` |
 | `NEXT_PUBLIC_RAG_URL` | RAG API URL | `http://localhost:8001` |
 | `NEXT_PUBLIC_EVAL_URL` | Eval API URL | `http://localhost:8002` |
@@ -167,6 +169,22 @@ npm run dev
 ### Environment-Specific URLs
 - **Development**: localhost URLs
 - **Production**: Railway-hosted API URLs
+
+## Automated testing (Phase 2)
+
+See **[docs/TESTING.md](./docs/TESTING.md)** for full detail.
+
+```bash
+npx playwright install chromium   # first-time browser binary
+npm run test:playwright           # Playwright (starts Next on port 3001)
+npm run test:playwright:prod      # Read-only smoke vs https://www.semefit.com
+npm run test:cypress              # Cypress journeys (port 3001)
+npm run test:cypress:prod         # Cypress prod smoke only
+npm run test:api                  # Vitest gateway health (needs gateway or SKIP_GATEWAY_TESTS=1)
+npm run test:integration          # Playwright degradation tests
+npm run test:all                  # api + playwright + cypress
+npm run testing:ai:suggest        # OPENAI_API_KEY → tests/reports/ai-test-suggestions.md
+```
 
 ## Scripts
 
