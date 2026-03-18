@@ -12,6 +12,7 @@ const root = path.resolve(__dirname, "../..");
 const outPath = path.join(root, "public/test-report/latest.json");
 const pwPath = path.join(root, "test-results/scheduled-playwright.json");
 const pwExitPath = path.join(root, "test-results/pw-exit.txt");
+const cyExitPath = path.join(root, "test-results/cypress-exit.txt");
 
 function readExit(p) {
   try {
@@ -135,8 +136,19 @@ function aggregatePlaywright() {
   };
 }
 
+function aggregateCypress() {
+  if (!fs.existsSync(cyExitPath)) return null;
+  const code = readExit(cyExitPath);
+  const ok = code === 0;
+  return {
+    ok,
+    exitCode: code ?? -1,
+    note: "cypress/e2e/prod-smoke (headless)",
+  };
+}
+
 const pw = aggregatePlaywright();
-const cypress = null;
+const cypress = aggregateCypress();
 
 const repo = process.env.GITHUB_REPOSITORY || "SemePro/ai-engineering-portfolio";
 const runId = process.env.GITHUB_RUN_ID;
@@ -154,7 +166,7 @@ const report = {
   cypress,
   workflowRunUrl,
   commitSha: process.env.GITHUB_SHA?.slice(0, 7) || null,
-  overallOk: Boolean(pw.ok),
+  overallOk: Boolean(pw.ok && (cypress === null || cypress.ok)),
   placeholder: false,
 };
 
@@ -168,4 +180,5 @@ console.log(
   })
 );
 
-process.exit(pw.ok ? 0 : 1);
+const allGreen = pw.ok && (cypress === null || cypress.ok);
+process.exit(allGreen ? 0 : 1);

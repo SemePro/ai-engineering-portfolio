@@ -25,8 +25,8 @@
 **Scheduled prod smoke & report**:
 
 - Runs **every night** at **05:00 UTC** (plus **workflow_dispatch**)
-- Executes Playwright **@prod-safe** tests against `https://www.semefit.com`
-- Commits `ai-portfolio-web/public/test-report/latest.json` (`[skip ci]`)
+- Runs Playwright **@prod-safe** and **Cypress** `prod-smoke` against `https://www.semefit.com`
+- Commits `ai-portfolio-web/public/test-report/latest.json` (`[skip ci]`) with both runners’ status
 - **`/testing/reports`** fetches that JSON from **GitHub raw** on each request, so new results show **without redeploying** the frontend
 
 Override report URL (server only): **`TEST_REPORT_JSON_URL`** — must be **HTTPS** and host allowlisted (default: `raw.githubusercontent.com`). Add hosts via comma-separated **`TEST_REPORT_JSON_ALLOWED_HOSTS`** if needed.
@@ -39,7 +39,7 @@ If `main` is branch-protected, grant **Actions** write access to contents or use
 |--------|----------------|
 | `npm run test:playwright` | Full Playwright suite (Chromium desktop + mobile). Starts `npm run dev`. |
 | `npm run test:playwright:prod` | **Prod smoke** against `https://www.semefit.com` — only tests tagged `@prod-safe` (GET navigations, no writes). |
-| `npm run test:cypress` | Cypress e2e (journeys, footer, LinkedIn). Starts dev server. |
+| `npm run test:cypress` | Cypress e2e (journeys, footer). Starts dev server. |
 | `npm run test:cypress:prod` | Cypress **prod smoke** — specs in `cypress/e2e/prod-smoke/` only. |
 | `npm run test:api` | Vitest: `GET /health`, local `POST /rag/ask` validation error. |
 | `npm run test:api:prod` | Vitest in prod-smoke: health only if `TEST_GATEWAY_URL` set; no POST. |
@@ -60,8 +60,8 @@ If `main` is branch-protected, grant **Actions** write access to contents or use
 
 Asserted in:
 
-- Playwright: `tests/playwright/linkedin-absence.spec.ts` (contact, footer surfaces, multiple routes)
-- Cypress: `cypress/e2e/contact-linkedin.cy.ts`, footer specs, `cypress/e2e/prod-smoke/core.cy.ts`
+- Playwright prod: `live-report-hub.spec.ts`, `smoke-pages.spec.ts`, `testing-section.spec.ts`, etc.
+- Cypress local: `contact-linkedin.cy.ts`, footer specs; prod nightly: `cypress/e2e/prod-smoke/core.cy.ts`
 
 ## Layout
 

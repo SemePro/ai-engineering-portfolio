@@ -216,7 +216,11 @@ function ReportsBody({
           <Card>
             <CardHeader>
               <CardTitle>Cypress</CardTitle>
-              <CardDescription>Prod smoke (manual / optional CI)</CardDescription>
+              <CardDescription>
+                {data.cypress
+                  ? "Nightly prod-smoke specs"
+                  : "Prod smoke (not in this report)"}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {data.cypress ? (
@@ -238,11 +242,11 @@ function ReportsBody({
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Nightly job is Playwright-only. Run{" "}
+                  Cypress was not recorded for this report. Run{" "}
                   <code className="text-xs bg-muted px-1 rounded">
                     npm run test:cypress:prod
                   </code>{" "}
-                  locally for Cypress against production.
+                  locally against production.
                 </p>
               )}
             </CardContent>

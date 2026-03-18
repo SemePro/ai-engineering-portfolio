@@ -44,7 +44,16 @@ jobs:
           echo $? > test-results/pw-exit.txt
           set -e
 
-      # Exits 1 when tests fail — job still commits report via if: always()
+      - name: Cypress prod smoke
+        working-directory: ai-portfolio-web
+        run: |
+          mkdir -p test-results
+          set +e
+          TEST_BASE_URL=https://www.semefit.com npx cypress run --spec "cypress/e2e/prod-smoke/**/*.cy.ts"
+          echo $? > test-results/cypress-exit.txt
+          set -e
+
+      # Exits 1 when Playwright or Cypress fails — commit still runs via if: always()
       - name: Build test report JSON
         if: always()
         working-directory: ai-portfolio-web

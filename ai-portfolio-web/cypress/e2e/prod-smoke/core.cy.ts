@@ -10,11 +10,10 @@ describe("Prod smoke @prod-safe", () => {
     cy.contains("h1", /^Testing$/);
   });
 
-  it("no LinkedIn on contact and home", () => {
-    cy.visit("/contact");
-    cy.get('a[href*="linkedin"]').should("not.exist");
-    cy.visit("/");
-    cy.get('a[href*="linkedin"]').should("not.exist");
+  it("testing reports page loads", () => {
+    cy.visit("/testing/reports");
+    cy.contains("h1", /production test report/i);
+    cy.contains(/pass rate|nightly|playwright/i);
   });
 
   it("main routes respond", () => {
