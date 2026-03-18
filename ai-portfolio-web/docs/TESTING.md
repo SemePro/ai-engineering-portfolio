@@ -50,7 +50,7 @@ The workflow uses **actions/checkout@v6** and **actions/setup-node@v5** (Node 24
 | `npm run test:playwright` | Full Playwright suite (Chromium desktop + mobile). Starts `npm run dev`. |
 | `npm run test:playwright:prod` | **Prod smoke** against `https://www.semefit.com` — only tests tagged `@prod-safe` (GET navigations, no writes). |
 | `npm run test:cypress` | Cypress e2e (journeys, footer). Starts dev server. |
-| `npm run test:cypress:prod` | Cypress **prod smoke** — sets `CI_REPORT_JUNIT=1` so `cypress-junit.xml` is written for the report. |
+| `npm run test:cypress:prod` | Cypress **prod smoke** via **Module API** → `test-results/cypress-module.json` for the live report. |
 | `npm run test:api` | Vitest: `GET /health`, local `POST /rag/ask` validation error. |
 | `npm run test:api:prod` | Vitest in prod-smoke: health only if `TEST_GATEWAY_URL` set; no POST. |
 | `npm run test:integration` | Playwright: RAG error UI + eval shell when backend unreachable (local). |

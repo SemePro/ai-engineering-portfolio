@@ -42,16 +42,15 @@ jobs:
           echo $? > test-results/pw-exit.txt
           set -e
 
-      # CI_REPORT_JUNIT=1 → cypress.config.ts writes test-results/cypress-junit.xml (report breakdown)
+      # Module API → test-results/cypress-module.json (JUnit unreliable in GHA)
       - name: Cypress prod smoke
         working-directory: ai-portfolio-web
         env:
-          CI_REPORT_JUNIT: "1"
           TEST_BASE_URL: https://www.semefit.com
         run: |
           mkdir -p test-results
           set +e
-          npx cypress run --spec "cypress/e2e/prod-smoke/**/*.cy.ts"
+          node scripts/ci/run-cypress-prod-smoke.mjs
           echo $? > test-results/cypress-exit.txt
           set -e
 

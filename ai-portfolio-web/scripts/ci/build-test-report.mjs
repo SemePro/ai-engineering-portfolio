@@ -14,6 +14,7 @@ const pwPath = path.join(root, "test-results/scheduled-playwright.json");
 const pwExitPath = path.join(root, "test-results/pw-exit.txt");
 const cyExitPath = path.join(root, "test-results/cypress-exit.txt");
 const cyJUnitPath = path.join(root, "test-results/cypress-junit.xml");
+const cyModulePath = path.join(root, "test-results/cypress-module.json");
 
 function readExit(p) {
   try {
@@ -198,6 +199,31 @@ function parseCypressJUnit(xml) {
 }
 
 function aggregateCypress() {
+  if (!fs.existsSync(cyExitPath) && !fs.existsSync(cyModulePath)) return null;
+
+  if (fs.existsSync(cyModulePath)) {
+    try {
+      const m = JSON.parse(fs.readFileSync(cyModulePath, "utf8"));
+      const code = readExit(cyExitPath);
+      const ok = code === null ? m.failed === 0 : code === 0;
+      return {
+        ok,
+        exitCode: code ?? (m.failed > 0 ? 1 : 0),
+        note: "cypress/e2e/prod-smoke (module API)",
+        passed: m.passed,
+        failed: m.failed,
+        total: m.total,
+        passRate: m.passRate,
+        byFile: m.byFile || [],
+        tests: (m.tests || []).slice(0, 80),
+        failures: (m.tests || []).filter((t) => !t.ok),
+        hasDetail: m.total > 0,
+      };
+    } catch (e) {
+      console.warn("[test-report] cypress-module.json:", e?.message || e);
+    }
+  }
+
   if (!fs.existsSync(cyExitPath)) return null;
   const code = readExit(cyExitPath);
   const ok = code === 0;
@@ -212,12 +238,6 @@ function aggregateCypress() {
   try {
     if (fs.existsSync(cyJUnitPath)) {
       detail = parseCypressJUnit(fs.readFileSync(cyJUnitPath, "utf8"));
-    } else if (process.env.CI === "true" && ok) {
-      console.warn(
-        "[test-report] Cypress passed but missing",
-        cyJUnitPath,
-        "— set CI_REPORT_JUNIT=1 in Cypress step (see cypress.config.ts)"
-      );
     }
   } catch (e) {
     console.warn("[test-report] Cypress JUnit parse error:", e?.message || e);
