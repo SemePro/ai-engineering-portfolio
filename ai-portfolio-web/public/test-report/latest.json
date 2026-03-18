@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-03-18T19:04:41.258Z",
+  "generatedAt": "2026-03-18T19:23:48.535Z",
   "environment": "production",
   "targetUrl": "https://www.semefit.com",
   "playwright": {
@@ -57,20 +57,25 @@
       }
     ],
     "failures": [],
-    "durationMsTotal": 12855
+    "durationMsTotal": 15389
   },
   "cypress": {
     "ok": true,
     "exitCode": 0,
     "note": "cypress/e2e/prod-smoke (module API)",
-    "passed": 3,
+    "passed": 25,
     "failed": 0,
-    "total": 3,
+    "total": 25,
     "passRate": 100,
     "byFile": [
       {
         "file": "core.cy.ts",
-        "passed": 3,
+        "passed": 2,
+        "failed": 0
+      },
+      {
+        "file": "prod-routes.cy.ts",
+        "passed": 23,
         "failed": 0
       }
     ],
@@ -86,17 +91,127 @@
         "ok": true
       },
       {
-        "title": "Prod smoke @prod-safe › main routes respond",
-        "file": "core.cy.ts",
+        "title": "Prod routes @prod-safe › main visible on /",
+        "file": "prod-routes.cy.ts",
+        "ok": true
+      },
+      {
+        "title": "Prod routes @prod-safe › main visible on /about",
+        "file": "prod-routes.cy.ts",
+        "ok": true
+      },
+      {
+        "title": "Prod routes @prod-safe › main visible on /contact",
+        "file": "prod-routes.cy.ts",
+        "ok": true
+      },
+      {
+        "title": "Prod routes @prod-safe › main visible on /projects",
+        "file": "prod-routes.cy.ts",
+        "ok": true
+      },
+      {
+        "title": "Prod routes @prod-safe › main visible on /architecture",
+        "file": "prod-routes.cy.ts",
+        "ok": true
+      },
+      {
+        "title": "Prod routes @prod-safe › main visible on /demo",
+        "file": "prod-routes.cy.ts",
+        "ok": true
+      },
+      {
+        "title": "Prod routes @prod-safe › main visible on /demo/gateway",
+        "file": "prod-routes.cy.ts",
+        "ok": true
+      },
+      {
+        "title": "Prod routes @prod-safe › main visible on /demo/rag",
+        "file": "prod-routes.cy.ts",
+        "ok": true
+      },
+      {
+        "title": "Prod routes @prod-safe › main visible on /demo/eval",
+        "file": "prod-routes.cy.ts",
+        "ok": true
+      },
+      {
+        "title": "Prod routes @prod-safe › main visible on /demo/architecture",
+        "file": "prod-routes.cy.ts",
+        "ok": true
+      },
+      {
+        "title": "Prod routes @prod-safe › main visible on /demo/devops",
+        "file": "prod-routes.cy.ts",
+        "ok": true
+      },
+      {
+        "title": "Prod routes @prod-safe › main visible on /demo/incident",
+        "file": "prod-routes.cy.ts",
+        "ok": true
+      },
+      {
+        "title": "Prod routes @prod-safe › main visible on /testing",
+        "file": "prod-routes.cy.ts",
+        "ok": true
+      },
+      {
+        "title": "Prod routes @prod-safe › main visible on /testing/automation",
+        "file": "prod-routes.cy.ts",
+        "ok": true
+      },
+      {
+        "title": "Prod routes @prod-safe › main visible on /testing/playwright",
+        "file": "prod-routes.cy.ts",
+        "ok": true
+      },
+      {
+        "title": "Prod routes @prod-safe › main visible on /testing/cypress",
+        "file": "prod-routes.cy.ts",
+        "ok": true
+      },
+      {
+        "title": "Prod routes @prod-safe › main visible on /testing/ui-tests",
+        "file": "prod-routes.cy.ts",
+        "ok": true
+      },
+      {
+        "title": "Prod routes @prod-safe › main visible on /testing/api-tests",
+        "file": "prod-routes.cy.ts",
+        "ok": true
+      },
+      {
+        "title": "Prod routes @prod-safe › main visible on /testing/integration-tests",
+        "file": "prod-routes.cy.ts",
+        "ok": true
+      },
+      {
+        "title": "Prod routes @prod-safe › main visible on /testing/reports",
+        "file": "prod-routes.cy.ts",
+        "ok": true
+      },
+      {
+        "title": "Prod routes @prod-safe › main visible on /projects/architecture",
+        "file": "prod-routes.cy.ts",
+        "ok": true
+      },
+      {
+        "title": "Prod routes @prod-safe › main visible on /projects/devops",
+        "file": "prod-routes.cy.ts",
+        "ok": true
+      },
+      {
+        "title": "Prod routes @prod-safe › main visible on /projects/incident",
+        "file": "prod-routes.cy.ts",
         "ok": true
       }
     ],
     "failures": [],
     "hasDetail": true
   },
-  "workflowRunUrl": "https://github.com/SemePro/ai-engineering-portfolio/actions/runs/23262113003",
-  "commitSha": "c3a63c1",
-  "githubRunId": "23262113003",
+  "workflowRunUrl": "https://github.com/SemePro/ai-engineering-portfolio/actions/runs/23262704038",
+  "commitSha": "08f86b7",
+  "githubRunId": "23262704038",
   "overallOk": true,
   "placeholder": false
 }
