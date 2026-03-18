@@ -36,6 +36,7 @@ export type TestReportData = {
   overallOk?: boolean;
   workflowRunUrl: string | null;
   commitSha: string | null;
+  githubRunId?: string | null;
   playwright: {
     ok: boolean;
     exitCode?: number | null;
@@ -119,5 +120,76 @@ export async function loadTestReport(): Promise<{
     return { data, source: "local" };
   } catch {
     return { data: FALLBACK, source: "fallback" };
+  }
+}
+
+export type ReportHistoryEntry = {
+  runId: string;
+  generatedAt: string;
+  overallOk: boolean;
+  workflowRunUrl: string | null;
+  passRate: number;
+  pwTotal: number;
+  pwFailed: number;
+  cypressOk: boolean | null;
+};
+
+export type ReportHistoryIndex = {
+  schemaVersion: number;
+  runs: ReportHistoryEntry[];
+};
+
+function resolveHistoryIndexUrl(): string | null {
+  const custom = process.env.TEST_REPORT_HISTORY_INDEX_URL?.trim();
+  if (custom && isAllowedReportUrl(custom)) return custom;
+  const latest = resolveReportUrl();
+  if (latest.includes("latest.json")) {
+    return latest.replace("latest.json", "history/index.json");
+  }
+  return null;
+}
+
+/** Base URL for raw JSON under public/test-report (for snapshot links). */
+export function testReportPublicBaseUrl(): string {
+  return resolveReportUrl().replace(/\/latest\.json\/?$/, "");
+}
+
+/**
+ * Rolling index of recent runs (full snapshots in history/runs/{runId}.json on the same branch).
+ */
+export async function loadTestReportHistory(): Promise<{
+  data: ReportHistoryIndex | null;
+  source: "remote" | "local" | "none";
+}> {
+  const url = resolveHistoryIndexUrl();
+  if (!url || !isAllowedReportUrl(url)) {
+    return { data: null, source: "none" };
+  }
+  try {
+    const res = await fetch(url, {
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    });
+    if (res.ok) {
+      const data = (await res.json()) as ReportHistoryIndex;
+      if (data?.runs && Array.isArray(data.runs)) {
+        return { data, source: "remote" };
+      }
+    }
+  } catch {
+    /* local */
+  }
+  try {
+    const p = join(
+      process.cwd(),
+      "public",
+      "test-report",
+      "history",
+      "index.json"
+    );
+    const data = JSON.parse(readFileSync(p, "utf8")) as ReportHistoryIndex;
+    return { data, source: "local" };
+  } catch {
+    return { data: null, source: "none" };
   }
 }

@@ -42,6 +42,7 @@ jobs:
           echo $? > test-results/pw-exit.txt
           set -e
 
+      # Required for report: cypress field + overallOk (same repo as Playwright)
       - name: Cypress prod smoke
         working-directory: ai-portfolio-web
         run: |
@@ -67,6 +68,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add ai-portfolio-web/public/test-report/latest.json
+          git add ai-portfolio-web/public/test-report/history/
           if git diff --staged --quiet; then
             echo "No changes to report"
           else

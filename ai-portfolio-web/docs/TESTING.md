@@ -29,7 +29,9 @@
 - Commits `ai-portfolio-web/public/test-report/latest.json` (`[skip ci]`) with both runners’ status
 - **`/testing/reports`** fetches that JSON from **GitHub raw** on each request, so new results show **without redeploying** the frontend
 
-Override report URL (server only): **`TEST_REPORT_JSON_URL`** — must be **HTTPS** and host allowlisted (default: `raw.githubusercontent.com`). Add hosts via comma-separated **`TEST_REPORT_JSON_ALLOWED_HOSTS`** if needed.
+Override report URL (server only): **`TEST_REPORT_JSON_URL`** — must be **HTTPS** and host allowlisted (default: `raw.githubusercontent.com`). Add hosts via comma-separated **`TEST_REPORT_JSON_ALLOWED_HOSTS`** if needed. History index uses the same path with `history/index.json` unless **`TEST_REPORT_HISTORY_INDEX_URL`** is set.
+
+Each workflow run **overwrites** `public/test-report/latest.json` and **appends** `history/runs/{GITHUB_RUN_ID}.json` plus updates `history/index.json` (rolling list of 500). Older snapshots remain in git.
 
 If `main` is branch-protected, grant **Actions** write access to contents or use a PAT with `contents: write`.
 

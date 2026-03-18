@@ -8,7 +8,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { loadTestReport, type TestReportData } from "@/lib/load-test-report";
+import {
+  loadTestReport,
+  loadTestReportHistory,
+  testReportPublicBaseUrl,
+  type TestReportData,
+  type ReportHistoryIndex,
+} from "@/lib/load-test-report";
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
@@ -50,9 +56,15 @@ function formatTime(iso: string) {
 function ReportsBody({
   data,
   source,
+  history,
+  historySource,
+  reportBaseUrl,
 }: {
   data: TestReportData;
   source: string;
+  history: ReportHistoryIndex | null;
+  historySource: string;
+  reportBaseUrl: string;
 }) {
   const pw = data.playwright;
   const isPlaceholder =
@@ -94,9 +106,11 @@ function ReportsBody({
         <p className="text-muted-foreground text-lg mb-4 max-w-2xl">
           Read-only smoke tests against{" "}
           <span className="text-foreground font-medium">{data.targetUrl}</span>.
-          A GitHub Action runs <strong>every night</strong>, commits the latest
-          results, and this page loads that JSON directly so you see new numbers
-          without redeploying the site.
+          A GitHub Action runs <strong>every night</strong> (Playwright +
+          Cypress prod smoke), commits <strong>latest.json</strong> on every run
+          (overwritten), and keeps a <strong>history</strong> of snapshots in
+          the repo. This page reads live JSON from GitHub raw — no redeploy
+          needed for new numbers.
         </p>
 
         {isPlaceholder && (
@@ -326,6 +340,109 @@ function ReportsBody({
           </Card>
         )}
 
+        {history && history.runs.length > 0 && (
+          <Card className="mb-10">
+            <CardHeader>
+              <CardTitle>Run history</CardTitle>
+              <CardDescription>
+                Last {Math.min(40, history.runs.length)} workflow runs (index
+                keeps up to 500). Each run has a full JSON snapshot on{" "}
+                {historySource === "remote" ? "GitHub" : "disk"}.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <caption className="sr-only">
+                  Production smoke test run history
+                </caption>
+                <thead>
+                  <tr className="border-b text-left text-muted-foreground">
+                    <th scope="col" className="py-2 pr-3 font-medium">
+                      When
+                    </th>
+                    <th scope="col" className="py-2 pr-3 font-medium">
+                      Run
+                    </th>
+                    <th scope="col" className="py-2 pr-3 font-medium">
+                      Status
+                    </th>
+                    <th scope="col" className="py-2 pr-3 font-medium">
+                      PW %
+                    </th>
+                    <th scope="col" className="py-2 pr-3 font-medium">
+                      Cypress
+                    </th>
+                    <th scope="col" className="py-2 font-medium">
+                      Snapshot
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {history.runs.slice(0, 40).map((r) => (
+                    <tr
+                      key={r.runId + r.generatedAt}
+                      className="border-b border-border/50"
+                    >
+                      <td className="py-2 pr-3 whitespace-nowrap text-muted-foreground">
+                        {formatTime(r.generatedAt)}
+                      </td>
+                      <td className="py-2 pr-3">
+                        {r.workflowRunUrl ? (
+                          <a
+                            href={r.workflowRunUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline tabular-nums"
+                          >
+                            #{r.runId}
+                          </a>
+                        ) : (
+                          <span className="tabular-nums">#{r.runId}</span>
+                        )}
+                      </td>
+                      <td className="py-2 pr-3">
+                        {r.overallOk ? (
+                          <span className="text-emerald-500">OK</span>
+                        ) : (
+                          <span className="text-red-400">Fail</span>
+                        )}
+                      </td>
+                      <td className="py-2 pr-3 tabular-nums">
+                        {r.pwTotal > 0 ? `${r.passRate}%` : "—"}
+                        {r.pwFailed > 0 && (
+                          <span className="text-red-400 ml-1">
+                            ({r.pwFailed} fail)
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-2 pr-3">
+                        {r.cypressOk === null ? (
+                          <span className="text-muted-foreground">—</span>
+                        ) : r.cypressOk ? (
+                          <span className="text-emerald-500">OK</span>
+                        ) : (
+                          <span className="text-red-400">Fail</span>
+                        )}
+                      </td>
+                      <td className="py-2">
+                        <a
+                          href={`${reportBaseUrl}/history/runs/${r.runId}.json`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline inline-flex items-center gap-1"
+                        >
+                          JSON
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </CardContent>
+          </Card>
+        )}
+
         <Card className="bg-muted/20">
           <CardContent className="pt-6 flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
             <div className="text-sm text-muted-foreground space-y-2">
@@ -361,6 +478,15 @@ function ReportsBody({
 }
 
 export default async function TestReportsPage() {
-  const { data, source } = await loadTestReport();
-  return <ReportsBody data={data} source={source} />;
+  const [{ data, source }, { data: history, source: historySource }] =
+    await Promise.all([loadTestReport(), loadTestReportHistory()]);
+  return (
+    <ReportsBody
+      data={data}
+      source={source}
+      history={history}
+      historySource={historySource}
+      reportBaseUrl={testReportPublicBaseUrl()}
+    />
+  );
 }

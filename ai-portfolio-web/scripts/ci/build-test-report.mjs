@@ -166,12 +166,46 @@ const report = {
   cypress,
   workflowRunUrl,
   commitSha: process.env.GITHUB_SHA?.slice(0, 7) || null,
+  githubRunId: runId || null,
   overallOk: Boolean(pw.ok && (cypress === null || cypress.ok)),
   placeholder: false,
 };
 
 fs.mkdirSync(path.dirname(outPath), { recursive: true });
 fs.writeFileSync(outPath, JSON.stringify(report, null, 2), "utf8");
+
+/** Per-run snapshot + rolling index (each workflow run overwrites latest.json and appends history). */
+if (runId) {
+  const histRuns = path.join(root, "public/test-report/history/runs");
+  fs.mkdirSync(histRuns, { recursive: true });
+  fs.writeFileSync(
+    path.join(histRuns, `${runId}.json`),
+    JSON.stringify(report, null, 2),
+    "utf8"
+  );
+  const idxPath = path.join(root, "public/test-report/history/index.json");
+  let idx = { schemaVersion: 1, runs: [] };
+  if (fs.existsSync(idxPath)) {
+    try {
+      idx = JSON.parse(fs.readFileSync(idxPath, "utf8"));
+    } catch {
+      /* reset */
+    }
+  }
+  if (!Array.isArray(idx.runs)) idx.runs = [];
+  idx.runs.unshift({
+    runId: String(runId),
+    generatedAt: report.generatedAt,
+    overallOk: report.overallOk,
+    workflowRunUrl: report.workflowRunUrl,
+    passRate: report.playwright.passRate,
+    pwTotal: report.playwright.total,
+    pwFailed: report.playwright.failed,
+    cypressOk: report.cypress ? report.cypress.ok : null,
+  });
+  idx.runs = idx.runs.slice(0, 500);
+  fs.writeFileSync(idxPath, JSON.stringify(idx, null, 2), "utf8");
+}
 console.log("Wrote", outPath);
 console.log(
   JSON.stringify({
