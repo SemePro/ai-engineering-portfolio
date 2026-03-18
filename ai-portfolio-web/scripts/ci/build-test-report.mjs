@@ -13,6 +13,7 @@ const outPath = path.join(root, "public/test-report/latest.json");
 const pwPath = path.join(root, "test-results/scheduled-playwright.json");
 const pwExitPath = path.join(root, "test-results/pw-exit.txt");
 const cyExitPath = path.join(root, "test-results/cypress-exit.txt");
+const cyJUnitPath = path.join(root, "test-results/cypress-junit.xml");
 
 function readExit(p) {
   try {
@@ -136,14 +137,98 @@ function aggregatePlaywright() {
   };
 }
 
+/**
+ * Parse Cypress JUnit (mochaFile) for per-spec + per-test breakdown.
+ */
+function parseCypressJUnit(xml) {
+  const byFileMap = new Map();
+  const tests = [];
+  let lastSpecFile = "unknown.cy.ts";
+  const suiteRegex = /<testsuite\s+([^>]*)>([\s\S]*?)<\/testsuite>/gi;
+  let m;
+  while ((m = suiteRegex.exec(xml)) !== null) {
+    const attrs = m[1];
+    const body = m[2];
+    const fileMatch = attrs.match(/file="([^"]+)"/);
+    if (fileMatch) {
+      const p = fileMatch[1];
+      lastSpecFile = p.includes("/") ? p.split("/").pop() : p;
+    }
+    const caseRegex =
+      /<testcase\s+[^>]*name="([^"]*)"[^>]*>([\s\S]*?)<\/testcase>/gi;
+    let cm;
+    while ((cm = caseRegex.exec(body)) !== null) {
+      const title = cm[1].replace(/^Prod smoke @prod-safe\s+/i, "").trim();
+      const inner = cm[2];
+      const fail = /<failure\b/i.test(inner);
+      const errMatch = inner.match(/<failure[^>]*>([\s\S]*?)<\/failure>/i);
+      const error = errMatch
+        ? errMatch[1].replace(/<!\[CDATA\[|\]\]>/g, "").slice(0, 500)
+        : "";
+      if (!title) continue;
+      tests.push({
+        title: title || cm[1],
+        file: lastSpecFile,
+        ok: !fail,
+        error: fail ? error || "Failed" : undefined,
+      });
+      if (!byFileMap.has(lastSpecFile)) {
+        byFileMap.set(lastSpecFile, {
+          file: lastSpecFile,
+          passed: 0,
+          failed: 0,
+        });
+      }
+      const row = byFileMap.get(lastSpecFile);
+      if (fail) row.failed++;
+      else row.passed++;
+    }
+  }
+  const passed = tests.filter((t) => t.ok).length;
+  const failed = tests.length - passed;
+  const total = tests.length;
+  return {
+    byFile: [...byFileMap.values()].sort((a, b) => a.file.localeCompare(b.file)),
+    tests,
+    passed,
+    failed,
+    total,
+    passRate: total ? Math.round((passed / total) * 1000) / 10 : 0,
+  };
+}
+
 function aggregateCypress() {
   if (!fs.existsSync(cyExitPath)) return null;
   const code = readExit(cyExitPath);
   const ok = code === 0;
+  let detail = {
+    byFile: [],
+    tests: [],
+    passed: 0,
+    failed: 0,
+    total: 0,
+    passRate: 0,
+  };
+  try {
+    if (fs.existsSync(cyJUnitPath)) {
+      detail = parseCypressJUnit(fs.readFileSync(cyJUnitPath, "utf8"));
+    }
+  } catch {
+    /* keep empty detail */
+  }
+  const hasTests = detail.total > 0;
   return {
     ok,
     exitCode: code ?? -1,
-    note: "cypress/e2e/prod-smoke (headless)",
+    note: "cypress/e2e/prod-smoke (Electron headless)",
+    passed: hasTests ? detail.passed : ok ? 0 : 0,
+    failed: hasTests ? detail.failed : ok ? 0 : 1,
+    total: hasTests ? detail.total : ok ? 0 : 1,
+    passRate: hasTests ? detail.passRate : ok ? 100 : 0,
+    byFile: detail.byFile,
+    tests: detail.tests.slice(0, 80),
+    failures: detail.tests.filter((t) => !t.ok),
+    hasDetail: hasTests,
   };
 }
 

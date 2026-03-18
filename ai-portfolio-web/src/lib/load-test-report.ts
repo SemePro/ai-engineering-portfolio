@@ -50,7 +50,19 @@ export type TestReportData = {
     failures: { file: string; title: string; error: string }[];
     error?: string;
   };
-  cypress: { ok: boolean; exitCode: number; note: string } | null;
+  cypress: {
+    ok: boolean;
+    exitCode: number;
+    note: string;
+    passed: number;
+    failed: number;
+    total: number;
+    passRate: number;
+    hasDetail?: boolean;
+    byFile?: { file: string; passed: number; failed: number }[];
+    tests?: { title: string; file: string; ok: boolean; error?: string }[];
+    failures?: { title: string; file: string; ok: boolean; error?: string }[];
+  } | null;
 };
 
 const FALLBACK: TestReportData = {

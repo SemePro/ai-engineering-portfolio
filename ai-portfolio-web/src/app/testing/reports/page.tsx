@@ -236,24 +236,75 @@ function ReportsBody({
                   : "Prod smoke (not in this report)"}
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               {data.cypress ? (
-                <div className="flex items-center gap-3">
-                  {data.cypress.ok ? (
-                    <CheckCircle2 className="h-10 w-10 text-emerald-500" />
-                  ) : (
-                    <XCircle className="h-10 w-10 text-red-400" />
-                  )}
-                  <div>
-                    <p className="font-medium">
-                      {data.cypress.ok ? "Passed" : "Failed"} (exit{" "}
-                      {data.cypress.exitCode})
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {data.cypress.note}
-                    </p>
+                <>
+                  <div className="flex items-center gap-3">
+                    {data.cypress.ok ? (
+                      <CheckCircle2 className="h-10 w-10 text-emerald-500 shrink-0" />
+                    ) : (
+                      <XCircle className="h-10 w-10 text-red-400 shrink-0" />
+                    )}
+                    <div className="min-w-0">
+                      <p className="font-medium">
+                        {data.cypress.hasDetail && data.cypress.total > 0 ? (
+                          <>
+                            <span className="text-emerald-500 tabular-nums">
+                              {data.cypress.passed}
+                            </span>
+                            {" passed"}
+                            {data.cypress.failed > 0 && (
+                              <>
+                                {" · "}
+                                <span className="text-red-400 tabular-nums">
+                                  {data.cypress.failed}
+                                </span>
+                                {" failed"}
+                              </>
+                            )}
+                            <span className="text-muted-foreground font-normal">
+                              {" "}
+                              of {data.cypress.total} tests
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            {data.cypress.ok ? "Passed" : "Failed"} (exit{" "}
+                            {data.cypress.exitCode})
+                          </>
+                        )}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {data.cypress.note}
+                        {data.cypress.hasDetail && data.cypress.total > 0 && (
+                          <>
+                            {" · "}
+                            <span className="tabular-nums">
+                              {data.cypress.passRate}%
+                            </span>{" "}
+                            pass rate
+                          </>
+                        )}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                  {data.cypress.hasDetail && data.cypress.total > 0 && (
+                    <div className="h-3 w-full rounded-full bg-muted overflow-hidden flex">
+                      <div
+                        className="h-full bg-emerald-500 transition-all"
+                        style={{
+                          width: `${(data.cypress.passed / data.cypress.total) * 100}%`,
+                        }}
+                      />
+                      <div
+                        className="h-full bg-red-500/80"
+                        style={{
+                          width: `${(data.cypress.failed / data.cypress.total) * 100}%`,
+                        }}
+                      />
+                    </div>
+                  )}
+                </>
               ) : (
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Cypress was not recorded for this report. Run{" "}
@@ -266,6 +317,104 @@ function ReportsBody({
             </CardContent>
           </Card>
         </div>
+
+        {data.cypress?.hasDetail &&
+          data.cypress.byFile &&
+          data.cypress.byFile.length > 0 && (
+            <Card className="mb-10">
+              <CardHeader>
+                <CardTitle>Cypress by spec file</CardTitle>
+                <CardDescription>Prod-smoke breakdown</CardDescription>
+              </CardHeader>
+              <CardContent className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <caption className="sr-only">
+                    Cypress test counts by spec file
+                  </caption>
+                  <thead>
+                    <tr className="border-b text-left text-muted-foreground">
+                      <th scope="col" className="py-2 pr-4 font-medium">
+                        File
+                      </th>
+                      <th scope="col" className="py-2 pr-4 font-medium w-20">
+                        Pass
+                      </th>
+                      <th scope="col" className="py-2 font-medium w-20">
+                        Fail
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.cypress.byFile.map((row) => (
+                      <tr
+                        key={row.file}
+                        className="border-b border-border/50"
+                      >
+                        <td className="py-2 pr-4 font-mono text-xs">
+                          {row.file}
+                        </td>
+                        <td className="py-2 text-emerald-500 tabular-nums">
+                          {row.passed}
+                        </td>
+                        <td className="py-2 text-red-400 tabular-nums">
+                          {row.failed}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </CardContent>
+            </Card>
+          )}
+
+        {data.cypress?.hasDetail &&
+          data.cypress.tests &&
+          data.cypress.tests.length > 0 && (
+            <Card className="mb-10">
+              <CardHeader>
+                <CardTitle>Cypress tests</CardTitle>
+                <CardDescription>Each it() in prod-smoke</CardDescription>
+              </CardHeader>
+              <CardContent className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <caption className="sr-only">Cypress test cases</caption>
+                  <thead>
+                    <tr className="border-b text-left text-muted-foreground">
+                      <th scope="col" className="py-2 pr-4 font-medium">
+                        Spec
+                      </th>
+                      <th scope="col" className="py-2 pr-4 font-medium">
+                        Test
+                      </th>
+                      <th scope="col" className="py-2 font-medium w-24">
+                        Result
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.cypress.tests.map((t, i) => (
+                      <tr
+                        key={`${t.file}-${i}-${t.title}`}
+                        className="border-b border-border/50"
+                      >
+                        <td className="py-2 pr-4 font-mono text-xs align-top">
+                          {t.file}
+                        </td>
+                        <td className="py-2 pr-4 align-top">{t.title}</td>
+                        <td className="py-2 align-top">
+                          {t.ok ? (
+                            <span className="text-emerald-500">Pass</span>
+                          ) : (
+                            <span className="text-red-400">Fail</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </CardContent>
+            </Card>
+          )}
 
         {pw.byFile.length > 0 && (
           <Card className="mb-10">
