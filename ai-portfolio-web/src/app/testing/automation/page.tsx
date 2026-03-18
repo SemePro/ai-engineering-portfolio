@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { TestingAreaNav } from "@/components/testing/testing-area-nav";
 import {
   Card,
@@ -27,10 +28,38 @@ export default function AutomationTestingPage() {
           Automation testing
         </h1>
         <p className="text-muted-foreground text-lg leading-relaxed mb-12">
-          Automation is organized in layers so every change gets appropriate
-          signal—fast smoke locally, deeper regression in CI, and selective
-          production smoke where it adds value.
+          Automation is organized in layers: fast smoke locally, deeper
+          regression in CI, and read-only production smoke. Each mode serves a
+          distinct purpose.
         </p>
+
+        <section className="mb-12">
+          <h2 className="text-xl font-semibold mb-4">Run modes</h2>
+          <div className="grid gap-4 sm:grid-cols-2 mb-8">
+            <Card className="bg-muted/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Local full suite</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Complete validation before merge: Playwright, Cypress, API,
+                  integration. Dev server starts automatically.
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="bg-muted/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Production smoke</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Safe, read-only checks against the live site. Scheduled
+                  nightly; results on <Link href="/testing/reports" className="text-primary hover:underline">Reports</Link>.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
 
         <section className="mb-12">
           <h2 className="text-xl font-semibold mb-4">How automation is organized</h2>
@@ -99,11 +128,10 @@ export default function AutomationTestingPage() {
             Testing and AI reliability
           </h2>
           <p className="text-muted-foreground leading-relaxed">
-            LLM-backed services are non-deterministic; automation complements
-            eval dashboards and regression baselines. UI and API tests lock
-            structure, latency envelopes, and failure modes; eval pipelines track
-            output quality. Together they reduce surprise when models or prompts
-            change.
+            LLM-backed services are non-deterministic. Automation validates
+            structure, latency, and failure modes; eval pipelines track output
+            quality. Together they reduce surprise when models or prompts
+            change. Tradeoffs include balancing test speed vs depth.
           </p>
         </section>
 

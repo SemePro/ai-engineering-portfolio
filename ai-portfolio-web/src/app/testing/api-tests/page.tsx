@@ -12,7 +12,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "API Testing | Applied AI Engineering Portfolio",
   description:
-    "API validation: health, schemas, errors, latency, and consistency for AI-backed services.",
+    "Contract and response validation: health, schemas, error paths, and predictability for gateway-backed services.",
 };
 
 const focusAreas = [
@@ -48,13 +48,13 @@ export default function APITestsPage() {
         </Badge>
         <h1 className="text-4xl font-bold tracking-tight mb-4">API testing</h1>
         <p className="text-muted-foreground text-lg leading-relaxed mb-10">
-          API tests validate the contracts between the Next.js app, the Secure
-          AI Gateway, and the Python services. They are the fastest way to catch
-          breaking changes before UI automation runs.
+          API tests focus on contracts, schemas, and failure modes. They
+          validate that the gateway and services respond with expected shape and
+          status. Fast signal before UI or integration runs.
         </p>
 
         <section className="mb-12">
-          <h2 className="text-xl font-semibold mb-4">Validation focus</h2>
+          <h2 className="text-xl font-semibold mb-4">What is covered</h2>
           <div className="space-y-4">
             {focusAreas.map((f) => (
               <div
@@ -70,9 +70,19 @@ export default function APITestsPage() {
           </div>
         </section>
 
+        <section className="mb-12">
+          <h2 className="text-xl font-semibold mb-2">What is not covered / tradeoffs</h2>
+          <p className="text-sm text-muted-foreground mb-2">
+            Exhaustive fuzzing, load testing at scale, or testing every
+            combination of request parameters. Tradeoffs: prioritizing
+            contract and error-path predictability over full combinatorial
+            coverage; production smoke stays read-only (e.g. health only).
+          </p>
+        </section>
+
         <Card>
           <CardHeader>
-            <CardTitle>Connection to portfolio AI systems</CardTitle>
+            <CardTitle>Connection to portfolio systems</CardTitle>
             <CardDescription>
               Same services described on Architecture and Projects.
             </CardDescription>
@@ -86,11 +96,9 @@ export default function APITestsPage() {
               eval scores, and gateway metadata.
             </p>
             <p>
-              <span className="text-foreground font-medium">Planned coverage </span>
-              includes contract tests per service and negative cases (missing API
-              keys, overloaded models) where the UI must degrade gracefully.
-              Local execution targets Docker Compose; production smoke stays
-              minimal and read-only where possible.
+              Contract tests per service and negative cases (missing API keys,
+              validation errors) are in scope. Local execution targets Docker
+              Compose; production smoke stays minimal and read-only.
             </p>
           </CardContent>
         </Card>

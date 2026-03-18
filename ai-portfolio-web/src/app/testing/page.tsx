@@ -39,44 +39,48 @@ const LANDING_ICONS: Record<
 export const metadata: Metadata = {
   title: "Testing | Applied AI Engineering Portfolio",
   description:
-    "Automation, UI, API, and integration testing as part of a reliability-first engineering workflow.",
+    "Testing as part of system reliability: UI, API, and integration validation with production smoke and AI-assisted tooling.",
 };
 
 const philosophy = [
   {
-    title: "Engineering discipline",
-    body: "Tests are treated as production code: maintainable, intentional, and tied to real risk.",
+    title: "System reliability",
+    body: "Testing is part of keeping the portfolio and its AI-backed flows predictable. Confidence is built before deployment.",
   },
   {
-    title: "Confidence before change",
-    body: "Local and CI checks establish a baseline so refactors and model updates ship with evidence.",
+    title: "Engineering discipline",
+    body: "Tests are maintained like production code: intentional, tied to real risk, and validated in CI.",
+  },
+  {
+    title: "Safe AI integration",
+    body: "Validation gates apply to code, prompts, and integration points. AI is used as a support tool, not a replacement for deterministic checks.",
   },
   {
     title: "Production-minded validation",
-    body: "Production smoke and staged checks complement deep regression suites.",
+    body: "Production smoke (read-only) complements local and CI regression. Tradeoffs include prioritizing reliability over exhaustive coverage.",
   },
-  {
-    title: "AI-assisted workflows",
-    body: "LLMs support expansion and triage; human judgment keeps scope and assertions trustworthy.",
-  },
+];
+
+const howToRead = [
+  { tool: "Playwright", body: "UI and reliability checks: rendering, navigation, deterministic assertions. Strong browser coverage and stability." },
+  { tool: "Cypress", body: "User flows and interaction testing. Focus on developer feedback and journey-style specs." },
+  { tool: "API tests", body: "Contract and response validation: health, schemas, error paths. Fast signal before UI runs." },
+  { tool: "Integration tests", body: "System-level validation: frontend through gateway to backend, including failure modes." },
+  { tool: "AI-assisted workflow", body: "CLI tools for suggesting cases, triaging failures, and gap analysis. Improves coverage and debugging; all outputs are reviewed before use." },
 ];
 
 const aiWorkflow = [
   {
-    title: "AI-assisted test expansion",
-    body: "Generate candidate cases and edge paths from specs and existing suites; review before merge.",
+    title: "Suggesting additional test cases",
+    body: "Candidate cases and edge paths from specs and existing suites; review before merge.",
   },
   {
-    title: "Failure triage support",
-    body: "Summarize traces and logs to speed root-cause analysis when CI or smoke runs fail.",
+    title: "Summarizing failures",
+    body: "Traces and logs summarized to speed root-cause analysis when CI or smoke runs fail.",
   },
   {
-    title: "Gap analysis",
-    body: "Map untested routes and API surfaces against the architecture to prioritize backlog work.",
-  },
-  {
-    title: "Smoke check prioritization",
-    body: "Rank minimal must-pass checks for fast feedback on every change.",
+    title: "Identifying gaps",
+    body: "Untested routes and API surfaces mapped against the architecture to prioritize backlog work.",
   },
 ];
 
@@ -90,12 +94,26 @@ export default function TestingPage() {
           </Badge>
           <h1 className="text-4xl font-bold tracking-tight mb-4">Testing</h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
-            Automation, UI, API, and integration testing integrated into a
-            reliability-first engineering workflow.
+            Testing is part of system reliability. It supports safe AI
+            integration and builds confidence before deployment. AI is used as
+            a support tool in the workflow—not a replacement for deterministic
+            validation.
           </p>
         </div>
 
         <ImplementationStatus />
+
+        <section className="mb-16">
+          <h2 className="text-xl font-semibold mb-4">How to read this section</h2>
+          <ul className="space-y-3 text-sm text-muted-foreground mb-10 max-w-3xl">
+            {howToRead.map((item) => (
+              <li key={item.tool}>
+                <span className="text-foreground font-medium">{item.tool} — </span>
+                {item.body}
+              </li>
+            ))}
+          </ul>
+        </section>
 
         <section className="mb-16">
           <h2 className="text-xl font-semibold mb-6">Philosophy</h2>
@@ -114,14 +132,9 @@ export default function TestingPage() {
             ))}
           </div>
           <p className="mt-6 text-sm text-muted-foreground leading-relaxed max-w-3xl">
-            This portfolio treats testing as part of applied AI engineering:
-            reliable gateways, eval services, and RAG pipelines only matter if
-            changes are validated systematically. The sections below describe how
-            that validation is organized—what is{" "}
-            <span className="text-foreground font-medium">implemented</span> today
-            and what is{" "}
-            <span className="text-foreground font-medium">planned coverage</span>{" "}
-            for Phase 2.
+            The sections below describe how validation is organized: what is
+            implemented today and what is planned. Focus is on clarity and
+            system-level thinking, not exhaustive coverage.
           </p>
         </section>
 
@@ -162,15 +175,46 @@ export default function TestingPage() {
           </div>
         </section>
 
-        <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-2">
-            AI in the testing workflow
-          </h2>
-          <p className="text-sm text-muted-foreground mb-6 max-w-3xl">
-            AI augments how tests are written and interpreted—it does not replace
-            clear assertions or ownership of quality. High-level uses:
+        <section className="mb-16">
+          <h2 className="text-xl font-semibold mb-4">Run modes</h2>
+          <div className="grid gap-4 sm:grid-cols-2 mb-6">
+            <Card className="bg-muted/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Local full suite</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Complete validation: Playwright, Cypress, API, and integration
+                  tests. Dev server starts automatically. Use before merge or
+                  release.
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="bg-muted/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Production smoke</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Safe, read-only checks against the live site. No form posts or
+                  destructive calls. Run on schedule or manually; results on{" "}
+                  <Link href="/testing/reports" className="text-primary hover:underline">Reports</Link>.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        <section className="mb-16">
+          <h2 className="text-xl font-semibold mb-4">AI in the testing workflow</h2>
+          <p className="text-sm text-muted-foreground mb-4 max-w-3xl">
+            AI is used for: suggesting additional test cases, summarizing
+            failures, and identifying potential gaps. AI is not used for:
+            blindly generating tests, replacing deterministic validation, or
+            making deployment decisions. All AI-assisted outputs are reviewed
+            and validated before use.
           </p>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {aiWorkflow.map((item) => (
               <div
                 key={item.title}
@@ -188,8 +232,8 @@ export default function TestingPage() {
         <Card className="bg-muted/30">
           <CardContent className="pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">
-              Test infrastructure and CI wiring land in Phase 2; this section
-              documents intent and coverage design.
+              Test infrastructure and CI are implemented; this section documents
+              design and coverage.
             </p>
             <Button variant="outline" size="sm" asChild>
               <Link href="/architecture">System architecture</Link>

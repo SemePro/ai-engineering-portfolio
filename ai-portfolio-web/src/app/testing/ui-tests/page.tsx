@@ -12,7 +12,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "UI Testing | Applied AI Engineering Portfolio",
   description:
-    "UI coverage: navigation, layout, responsive rendering, and route validation.",
+    "Visual and layout correctness: navigation, responsive rendering, and page integrity.",
 };
 
 const pageMatrix = [
@@ -85,13 +85,14 @@ export default function UITestsPage() {
         </Badge>
         <h1 className="text-4xl font-bold tracking-tight mb-4">UI testing</h1>
         <p className="text-muted-foreground text-lg leading-relaxed mb-10">
-          UI tests validate what users see and click: structure and navigation
-          stay correct as the portfolio evolves. They do not replace API or
-          integration tests—they anchor the shell around demos and docs.
+          UI tests focus on visual and layout correctness and page integrity:
+          structure, navigation, and key regions render as intended. They
+          anchor the shell around demos and docs; they do not replace API or
+          integration tests.
         </p>
 
-        <section className="mb-10">
-          <h2 className="text-xl font-semibold mb-4">What UI tests cover</h2>
+        <section className="mb-12">
+          <h2 className="text-xl font-semibold mb-4">What is covered</h2>
           <ul className="space-y-3 text-muted-foreground">
             <li>
               <span className="text-foreground font-medium">Header / nav — </span>
@@ -122,12 +123,22 @@ export default function UITestsPage() {
           </ul>
         </section>
 
+        <section className="mb-12">
+          <h2 className="text-xl font-semibold mb-2">What is not covered</h2>
+          <p className="text-sm text-muted-foreground">
+            Exhaustive visual regression (pixel diff), load testing, or
+            third-party widget behavior. Tradeoffs: prioritizing layout and
+            navigation correctness over full screenshot coverage.
+          </p>
+        </section>
+
         <Card className="overflow-x-auto">
           <CardHeader>
             <CardTitle>Covered page types</CardTitle>
             <CardDescription>
-              Matrix of UI dimensions by page family. All cells are{" "}
-              <strong>planned coverage</strong> until Phase 2.
+              Matrix of UI dimensions by page family. Status reflects design;
+              implementation varies by area (see Playwright and Cypress pages for
+              current coverage).
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0 pb-4">

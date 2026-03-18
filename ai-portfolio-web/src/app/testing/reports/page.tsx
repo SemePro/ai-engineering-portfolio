@@ -93,7 +93,7 @@ function ReportsBody({
         <h1 className="text-4xl font-bold tracking-tight mb-3">
           Production test report
         </h1>
-        <p className="text-muted-foreground text-lg mb-4 max-w-2xl">
+        <p className="text-muted-foreground text-lg mb-2 max-w-2xl">
           Read-only smoke tests against{" "}
           <span className="text-foreground font-medium">{data.targetUrl}</span>.
           A GitHub Action runs <strong>every night</strong> (Playwright +
@@ -101,6 +101,10 @@ function ReportsBody({
           (overwritten), and keeps a <strong>history</strong> of snapshots in
           the repo. This page loads live JSON from the repo (GitHub raw or CDN
           mirror) — no redeploy needed when fetch succeeds.
+        </p>
+        <p className="text-sm text-muted-foreground mb-4 max-w-2xl">
+          What you see: latest run summary and run history. No load or
+          destructive tests.
         </p>
 
         {source === "local" && (
