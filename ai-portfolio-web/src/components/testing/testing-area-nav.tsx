@@ -3,16 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-
-const areas = [
-  { href: "/testing", label: "Overview" },
-  { href: "/testing/automation", label: "Automation" },
-  { href: "/testing/playwright", label: "Playwright" },
-  { href: "/testing/cypress", label: "Cypress" },
-  { href: "/testing/ui-tests", label: "UI" },
-  { href: "/testing/api-tests", label: "API" },
-  { href: "/testing/integration-tests", label: "Integration" },
-];
+import { TESTING_NAV_ITEMS } from "@/lib/testing-nav";
 
 export function TestingAreaNav({ className }: { className?: string }) {
   const pathname = usePathname();
@@ -25,7 +16,7 @@ export function TestingAreaNav({ className }: { className?: string }) {
       )}
       aria-label="Testing sections"
     >
-      {areas.map(({ href, label }) => {
+      {TESTING_NAV_ITEMS.map(({ href, navLabel }) => {
         const active =
           href === "/testing"
             ? pathname === "/testing"
@@ -41,7 +32,7 @@ export function TestingAreaNav({ className }: { className?: string }) {
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
           >
-            {label}
+            {navLabel}
           </Link>
         );
       })}

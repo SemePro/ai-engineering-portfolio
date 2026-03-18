@@ -105,24 +105,33 @@ export default function PlaywrightPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-left text-muted-foreground">
-                  <th className="px-4 py-3 font-medium">Area</th>
-                  <th className="px-4 py-3 font-medium w-36">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {coverageRows.map((area) => (
-                  <tr key={area} className="border-b border-border/60">
-                    <td className="px-4 py-3">{area}</td>
-                    <td className="px-4 py-3">
-                      <Badge variant="secondary">Planned coverage</Badge>
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[280px] text-sm">
+                <caption className="sr-only">
+                  Playwright planned and implemented coverage by area
+                </caption>
+                <thead>
+                  <tr className="border-b text-left text-muted-foreground">
+                    <th scope="col" className="px-4 py-3 font-medium">
+                      Area
+                    </th>
+                    <th scope="col" className="px-4 py-3 font-medium w-36">
+                      Status
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {coverageRows.map((area) => (
+                    <tr key={area} className="border-b border-border/60">
+                      <td className="px-4 py-3">{area}</td>
+                      <td className="px-4 py-3">
+                        <Badge variant="secondary">Planned coverage</Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </CardContent>
         </Card>
       </div>

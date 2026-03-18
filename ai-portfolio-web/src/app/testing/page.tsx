@@ -18,57 +18,28 @@ import {
   Workflow,
 } from "lucide-react";
 import type { Metadata } from "next";
+import {
+  TESTING_LANDING_CARDS,
+  type TestingLandingIconId,
+} from "@/lib/testing-nav";
+
+const LANDING_ICONS: Record<
+  TestingLandingIconId,
+  typeof Workflow
+> = {
+  workflow: Workflow,
+  monitor: MonitorSmartphone,
+  testTube: TestTube2,
+  layers: Layers,
+  network: Network,
+  bot: Bot,
+};
 
 export const metadata: Metadata = {
   title: "Testing | Applied AI Engineering Portfolio",
   description:
     "Automation, UI, API, and integration testing as part of a reliability-first engineering workflow.",
 };
-
-const areas = [
-  {
-    href: "/testing/automation",
-    title: "Automation Testing",
-    description:
-      "Smoke, regression, and critical workflows with confidence gating across the stack.",
-    icon: Workflow,
-  },
-  {
-    href: "/testing/playwright",
-    title: "Playwright",
-    description:
-      "Cross-browser UI coverage, tracing, and resilient selectors for the Next.js portfolio.",
-    icon: MonitorSmartphone,
-  },
-  {
-    href: "/testing/cypress",
-    title: "Cypress",
-    description:
-      "E2E journeys, API interception, and fast feedback on user flows and demos.",
-    icon: TestTube2,
-  },
-  {
-    href: "/testing/ui-tests",
-    title: "UI Testing",
-    description:
-      "Header, layout, responsive rendering, and route-level UI validation.",
-    icon: Layers,
-  },
-  {
-    href: "/testing/api-tests",
-    title: "API Testing",
-    description:
-      "Health, schema shape, errors, and consistency for gateway-backed AI services.",
-    icon: Network,
-  },
-  {
-    href: "/testing/integration-tests",
-    title: "Integration Testing",
-    description:
-      "Frontend through gateway to backend: end-to-end system behavior and fallbacks.",
-    icon: Bot,
-  },
-];
 
 const philosophy = [
   {
@@ -154,34 +125,37 @@ export default function TestingPage() {
         <section className="mb-16">
           <h2 className="text-xl font-semibold mb-6">Areas</h2>
           <div className="grid gap-4 md:grid-cols-2">
-            {areas.map((area) => (
-              <Card
-                key={area.href}
-                className="group hover:bg-muted/30 transition-colors"
-              >
-                <CardHeader>
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 shrink-0">
-                      <area.icon className="h-5 w-5 text-primary" />
+            {TESTING_LANDING_CARDS.map((area) => {
+              const Icon = LANDING_ICONS[area.icon];
+              return (
+                <Card
+                  key={area.href}
+                  className="group hover:bg-muted/30 transition-colors"
+                >
+                  <CardHeader>
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 shrink-0">
+                        <Icon className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="min-w-0">
+                        <CardTitle className="text-lg">{area.title}</CardTitle>
+                        <CardDescription className="mt-1">
+                          {area.description}
+                        </CardDescription>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <CardTitle className="text-lg">{area.title}</CardTitle>
-                      <CardDescription className="mt-1">
-                        {area.description}
-                      </CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <Button variant="ghost" size="sm" className="px-0" asChild>
-                    <Link href={area.href}>
-                      Read more
-                      <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <Button variant="ghost" size="sm" className="px-0" asChild>
+                      <Link href={area.href}>
+                        Read more
+                        <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </section>
 

@@ -74,17 +74,29 @@ src/app/
 │       └── page.tsx    # Gateway playground
 ├── about/
 │   └── page.tsx        # About/career page
-└── contact/
-    └── page.tsx        # Contact links
+├── contact/
+│   └── page.tsx        # Contact links
+└── testing/
+    ├── page.tsx        # Testing overview
+    ├── automation/page.tsx
+    ├── playwright/page.tsx
+    ├── cypress/page.tsx
+    ├── ui-tests/page.tsx
+    ├── api-tests/page.tsx
+    └── integration-tests/page.tsx
 ```
 
 ## Component Structure
 
 ```
+src/lib/
+└── testing-nav.ts      # Shared Testing routes (nav, footer, landing cards)
 src/components/
 ├── layout/
 │   ├── header.tsx      # Navigation header
 │   └── footer.tsx      # Site footer
+├── testing/
+│   └── testing-area-nav.tsx
 └── ui/
     ├── button.tsx      # Button component
     ├── card.tsx        # Card component

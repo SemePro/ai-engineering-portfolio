@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Github, Mail } from "lucide-react";
+import { TESTING_NAV_ITEMS } from "@/lib/testing-nav";
 
 export function Footer() {
   return (
@@ -98,41 +99,16 @@ export function Footer() {
           <div>
             <h4 className="font-semibold mb-4">Testing</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>
-                <Link href="/testing" className="hover:text-primary transition-colors">
-                  Overview
-                </Link>
-              </li>
-              <li>
-                <Link href="/testing/automation" className="hover:text-primary transition-colors">
-                  Automation
-                </Link>
-              </li>
-              <li>
-                <Link href="/testing/playwright" className="hover:text-primary transition-colors">
-                  Playwright
-                </Link>
-              </li>
-              <li>
-                <Link href="/testing/cypress" className="hover:text-primary transition-colors">
-                  Cypress
-                </Link>
-              </li>
-              <li>
-                <Link href="/testing/ui-tests" className="hover:text-primary transition-colors">
-                  UI tests
-                </Link>
-              </li>
-              <li>
-                <Link href="/testing/api-tests" className="hover:text-primary transition-colors">
-                  API tests
-                </Link>
-              </li>
-              <li>
-                <Link href="/testing/integration-tests" className="hover:text-primary transition-colors">
-                  Integration
-                </Link>
-              </li>
+              {TESTING_NAV_ITEMS.map(({ href, footerLabel }) => (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    className="hover:text-primary transition-colors"
+                  >
+                    {footerLabel}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -144,14 +120,16 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-primary transition-colors"
+                aria-label="GitHub repository (opens in new tab)"
               >
-                <Github className="h-5 w-5" />
+                <Github className="h-5 w-5" aria-hidden />
               </a>
               <a
                 href="mailto:contact@example.com"
                 className="text-muted-foreground hover:text-primary transition-colors"
+                aria-label="Email contact@example.com"
               >
-                <Mail className="h-5 w-5" />
+                <Mail className="h-5 w-5" aria-hidden />
               </a>
             </div>
           </div>
