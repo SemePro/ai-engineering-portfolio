@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-05-05T07:23:24.283Z",
+  "generatedAt": "2026-05-06T07:40:18.184Z",
   "environment": "production",
   "targetUrl": "https://www.semefit.com",
   "playwright": {
@@ -57,16 +57,16 @@
       }
     ],
     "failures": [],
-    "durationMsTotal": 15966
+    "durationMsTotal": 17937
   },
   "cypress": {
-    "ok": false,
-    "exitCode": 1,
+    "ok": true,
+    "exitCode": 0,
     "note": "cypress/e2e/prod-smoke (module API)",
-    "passed": 24,
-    "failed": 1,
+    "passed": 25,
+    "failed": 0,
     "total": 25,
-    "passRate": 96,
+    "passRate": 100,
     "byFile": [
       {
         "file": "core.cy.ts",
@@ -75,8 +75,8 @@
       },
       {
         "file": "prod-routes.cy.ts",
-        "passed": 22,
-        "failed": 1
+        "passed": 23,
+        "failed": 0
       }
     ],
     "tests": [
@@ -183,8 +183,7 @@
       {
         "title": "Prod routes @prod-safe › main visible on /testing/integration-tests",
         "file": "prod-routes.cy.ts",
-        "ok": false,
-        "error": "Error: The following error originated from your application code, not from Cypress.\n\n  > Minified React error #418; visit https://reactjs.org/docs/error-decoder.html?invariant=418 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n\nWhen Cypress detects uncaught errors originating from your application it will automatically fail the current test.\n\nThis behavior is configurable, and you can choose to turn this off by listening to the `uncaught:exception` event.\n\nhttps://on.cypress.io/uncaught-exception-from-application\n    at t3 (https://www.semefit.com/_next/static/chunks/fd9d1056-df01771a29748180.js:1:24066)\n    at iB (https://www.semefit.com/_next/static/chunks/fd9d1056-df01771a29748180.js:1:119961)\n    at o4 (https://www.semefit.com/_next/static/chunks/fd9d1056-df01771a29748180.js:1:94629)\n    at <unknown> (https://www.semefit.com/_next/static/chunks/fd9d1056-df01771a29748180.js:1:90692)\n    at <unknown> (https://www.semefit.com/_next/static/chunks/fd9d1056-df01771a29748180.js:1:90699)\n    at oj (https://www.semefit.com/_next/static/chunks/fd9d1056-df01771a29748180.js:1:90804)\n    at MessagePort.M (https://www.semefit.com/_next/static/chunks/69-856e862ef8430306.js:1:98423)"
+        "ok": true
       },
       {
         "title": "Prod routes @prod-safe › main visible on /testing/reports",
@@ -207,19 +206,12 @@
         "ok": true
       }
     ],
-    "failures": [
-      {
-        "title": "Prod routes @prod-safe › main visible on /testing/integration-tests",
-        "file": "prod-routes.cy.ts",
-        "ok": false,
-        "error": "Error: The following error originated from your application code, not from Cypress.\n\n  > Minified React error #418; visit https://reactjs.org/docs/error-decoder.html?invariant=418 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n\nWhen Cypress detects uncaught errors originating from your application it will automatically fail the current test.\n\nThis behavior is configurable, and you can choose to turn this off by listening to the `uncaught:exception` event.\n\nhttps://on.cypress.io/uncaught-exception-from-application\n    at t3 (https://www.semefit.com/_next/static/chunks/fd9d1056-df01771a29748180.js:1:24066)\n    at iB (https://www.semefit.com/_next/static/chunks/fd9d1056-df01771a29748180.js:1:119961)\n    at o4 (https://www.semefit.com/_next/static/chunks/fd9d1056-df01771a29748180.js:1:94629)\n    at <unknown> (https://www.semefit.com/_next/static/chunks/fd9d1056-df01771a29748180.js:1:90692)\n    at <unknown> (https://www.semefit.com/_next/static/chunks/fd9d1056-df01771a29748180.js:1:90699)\n    at oj (https://www.semefit.com/_next/static/chunks/fd9d1056-df01771a29748180.js:1:90804)\n    at MessagePort.M (https://www.semefit.com/_next/static/chunks/69-856e862ef8430306.js:1:98423)"
-      }
-    ],
+    "failures": [],
     "hasDetail": true
   },
-  "workflowRunUrl": "https://github.com/SemePro/ai-engineering-portfolio/actions/runs/25363242300",
-  "commitSha": "2194fa3",
-  "githubRunId": "25363242300",
-  "overallOk": false,
+  "workflowRunUrl": "https://github.com/SemePro/ai-engineering-portfolio/actions/runs/25422580257",
+  "commitSha": "32d9e62",
+  "githubRunId": "25422580257",
+  "overallOk": true,
   "placeholder": false
 }
