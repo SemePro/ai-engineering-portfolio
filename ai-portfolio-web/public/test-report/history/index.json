@@ -2,6 +2,16 @@
   "schemaVersion": 1,
   "runs": [
     {
+      "runId": "28085549790",
+      "generatedAt": "2026-06-24T08:29:31.264Z",
+      "overallOk": true,
+      "workflowRunUrl": "https://github.com/SemePro/ai-engineering-portfolio/actions/runs/28085549790",
+      "passRate": 100,
+      "pwTotal": 25,
+      "pwFailed": 0,
+      "cypressOk": true
+    },
+    {
       "runId": "28013201862",
       "generatedAt": "2026-06-23T08:34:53.725Z",
       "overallOk": true,
