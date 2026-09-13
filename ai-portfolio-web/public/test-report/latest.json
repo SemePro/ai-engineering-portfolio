@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-12T09:12:12.930Z",
+  "generatedAt": "2026-09-13T10:08:49.694Z",
   "environment": "production",
   "targetUrl": "https://www.semefit.com",
   "playwright": {
@@ -57,7 +57,7 @@
       }
     ],
     "failures": [],
-    "durationMsTotal": 16478
+    "durationMsTotal": 15039
   },
   "cypress": {
     "ok": true,
@@ -209,9 +209,9 @@
     "failures": [],
     "hasDetail": true
   },
-  "workflowRunUrl": "https://github.com/SemePro/ai-engineering-portfolio/actions/runs/34685103018",
-  "commitSha": "4f0f5db",
-  "githubRunId": "34685103018",
+  "workflowRunUrl": "https://github.com/SemePro/ai-engineering-portfolio/actions/runs/34751006528",
+  "commitSha": "4c2f07c",
+  "githubRunId": "34751006528",
   "overallOk": true,
   "placeholder": false
 }
