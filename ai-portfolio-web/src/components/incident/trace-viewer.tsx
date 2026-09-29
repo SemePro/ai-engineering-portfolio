@@ -326,7 +326,7 @@ export function TraceViewer({ initialCase }: { initialCase?: string }) {
         {trace && (
           <>
             <section className="rounded-lg border p-4">
-              <h3 className="font-semibold mb-2">Run</h3>
+              <h2 className="text-base font-semibold mb-2">Run</h2>
               <dl className="grid grid-cols-2 gap-y-1 text-xs">
                 <dt className="text-muted-foreground">Model</dt>
                 <dd className="font-mono break-all">{trace.metrics.model}</dd>
@@ -360,7 +360,7 @@ export function TraceViewer({ initialCase }: { initialCase?: string }) {
 
             {done && trace.findings && (
               <section className="rounded-lg border p-4">
-                <h3 className="font-semibold mb-2">Findings</h3>
+                <h2 className="text-base font-semibold mb-2">Findings</h2>
                 <p className="text-xs mb-2">
                   <span className="text-muted-foreground">Status: </span>
                   {trace.findings.status.replaceAll("_", " ")} · {Math.round(trace.findings.confidence * 100)}% confidence
@@ -378,16 +378,16 @@ export function TraceViewer({ initialCase }: { initialCase?: string }) {
             )}
             {done && !trace.findings && (
               <section className="rounded-lg border border-red-500/40 p-4 text-xs">
-                <h3 className="font-semibold mb-1">No conclusion reported</h3>
+                <h2 className="text-base font-semibold mb-1">No conclusion reported</h2>
                 <p className="text-muted-foreground">{trace.findings_error}</p>
               </section>
             )}
 
             {done && pending.map((p) => (
               <section key={p.id} className="rounded-lg border border-amber-500/50 p-4">
-                <h3 className="font-semibold mb-1 flex items-center gap-2">
+                <h2 className="text-base font-semibold mb-1 flex items-center gap-2">
                   <Wrench className="h-4 w-4 text-amber-400" aria-hidden /> Awaiting approval
-                </h3>
+                </h2>
                 <p className="text-xs font-mono mb-2 break-all">
                   {p.action}({Object.entries(p.args).filter(([k]) => k !== "reason").map(([k, v]) => `${k}=${v}`).join(", ")})
                 </p>

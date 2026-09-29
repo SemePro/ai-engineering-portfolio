@@ -26,7 +26,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4">Projects</h4>
+            <h2 className="text-base font-semibold mb-4">Projects</h2>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
                 <Link href="/projects/incident-agent" className="hover:text-primary transition-colors">
@@ -67,7 +67,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4">Live Demos</h4>
+            <h2 className="text-base font-semibold mb-4">Live Demos</h2>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
                 <Link href="/demo/rag" className="hover:text-primary transition-colors">
@@ -103,7 +103,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4">Testing</h4>
+            <h2 className="text-base font-semibold mb-4">Testing</h2>
             <ul className="space-y-2 text-sm text-muted-foreground">
               {TESTING_NAV_ITEMS.map(({ href, footerLabel }) => (
                 <li key={href}>
@@ -119,7 +119,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4">Connect</h4>
+            <h2 className="text-base font-semibold mb-4">Connect</h2>
             <ContactLinks size="sm" />
           </div>
         </div>
