@@ -1,0 +1,357 @@
+{
+ "investigation_id": "inv_64d9920ee687",
+ "trace_id": "540380966e1f7f0d8ac9a13593ebeb53",
+ "scenario_id": "inc-01-checkout-pool-saturation",
+ "variant": "abstain",
+ "mode": "scripted-baseline",
+ "caching": true,
+ "findings": {
+  "status": "insufficient_evidence",
+  "root_cause": {
+   "category": "unknown",
+   "service": "",
+   "summary": ""
+  },
+  "confidence": 0.0,
+  "evidence": [],
+  "ruled_out": [],
+  "missing_evidence": [
+   "no recent change on the alerting service or unhealthy dependencies"
+  ],
+  "recommended_action": {
+   "type": "none",
+   "service": "",
+   "target_version": "",
+   "description": "",
+   "proposal_id": ""
+  },
+  "summary": "Playbook found no recent change to blame."
+ },
+ "findings_error": null,
+ "hypotheses": [],
+ "proposals": [],
+ "tool_calls": [
+  {
+   "id": "toolu_scripted_01",
+   "name": "get_service_health",
+   "args": {
+    "service": "checkout-api"
+   },
+   "is_error": false,
+   "error_class": null,
+   "retries": 0,
+   "redundant": false,
+   "latency_ms": 0
+  },
+  {
+   "id": "toolu_scripted_02",
+   "name": "get_recent_errors",
+   "args": {
+    "service": "checkout-api",
+    "window_minutes": 60
+   },
+   "is_error": false,
+   "error_class": null,
+   "retries": 0,
+   "redundant": false,
+   "latency_ms": 0
+  },
+  {
+   "id": "toolu_scripted_03",
+   "name": "get_deployment_history",
+   "args": {
+    "service": "*",
+    "hours": 24
+   },
+   "is_error": false,
+   "error_class": null,
+   "retries": 0,
+   "redundant": false,
+   "latency_ms": 0
+  },
+  {
+   "id": "toolu_scripted_04",
+   "name": "get_service_metrics",
+   "args": {
+    "service": "checkout-api",
+    "metric": "*",
+    "window_minutes": 60
+   },
+   "is_error": false,
+   "error_class": null,
+   "retries": 0,
+   "redundant": false,
+   "latency_ms": 23
+  }
+ ],
+ "metrics": {
+  "model": "scripted-playbook-v1",
+  "model_calls": 5,
+  "investigation_tool_calls": 4,
+  "ledger_updates": 0,
+  "redundant_tool_calls": 0,
+  "tool_errors": 0,
+  "tool_retries": 0,
+  "usage": {
+   "input_tokens": 0,
+   "output_tokens": 0,
+   "cache_read_input_tokens": 0,
+   "cache_creation_input_tokens": 0
+  },
+  "cost_usd": 0.0,
+  "total_latency_ms": 25,
+  "model_latency_ms": 0,
+  "tool_latency_ms": 23,
+  "time_to_recommendation_ms": 25,
+  "stop_reason": "end_turn"
+ },
+ "trace": [
+  {
+   "seq": 0,
+   "t_ms": 1,
+   "type": "alert",
+   "title": "Alert received: CheckoutLatencyP99High",
+   "detail": {
+    "alert_id": "ALRT-4412",
+    "service": "checkout-api",
+    "severity": "SEV2",
+    "fired_at": "2026-09-14T09:41:00+00:00",
+    "description": "checkout-api p99 latency above 800ms for 5 minutes (current 1.04s).",
+    "trace_id": "540380966e1f7f0d8ac9a13593ebeb53",
+    "investigation_id": "inv_64d9920ee687",
+    "variant": "abstain",
+    "faults": []
+   }
+  },
+  {
+   "seq": 1,
+   "t_ms": 1,
+   "type": "model_call",
+   "title": "Model turn 1",
+   "detail": {
+    "stop_reason": "tool_use",
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0,
+    "request_id": "",
+    "served_model": "scripted-playbook-v1",
+    "gateway": {}
+   }
+  },
+  {
+   "seq": 2,
+   "t_ms": 1,
+   "type": "tool_call",
+   "title": "Service health checked",
+   "detail": {
+    "tool": "get_service_health",
+    "tool_use_id": "toolu_scripted_01",
+    "args": {
+     "service": "checkout-api"
+    },
+    "kind": "read"
+   }
+  },
+  {
+   "seq": 3,
+   "t_ms": 1,
+   "type": "tool_result",
+   "title": "checkout-api: degraded ()",
+   "detail": {
+    "tool": "get_service_health",
+    "tool_use_id": "toolu_scripted_01",
+    "retries": 0,
+    "redundant": false,
+    "preview": "{\"service\":\"checkout-api\",\"observed_at\":\"2026-09-14T09:44:00Z\",\"version\":\"v2.14.7\",\"instances\":12,\"tier\":1,\"owner\":\"team-checkout\",\"status\":\"degraded\",\"checks\":{},\"restarts_1h\":0,\"uptime_hours\":72.0,\"notes\":\"\",\"dependencies\":[{\"service\":\"orders-db\",\"status\":\"healthy\"},{\"service\":\"payments-gateway\",\"status\":\"healthy\"},{\"service\":\"inventory-service\",\"status\":\"healthy\"}],\"dependents\":[\"web-frontend\"]}"
+   }
+  },
+  {
+   "seq": 4,
+   "t_ms": 1,
+   "type": "model_call",
+   "title": "Model turn 2",
+   "detail": {
+    "stop_reason": "tool_use",
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0,
+    "request_id": "",
+    "served_model": "scripted-playbook-v1",
+    "gateway": {}
+   }
+  },
+  {
+   "seq": 5,
+   "t_ms": 1,
+   "type": "tool_call",
+   "title": "Error groups requested",
+   "detail": {
+    "tool": "get_recent_errors",
+    "tool_use_id": "toolu_scripted_02",
+    "args": {
+     "service": "checkout-api",
+     "window_minutes": 60
+    },
+    "kind": "read"
+   }
+  },
+  {
+   "seq": 6,
+   "t_ms": 1,
+   "type": "tool_result",
+   "title": "0 error signatures",
+   "detail": {
+    "tool": "get_recent_errors",
+    "tool_use_id": "toolu_scripted_02",
+    "retries": 0,
+    "redundant": false,
+    "preview": "{\"service\":\"checkout-api\",\"window_minutes\":60,\"error_groups\":[]}"
+   }
+  },
+  {
+   "seq": 7,
+   "t_ms": 1,
+   "type": "model_call",
+   "title": "Model turn 3",
+   "detail": {
+    "stop_reason": "tool_use",
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0,
+    "request_id": "",
+    "served_model": "scripted-playbook-v1",
+    "gateway": {}
+   }
+  },
+  {
+   "seq": 8,
+   "t_ms": 1,
+   "type": "tool_call",
+   "title": "Change history queried",
+   "detail": {
+    "tool": "get_deployment_history",
+    "tool_use_id": "toolu_scripted_03",
+    "args": {
+     "service": "*",
+     "hours": 24
+    },
+    "kind": "read"
+   }
+  },
+  {
+   "seq": 9,
+   "t_ms": 1,
+   "type": "tool_result",
+   "title": "2 changes",
+   "detail": {
+    "tool": "get_deployment_history",
+    "tool_use_id": "toolu_scripted_03",
+    "retries": 0,
+    "redundant": false,
+    "preview": "{\"service\":\"*\",\"hours\":24,\"changes\":[{\"id\":\"chg-9917\",\"kind\":\"config\",\"service\":\"payments-gateway\",\"at\":\"2026-09-14T07:10:00Z\",\"author\":\"m.chen\",\"summary\":\"Raise webhook retry timeout 5s -> 8s\",\"version\":\"cfg-rev-88\",\"previous_version\":\"cfg-rev-87\"},{\"id\":\"chg-9890\",\"kind\":\"deploy\",\"service\":\"inventory-service\",\"at\":\"2026-09-13T16:20:00Z\",\"author\":\"ci-bot (PR #1175)\",\"summary\":\"Add bulk stock endpoint\",\"version\":\"v1.9.3\",\"previous_version\":\"v1.9.2\"}]}"
+   }
+  },
+  {
+   "seq": 10,
+   "t_ms": 1,
+   "type": "model_call",
+   "title": "Model turn 4",
+   "detail": {
+    "stop_reason": "tool_use",
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0,
+    "request_id": "",
+    "served_model": "scripted-playbook-v1",
+    "gateway": {}
+   }
+  },
+  {
+   "seq": 11,
+   "t_ms": 1,
+   "type": "tool_call",
+   "title": "Metrics queried",
+   "detail": {
+    "tool": "get_service_metrics",
+    "tool_use_id": "toolu_scripted_04",
+    "args": {
+     "service": "checkout-api",
+     "metric": "*",
+     "window_minutes": 60
+    },
+    "kind": "read"
+   }
+  },
+  {
+   "seq": 12,
+   "t_ms": 25,
+   "type": "tool_result",
+   "title": "4 metrics for checkout-api",
+   "detail": {
+    "tool": "get_service_metrics",
+    "tool_use_id": "toolu_scripted_04",
+    "retries": 0,
+    "redundant": false,
+    "preview": "{\"service\":\"checkout-api\",\"window_minutes\":60,\"metrics\":{\"cpu_pct\":{\"unit\":\"%\",\"current\":41.7,\"window_max\":47.07,\"prior_mean\":40.94},\"error_rate_pct\":{\"unit\":\"%\",\"current\":2.74,\"window_max\":3.4,\"prior_mean\":0.2},\"latency_p99_ms\":{\"unit\":\"ms\",\"current\":1035.53,\"window_max\":1062.34,\"prior_mean\":180.06},\"requests_per_sec\":{\"unit\":\"rps\",\"current\":437.63,\"window_max\":472.05,\"prior_mean\":420.97}}}"
+   }
+  },
+  {
+   "seq": 13,
+   "t_ms": 25,
+   "type": "model_call",
+   "title": "Model turn 5",
+   "detail": {
+    "stop_reason": "end_turn",
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0,
+    "request_id": "",
+    "served_model": "scripted-playbook-v1",
+    "gateway": {}
+   }
+  },
+  {
+   "seq": 14,
+   "t_ms": 25,
+   "type": "findings",
+   "title": "Insufficient evidence to determine root cause",
+   "detail": {
+    "status": "insufficient_evidence",
+    "root_cause": {
+     "category": "unknown",
+     "service": "",
+     "summary": ""
+    },
+    "confidence": 0.0,
+    "evidence": [],
+    "ruled_out": [],
+    "missing_evidence": [
+     "no recent change on the alerting service or unhealthy dependencies"
+    ],
+    "recommended_action": {
+     "type": "none",
+     "service": "",
+     "target_version": "",
+     "description": "",
+     "proposal_id": ""
+    },
+    "summary": "Playbook found no recent change to blame."
+   }
+  }
+ ]
+}

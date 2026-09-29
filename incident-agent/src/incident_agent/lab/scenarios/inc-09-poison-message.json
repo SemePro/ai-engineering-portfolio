@@ -1,0 +1,78 @@
+{
+  "id": "inc-09-poison-message",
+  "title": "Email queue backlog from a crash-looping consumer",
+  "difficulty": "medium",
+  "description": "A malformed message from a newly launched email template crashes every consumer that receives it; with requeue=true it is redelivered forever. Restarting consumers cannot help.",
+  "tags": ["queue", "poison-message", "no-tool-remediation"],
+  "alert": {
+    "id": "ALRT-4498",
+    "name": "EmailQueueBacklog",
+    "service": "email-dispatcher",
+    "severity": "SEV3",
+    "fired_at": "2026-09-14T07:50:00Z",
+    "description": "notifications-queue depth 48k (threshold 5k); email-dispatcher consumers not acking."
+  },
+  "topology": {
+    "marketing-service": {"tier": 3, "instances": 2, "version": "v2.6.1", "owner": "team-growth", "depends_on": ["notifications-queue"]},
+    "signup-service": {"tier": 2, "instances": 4, "version": "v3.0.2", "owner": "team-accounts", "depends_on": ["notifications-queue"]},
+    "notifications-queue": {"tier": 2, "instances": 3, "version": "rabbitmq-3.13", "owner": "team-platform"},
+    "email-dispatcher": {"tier": 2, "instances": 6, "version": "v3.1.4", "owner": "team-messaging", "depends_on": ["notifications-queue", "smtp-relay"]},
+    "smtp-relay": {"tier": 2, "instances": 2, "version": "postfix-3.8", "owner": "team-messaging"}
+  },
+  "health": {
+    "email-dispatcher": {"status": "degraded", "checks": {"consumers": "crash-looping"}, "restarts_1h": 23, "uptime_hours": 0.05, "notes": "last exit: code 1 (unhandled exception)"},
+    "notifications-queue": {"status": "healthy", "checks": {"cluster": "ok", "depth": "48,112 messages"}}
+  },
+  "metrics": {
+    "notifications-queue": {
+      "queue_depth": {"unit": "messages", "baseline": 200, "noise": 0.05, "changes": [{"at": "07:12", "value": 48000, "ramp": 38}]},
+      "publish_rate_per_sec": {"unit": "msg/s", "baseline": 21, "noise": 0.05},
+      "ack_rate_per_sec": {"unit": "msg/s", "baseline": 21, "noise": 0.05, "changes": [{"at": "07:12", "value": 0.2, "ramp": 1}]}
+    },
+    "email-dispatcher": {
+      "restarts_per_10m": {"unit": "count", "baseline": 0, "noise": 0.0, "changes": [{"at": "07:12", "value": 4, "ramp": 1}]},
+      "cpu_pct": {"unit": "%", "baseline": 30, "noise": 0.05, "changes": [{"at": "07:12", "value": 6, "ramp": 1}]}
+    },
+    "smtp-relay": {"send_latency_p99_ms": {"unit": "ms", "baseline": 180, "noise": 0.06}}
+  },
+  "logs": {
+    "email-dispatcher": [
+      ["07:11:58", "INFO", "Consumer started, prefetch=50"],
+      ["07:12:03", "ERROR", "Failed to process message id=msg-7f3a91c2: JsonDecodeError: invalid UTF-8 at byte 1042 (template=weekly_digest_v2)"],
+      ["07:12:03", "ERROR", "Unhandled exception in consumer loop; nack(requeue=true); exiting with code 1"],
+      ["07:12:40", "INFO", "Consumer started, prefetch=50"],
+      ["07:12:41", "ERROR", "Failed to process message id=msg-7f3a91c2: JsonDecodeError: invalid UTF-8 at byte 1042 (template=weekly_digest_v2)"],
+      ["07:12:41", "ERROR", "Unhandled exception in consumer loop; nack(requeue=true); exiting with code 1"],
+      ["07:30:15", "WARN", "smtp-relay TLS handshake slow 910ms"],
+      ["07:44:02", "INFO", "Consumer started, prefetch=50"],
+      ["07:44:03", "ERROR", "Failed to process message id=msg-7f3a91c2: JsonDecodeError: invalid UTF-8 at byte 1042 (template=weekly_digest_v2)"],
+      ["07:44:03", "ERROR", "Unhandled exception in consumer loop; nack(requeue=true); exiting with code 1"],
+      ["07:51:30", "ERROR", "Failed to process message id=msg-7f3a91c2: JsonDecodeError: invalid UTF-8 at byte 1042 (template=weekly_digest_v2)"]
+    ],
+    "marketing-service": [["07:10:00", "INFO", "Campaign 'weekly_digest_v2' launched: 2 messages published (canary)"]]
+  },
+  "log_noise": {
+    "signup-service": [["INFO", "published welcome_email for user u_{id}"]],
+    "smtp-relay": [["INFO", "relay ok msg {id} {ms}ms"]]
+  },
+  "changes": [
+    {"id": "chg-9929", "kind": "feature_flag", "service": "marketing-service", "at": "07:10", "author": "growth-tools", "summary": "Launch weekly_digest_v2 template (canary)"},
+    {"id": "chg-9870", "kind": "deploy", "service": "email-dispatcher", "at": "2026-09-11T09:00:00Z", "author": "ci-bot (PR #640)", "summary": "Structured logging", "version": "v3.1.4", "previous_version": "v3.1.3"}
+  ],
+  "past_incidents": [
+    {"id": "INC-1300", "title": "Poison message crash loop in email-dispatcher", "root_cause": "Unparseable payload requeued forever", "resolution": "Moved message to dead-letter queue via admin CLI; added DLQ after 3 failures", "tags": ["email-dispatcher", "queue", "poison-message", "backlog"]}
+  ],
+  "distractors": ["slow smtp TLS handshake warning", "email-dispatcher restarts suggest a restart might help"],
+  "ground_truth": {
+    "accepted_categories": ["queue_backlog"],
+    "accepted_services": ["email-dispatcher", "marketing-service"],
+    "summary": "Message msg-7f3a91c2 (weekly_digest_v2) is unparseable; consumers crash and requeue it forever, so the queue stops draining.",
+    "acceptable_actions": [{"type": "manual", "service": "email-dispatcher"}, {"type": "manual", "service": "notifications-queue"}],
+    "critical_evidence": ["get_recent_errors|get_service_logs"],
+    "expected_tool_path": ["get_service_health", "get_recent_errors", "get_service_metrics"],
+    "min_tool_calls": 2
+  },
+  "fault_variants": [
+    {"name": "errors_malformed", "faults": [{"tool": "get_recent_errors", "mode": "malformed"}], "expected": "recover", "rationale": "Raw logs contain the same evidence."}
+  ]
+}

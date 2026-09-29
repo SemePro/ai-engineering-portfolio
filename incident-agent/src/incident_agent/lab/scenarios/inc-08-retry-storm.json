@@ -1,0 +1,85 @@
+{
+  "id": "inc-08-retry-storm",
+  "title": "auth-service throttling from a client retry storm",
+  "difficulty": "hard",
+  "description": "The alert fires on auth-service, but the cause is upstream: a mobile-bff deploy upgraded its HTTP resilience library and lost retry backoff. User traffic is flat while mobile-bff's outbound auth calls rise 10x.",
+  "tags": ["deploy", "rate-limit", "cascade", "multi-service"],
+  "alert": {
+    "id": "ALRT-4555",
+    "name": "AuthServiceThrottling",
+    "service": "auth-service",
+    "severity": "SEV1",
+    "fired_at": "2026-09-14T18:22:00Z",
+    "description": "auth-service 429 responses at 61% of requests."
+  },
+  "topology": {
+    "mobile-bff": {"tier": 1, "instances": 8, "version": "v1.22.0", "owner": "team-mobile", "depends_on": ["auth-service", "feed-service"]},
+    "web-bff": {"tier": 1, "instances": 6, "version": "v2.3.0", "owner": "team-web", "depends_on": ["auth-service", "feed-service"]},
+    "auth-service": {"tier": 1, "instances": 6, "version": "v9.4.1", "owner": "team-identity", "depends_on": ["users-db"]},
+    "feed-service": {"tier": 2, "instances": 10, "version": "v4.0.7", "owner": "team-feed"},
+    "users-db": {"tier": 1, "instances": 3, "version": "postgres-15.6", "owner": "team-data"}
+  },
+  "health": {
+    "auth-service": {"status": "degraded", "checks": {"http": "passing", "rate_limiter": "shedding load"}},
+    "mobile-bff": {"status": "degraded", "checks": {"http": "passing", "dep:auth-service": "429"}},
+    "web-bff": {"status": "degraded", "checks": {"http": "passing", "dep:auth-service": "intermittent 429"}}
+  },
+  "metrics": {
+    "auth-service": {
+      "requests_per_sec": {"unit": "rps", "baseline": 2000, "noise": 0.04, "changes": [{"at": "18:10", "value": 14000, "ramp": 6}]},
+      "http_429_rate_pct": {"unit": "%", "baseline": 0, "noise": 0.0, "changes": [{"at": "18:12", "value": 61, "ramp": 4}]},
+      "cpu_pct": {"unit": "%", "baseline": 50, "noise": 0.04, "changes": [{"at": "18:10", "value": 92, "ramp": 5}]}
+    },
+    "mobile-bff": {
+      "user_requests_per_sec": {"unit": "rps", "baseline": 1500, "noise": 0.04},
+      "outbound_auth_rps": {"unit": "rps", "baseline": 1200, "noise": 0.04, "changes": [{"at": "18:10", "value": 12800, "ramp": 5}]},
+      "retries_per_min": {"unit": "count", "baseline": 20, "noise": 0.1, "changes": [{"at": "18:10", "value": 9000, "ramp": 4}]}
+    },
+    "web-bff": {
+      "user_requests_per_sec": {"unit": "rps", "baseline": 900, "noise": 0.04},
+      "outbound_auth_rps": {"unit": "rps", "baseline": 800, "noise": 0.04}
+    }
+  },
+  "logs": {
+    "mobile-bff": [
+      ["18:09:30", "INFO", "mobile-bff v1.22.0 started (http client: resilience-kit 3.0.0)"],
+      ["18:09:31", "INFO", "auth client retry policy: maxAttempts=unbounded backoff=none"],
+      ["18:12:15", "WARN", "auth-service returned 429, retrying immediately (attempt 7)"],
+      ["18:14:02", "WARN", "auth-service returned 429, retrying immediately (attempt 19)"],
+      ["18:17:40", "ERROR", "token refresh failed for session s_{id} after 34 attempts"],
+      ["18:20:05", "WARN", "auth-service returned 429, retrying immediately (attempt 41)"]
+    ],
+    "auth-service": [
+      ["18:12:00", "WARN", "rate limit exceeded client=mobile-bff limit=3000rps observed=11940rps"],
+      ["18:15:00", "WARN", "rate limit exceeded client=mobile-bff limit=3000rps observed=12710rps"],
+      ["18:18:00", "WARN", "rate limit exceeded client=web-bff limit=2000rps observed=2150rps (shared pool pressure)"],
+      ["18:21:00", "WARN", "rate limit exceeded client=mobile-bff limit=3000rps observed=12800rps"]
+    ]
+  },
+  "log_noise": {
+    "auth-service": [["INFO", "POST /token 200 {n}ms client=web-bff"], ["INFO", "POST /token/refresh 200 {n}ms client=mobile-bff"]],
+    "mobile-bff": [["INFO", "GET /feed 200 {ms}ms"]],
+    "web-bff": [["INFO", "GET /home 200 {ms}ms"]]
+  },
+  "changes": [
+    {"id": "chg-9960", "kind": "deploy", "service": "mobile-bff", "at": "18:09", "author": "ci-bot (PR #733)", "summary": "Upgrade resilience-kit 2.x -> 3.0; unify HTTP client configuration", "version": "v1.22.0", "previous_version": "v1.21.4"},
+    {"id": "chg-9958", "kind": "feature_flag", "service": "web-bff", "at": "17:50", "author": "pm-tools", "summary": "dark_mode_v2 rollout 50% -> 100%"},
+    {"id": "chg-9950", "kind": "deploy", "service": "auth-service", "at": "2026-09-13T11:00:00Z", "author": "ci-bot (PR #2044)", "summary": "Rotate signing key ids", "version": "v9.4.1", "previous_version": "v9.4.0"}
+  ],
+  "past_incidents": [
+    {"id": "INC-1811", "title": "Retry storm from missing jitter after client library upgrade", "root_cause": "Default retry policy changed to immediate retries", "resolution": "Rolled back caller; pinned retry policy in config", "tags": ["retry", "rate-limit", "auth-service", "cascade"]}
+  ],
+  "distractors": ["web-bff also sees some 429s", "web-bff flag rollout at 17:50", "auth-service deploy the previous day"],
+  "ground_truth": {
+    "accepted_categories": ["rate_limit_cascade", "bad_deployment"],
+    "accepted_services": ["mobile-bff"],
+    "summary": "mobile-bff v1.22.0 retries auth calls immediately without limit; outbound auth rps rises 10x on flat user traffic and trips auth-service rate limits.",
+    "acceptable_actions": [{"type": "rollback_deployment", "service": "mobile-bff", "target_version": "v1.21.4"}],
+    "critical_evidence": ["get_service_logs|get_service_metrics", "get_deployment_history|get_service_logs"],
+    "expected_tool_path": ["get_service_health", "get_service_metrics", "get_service_logs", "get_service_metrics", "get_deployment_history"],
+    "min_tool_calls": 4
+  },
+  "fault_variants": [
+    {"name": "auth_logs_partial", "faults": [{"tool": "get_service_logs", "mode": "partial", "service": "auth-service"}], "expected": "recover", "rationale": "Partial auth logs; mobile-bff metrics and change history still identify the caller."}
+  ]
+}
