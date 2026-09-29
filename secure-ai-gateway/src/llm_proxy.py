@@ -320,6 +320,7 @@ class LLMGateway:
             "x-gateway-pii-redactions": str(sum(pii_counts.values())),
             "x-gateway-injection-flags": ",".join(sorted(injection_flags)),
             "x-gateway-served-model": served,
+            "x-gateway-fallback-enabled": "true" if self.enable_fallback else "false",
             "x-gateway-budget-remaining-usd": f"{max(0.0, policy.daily_budget_usd - total):.4f}",
         }
         if result.request_id:

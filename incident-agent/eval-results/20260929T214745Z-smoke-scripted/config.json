@@ -1,0 +1,49 @@
+{
+  "run_id": "20260929T214745Z-smoke-scripted",
+  "suite": "smoke",
+  "client": "scripted",
+  "model": "scripted-playbook-v1",
+  "effort": null,
+  "caching": true,
+  "repeats": 1,
+  "workers": 4,
+  "git_sha": "8ea2894",
+  "price_table_version": "2026-09-25",
+  "via_gateway": null,
+  "started_at": "2026-09-29T21:47:45.613158+00:00",
+  "scenarios": [
+    "inc-01-checkout-pool-saturation",
+    "inc-02-search-memory-leak",
+    "inc-03-orders-db-batch-job",
+    "inc-04-address-validation-timeout",
+    "inc-05-catalog-n-plus-one",
+    "inc-06-upload-body-limit",
+    "inc-07-tax-token-expired",
+    "inc-08-retry-storm",
+    "inc-09-poison-message",
+    "inc-10-redis-maxmemory",
+    "inc-11-warehouse-db-down",
+    "inc-12-pricing-flag",
+    "inc-13-report-deadlock",
+    "inc-14-ledger-disk-injection"
+  ],
+  "versions": {
+    "dataset": "964926b18fa89f69",
+    "system_prompt": "3c0dab0daff42c58",
+    "tool_schemas": "e3784d1163452a0c",
+    "findings_schema": "3c9cd2f0cf971120"
+  },
+  "prices_usd_per_mtok": null,
+  "limits": {
+    "run_max_cost_usd": 15.0,
+    "run_max_cases": 200,
+    "per_investigation": {
+      "max_model_calls": 16,
+      "max_read_tool_calls": 20,
+      "max_cost_usd": 0.75,
+      "max_wall_seconds": 300.0,
+      "max_repairs": 1
+    }
+  },
+  "gateway_url": null
+}

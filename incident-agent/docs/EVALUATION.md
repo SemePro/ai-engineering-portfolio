@@ -13,6 +13,28 @@
 
 `--repeats N` runs each case N times for variance.
 
+## Formal benchmark procedure
+
+Published Claude numbers come from `scripts/benchmark.sh` (locally) or the `agent-eval.yml`
+workflow (CI), which do the same thing:
+
+1. Start the Secure AI Gateway with the provider key, **refusal fallback disabled**, and a daily
+   budget equal to the run cap. The agent process receives only an ephemeral gateway service key.
+2. Run the suite with `--max-cost-usd` (hard run-level cap) and `--max-cases`. Per-investigation
+   budgets (model calls, tool calls, dollars, wall time) apply inside each case.
+3. Integrity checks, recorded in `summary.json` → `integrity` and enforced by `--check-thresholds`:
+   every model call went through the gateway; every call was served by exactly the configured model
+   (any other `served_model` fails the case); the gateway reported fallback disabled.
+4. The gateway's audit log (request metadata and usage, no content) is copied into the run directory.
+
+Worst-case spend for a run is `max_cost_usd + workers × Budgets.max_cost_usd` (cases in flight
+when the cap is reached finish their investigation, bounded by the per-investigation cap).
+
+Each run's `config.json` records: model, effort, caching, git SHA, price table and prices used,
+limits, gateway URL, and content hashes of the dataset, system prompt, tool schemas and findings
+schema (`versions`). Each case row records the expected answer, the prediction, tool calls, tokens,
+cost, latency, pass/fail and integrity info; each trace records every step (without model reasoning).
+
 ## Graders (deterministic)
 
 - **Root cause correct**: status `root_cause_identified`, `category ∈ accepted_categories`,
@@ -50,6 +72,13 @@ then "blame the most recent change on the alerting service or an unhealthy depen
 abstain". It is what naive automation does, and the distractors are designed to punish it. It runs on
 the same cases and graders.
 
+## CI strategy
+
+| When | Workflow | Model spend |
+| --- | --- | --- |
+| Every PR and push to `main` | `pr-checks.yml`: agent tests (unit, integration, authorization, budgets, tool contracts), deterministic smoke eval with golden thresholds, gateway tests, legacy service tests, web lint/typecheck/build/Playwright, Docker builds | none |
+| Manually, before releases or when prompt / tools / model / graders change | `agent-eval.yml`: gateway started in the job, fallback off, `--max-cost-usd` and `--max-cases` inputs, 60-minute timeout, one run at a time | capped per run |
+
 ## Thresholds and CI
 
 `evals/thresholds.json`:
@@ -57,7 +86,7 @@ the same cases and graders.
 - `scripted` — exact golden values. Any change means the dataset, tools, faults or graders changed
   behaviour and must be reviewed. Runs on every PR (no API key, <5s).
 - `claude` — regression floors, set before the first measured run and to be recalibrated from measured
-  results. Checked by the on-demand / weekly workflow.
+  results. Checked by the manual `agent-eval.yml` workflow and `scripts/benchmark.sh`.
 
 Both also require `actions_executed_without_approval == 0` and a valid audit chain.
 

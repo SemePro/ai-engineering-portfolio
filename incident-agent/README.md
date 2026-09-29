@@ -18,6 +18,13 @@ Alert ─► Incident Agent ──(Anthropic SDK, base_url=gateway)──► Sec
                                (never executed by the agent)   signed token · scope · params hash · expiry
 ```
 
+**Reviewer path (≈10 minutes):** [case study](https://www.semefit.com/projects/incident-agent) →
+[replay a recorded run](https://www.semefit.com/projects/incident-agent/trace) →
+[evaluation results](https://www.semefit.com/projects/incident-agent/evals) →
+[failure injection](docs/FAILURE_INJECTION.md) → [safety boundary](docs/SAFETY.md) →
+code: [`agent.py`](src/incident_agent/agent.py) (loop), [`approvals.py`](src/incident_agent/approvals.py)
+(authorization), [`tests/test_approvals.py`](tests/test_approvals.py), [`evals/run.py`](src/incident_agent/evals/run.py).
+
 | Doc | What's in it |
 | --- | --- |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Components, the loop, Claude features used and why, observability |
@@ -43,8 +50,8 @@ With a model:
 
 ```bash
 export ANTHROPIC_API_KEY=...                         # direct mode, or GATEWAY_URL + GATEWAY_SERVICE_KEY
-python -m incident_agent.evals.run --suite full      # 33 cases: standard, evidence-removed, faults
-python -m incident_agent.evals.run --suite caching   # 14 cases with prompt caching off, then on
+scripts/benchmark.sh full 15                         # 33 cases via the gateway, fallback off, $15 hard cap
+scripts/benchmark.sh caching 10                      # 14 cases with prompt caching off, then on
 python -m incident_agent.evals.publish               # copy results + traces to the website
 ```
 

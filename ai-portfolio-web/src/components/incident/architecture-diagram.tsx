@@ -140,11 +140,11 @@ export function ArchitectureDiagram() {
 
           <rect x={24} y={516} width={996} height={62} rx={8} className="fill-muted/30 stroke-border" strokeWidth={1} />
           <text x={40} y={539} className="fill-foreground" fontSize={12} fontWeight={600}>
-            Observability &amp; evaluation
+            Observability · cost controls · evaluation · audit
           </text>
           <text x={40} y={560} className="fill-muted-foreground" fontSize={11}>
-            trace_id propagated agent → gateway · tokens, cache reads and $ per model call · 14-incident eval harness with
-            abstention and fault injection · CI regression gate
+            trace_id agent → gateway · tokens + $ per call · run budgets (calls, tools, $, time) + gateway daily $ cap ·
+            gateway + approval audit logs · 14-incident eval harness · CI gate
           </text>
         </svg>
       </div>
@@ -158,6 +158,7 @@ export function ArchitectureDiagram() {
           { t: "Read tools (direct)", d: "Logs · metrics · change history · health · incident KB", c: "border-emerald-500/50" },
           { t: "Write tools → proposal", d: "Rollback / restart are never executed by the agent", c: "border-amber-500/60" },
           { t: "Approval gate", d: "Human + signed token, scope, params hash, expiry → sandbox → audit log", c: "border-amber-500/60" },
+          { t: "Around everything", d: "Tracing, budgets (per run + per service), audit logs, eval harness, CI gate", c: "border-border" },
         ].map((s, i) => (
           <li key={s.t} className={`rounded-md border ${s.c} bg-card px-3 py-2`}>
             <span className="font-mono text-xs text-muted-foreground mr-2">{i + 1}</span>

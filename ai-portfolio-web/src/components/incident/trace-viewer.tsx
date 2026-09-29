@@ -104,6 +104,104 @@ const STYLE: Record<string, { icon: typeof Bot; className: string }> = {
   error: { icon: XCircle, className: "text-red-400" },
 };
 
+
+type Phase = "Observation" | "Tool call" | "Evidence" | "Hypothesis" | "Decision" | "Recommendation" | "Approval";
+const PHASES: Phase[] = ["Observation", "Tool call", "Evidence", "Hypothesis", "Decision", "Recommendation", "Approval"];
+const PHASE_CLASS: Record<Phase, string> = {
+  Observation: "text-red-300 border-red-400/40",
+  "Tool call": "text-emerald-300 border-emerald-400/40",
+  Evidence: "text-emerald-200/80 border-emerald-400/25",
+  Hypothesis: "text-sky-300 border-sky-400/40",
+  Decision: "text-primary border-primary/40",
+  Recommendation: "text-foreground border-foreground/40",
+  Approval: "text-amber-300 border-amber-400/40",
+};
+
+type Row = { ev: TraceEvent; phase: Phase; title: string; note?: string };
+
+/** Maps raw trace events onto the phases an on-call engineer reasons in. Uses only
+ *  structured data (tool calls, results, published hypotheses, findings) - never model reasoning. */
+function decorate(events: TraceEvent[]): Row[] {
+  const rows: Row[] = [];
+  const lastConf: Record<string, number> = {};
+  let pendingWhy: string | undefined;
+  events.forEach((ev, i) => {
+    const d = ev.detail as Record<string, any>;
+    switch (ev.type) {
+      case "alert":
+        rows.push({ ev, phase: "Observation", title: ev.title, note: String(d.description ?? "") });
+        break;
+      case "model_call": {
+        const nextModel = events.findIndex((e, j) => j > i && e.type === "model_call");
+        const turn = events.slice(i + 1, nextModel === -1 ? undefined : nextModel);
+        const tools = turn.filter((e) => e.type === "tool_call").length;
+        const ledger = turn.some((e) => e.type === "hypotheses");
+        const findings = turn.find((e) => e.type === "findings");
+        const repaired = turn.some((e) => e.type === "guardrail" && /repair/i.test(e.title));
+        let title: string;
+        if (d.stop_reason === "tool_use") {
+          title = tools
+            ? `Continue investigating: request ${tools} tool call${tools > 1 ? "s" : ""}${ledger ? " and update hypotheses" : ""}`
+            : "Update hypotheses";
+        } else if (repaired) {
+          title = "Stop: final answer submitted, rejected by schema validation";
+        } else if (findings) {
+          title = (findings.detail as any).status === "insufficient_evidence"
+            ? "Stop: evidence is not sufficient to name a cause"
+            : "Stop: evidence explains timing and mechanism";
+        } else {
+          title = `Model turn ended (${d.stop_reason})`;
+        }
+        rows.push({ ev, phase: "Decision", title });
+        break;
+      }
+      case "hypotheses": {
+        const hs = (d.hypotheses ?? []) as { id: string; statement: string; status: string; confidence: number }[];
+        const parts = hs.map((h) => {
+          const before = lastConf[h.id];
+          lastConf[h.id] = h.confidence;
+          const now = Math.round(h.confidence * 100);
+          const conf = before === undefined ? `${now}%` : `${Math.round(before * 100)}% → ${now}%`;
+          return `${h.id} ${h.status === "ruled_out" ? "ruled out" : conf}: ${h.statement}`;
+        });
+        pendingWhy = d.next_step || undefined;
+        rows.push({ ev, phase: "Hypothesis", title: parts[0] ?? ev.title, note: parts.slice(1).join(" · ") || undefined });
+        break;
+      }
+      case "tool_call":
+        rows.push({
+          ev,
+          phase: d.kind === "write" ? "Recommendation" : "Tool call",
+          title: `${ev.title}: ${d.tool}(${Object.entries(d.args ?? {}).filter(([k]) => k !== "reason").map(([k, v]) => `${k}=${JSON.stringify(v)}`).join(", ")})`,
+          note: pendingWhy ? `Stated next step: ${pendingWhy}` : undefined,
+        });
+        pendingWhy = undefined;
+        break;
+      case "tool_result":
+      case "tool_error":
+        rows.push({ ev, phase: "Evidence", title: ev.type === "tool_error" ? `Tool failed — ${ev.title}` : ev.title });
+        break;
+      case "findings": {
+        const a = d.recommended_action ?? {};
+        const act = a.type && a.type !== "none"
+          ? `${String(a.type).replaceAll("_", " ")}${a.service ? ` ${a.service}` : ""}${a.target_version ? ` → ${a.target_version}` : ""}`
+          : "no action";
+        rows.push({ ev, phase: "Recommendation", title: ev.title, note: `Recommended: ${act}${a.description ? ` — ${a.description}` : ""}` });
+        break;
+      }
+      case "proposal":
+        rows.push({ ev, phase: "Approval", title: `${ev.title} — not executed; requires human approval`, note: d.risk ? `Risk ${d.risk.level}: ${d.risk.impact}` : undefined });
+        break;
+      case "approval":
+        rows.push({ ev, phase: "Approval", title: ev.title });
+        break;
+      default:
+        rows.push({ ev, phase: "Decision", title: ev.title });
+    }
+  });
+  return rows;
+}
+
 function clock(base: string, offsetMs: number) {
   const d = new Date(new Date(base).getTime() + 3 * 60_000 + offsetMs);
   return d.toISOString().slice(11, 19);
@@ -172,6 +270,7 @@ export function TraceViewer({ initialCase }: { initialCase?: string }) {
   const [shown, setShown] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hidden, setHidden] = useState<Set<Phase>>(new Set());
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -204,6 +303,7 @@ export function TraceViewer({ initialCase }: { initialCase?: string }) {
   }, [selected]);
 
   const events = useMemo(() => trace?.trace ?? [], [trace]);
+  const rows = useMemo(() => decorate(events), [events]);
   const done = shown >= events.length;
 
   const step = useCallback(() => setShown((n) => Math.min(n + 1, events.length)), [events.length]);
@@ -283,15 +383,37 @@ export function TraceViewer({ initialCase }: { initialCase?: string }) {
           </div>
         </div>
 
+        {entry && (
+          <p className="mb-3 text-xs text-muted-foreground">
+            Recorded replay · run <code>{entry.run_id}</code> · case <code>{entry.case_id}</code>
+          </p>
+        )}
         {source === "baseline" && (
           <p className="mb-4 rounded-md border border-amber-500/40 bg-amber-500/5 px-3 py-2 text-xs text-amber-200">
-            These traces come from the scripted fixed-playbook baseline (no LLM). Claude runs appear here once the
-            evaluation has been run and published.
+            These traces come from the scripted fixed-playbook baseline (no LLM), not the Claude agent.
           </p>
         )}
 
+        <fieldset className="mb-4 flex flex-wrap gap-1.5 text-xs">
+          <legend className="sr-only">Show phases</legend>
+          {PHASES.map((p) => {
+            const on = !hidden.has(p);
+            return (
+              <button
+                key={p}
+                type="button"
+                aria-pressed={on}
+                onClick={() => setHidden((h) => { const n = new Set(h); if (n.has(p)) { n.delete(p); } else { n.add(p); } return n; })}
+                className={cn("rounded border px-2 py-0.5", on ? PHASE_CLASS[p] : "border-border text-muted-foreground line-through")}
+              >
+                {p}
+              </button>
+            );
+          })}
+        </fieldset>
+
         <ol className="relative space-y-1 border-l border-border pl-5" aria-live="polite">
-          {events.slice(0, shown).map((ev) => {
+          {rows.slice(0, shown).filter((r) => !hidden.has(r.phase)).map(({ ev, phase, title, note }) => {
             const s = STYLE[ev.type] ?? STYLE.tool_result;
             const Icon = s.icon;
             const expandable = Object.keys(ev.detail ?? {}).length > 0 && ev.type !== "alert";
@@ -301,12 +423,14 @@ export function TraceViewer({ initialCase }: { initialCase?: string }) {
                   <Icon className={cn("h-4 w-4", s.className)} aria-hidden />
                 </span>
                 <details className="group rounded-md px-2 py-1.5 hover:bg-muted/30 open:bg-muted/30">
-                  <summary className={cn("flex gap-3 text-sm list-none", expandable ? "cursor-pointer" : "cursor-default")}>
+                  <summary className={cn("flex flex-wrap sm:flex-nowrap gap-x-3 gap-y-1 text-sm list-none", expandable ? "cursor-pointer" : "cursor-default")}>
                     <time className="font-mono text-xs text-muted-foreground pt-0.5 shrink-0 tabular-nums">
                       {alertTime ? clock(alertTime, ev.t_ms) : `+${(ev.t_ms / 1000).toFixed(1)}s`}
                     </time>
-                    <span className={cn("min-w-0 break-words", ev.type === "findings" && "font-semibold")}>
-                      {ev.title}
+                    <span className={cn("h-fit shrink-0 rounded border px-1.5 text-[11px] leading-5", PHASE_CLASS[phase])}>{phase}</span>
+                    <span className="min-w-0 break-words basis-full sm:basis-auto">
+                      <span className={cn(ev.type === "findings" && "font-semibold")}>{title}</span>
+                      {note && <span className="block text-xs text-muted-foreground mt-0.5">{note}</span>}
                     </span>
                   </summary>
                   {expandable && (

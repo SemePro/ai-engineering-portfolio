@@ -128,6 +128,10 @@ def _canonical(obj: Any) -> str:
     return json.dumps(obj, sort_keys=True, separators=(",", ":"), default=str)
 
 
+def _params_hash(action: str, args: dict[str, Any], investigation_id: str) -> str:
+    return hashlib.sha256(_canonical({"action": action, "args": args, "investigation_id": investigation_id}).encode()).hexdigest()
+
+
 class Store:
     """SQLite persistence for proposals and the audit chain."""
 
@@ -276,19 +280,19 @@ class ApprovalService:
             raise ProposalRejected("proposal limit reached for this investigation (max 2)")
 
         now = self.clock()
-        body = {"action": action, "args": {k: args[k] for k in sorted(args)}, "investigation_id": investigation_id}
+        clean_args = {k: args[k] for k in sorted(args)}
         proposal = {
             "id": "act_" + secrets.token_hex(6),
             "investigation_id": investigation_id,
             "scenario_id": scenario.id,
             "env": SANDBOX_ENV,
             "action": action,
-            "args": body["args"],
+            "args": clean_args,
             "reason": args.get("reason", ""),
             "risk": assess_risk(scenario, action, args),
             "proposer": proposer,
             "status": ProposalStatus.PENDING.value,
-            "params_hash": hashlib.sha256(_canonical(body).encode()).hexdigest(),
+            "params_hash": _params_hash(action, clean_args, investigation_id),
             "created_at": now,
             "expires_at": now + self.ttl.total_seconds(),
         }
@@ -319,6 +323,11 @@ class ApprovalService:
             raise ApprovalError(410, "expired", "proposal has expired; re-run the investigation")
         if params_hash != proposal["params_hash"]:
             raise ApprovalError(409, "params_mismatch", "params_hash does not match the pending proposal")
+        if _params_hash(proposal["action"], proposal["args"], proposal["investigation_id"]) != proposal["params_hash"]:
+            # stored parameters no longer match what was proposed and shown - refuse, never "fix up"
+            self.store.append_audit(proposal["investigation_id"], principal.sub, "action.integrity_failure",
+                                    {"proposal_id": proposal_id})
+            raise ApprovalError(409, "integrity_failure", "proposal parameters changed after creation")
         return proposal, principal
 
     def approve(self, proposal_id: str, token: str | None, params_hash: str | None) -> dict[str, Any]:

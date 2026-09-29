@@ -150,3 +150,34 @@ def test_signing_secret_must_be_strong():
     with pytest.raises(ValueError):
         TokenAuthority("short")
     TokenAuthority(SECRET)
+
+
+def test_changed_parameters_after_proposal_cannot_execute(approvals, store, tokens, checkout):
+    """Tampering with a stored proposal (e.g. swapping the rollback target) must be detected
+    even when the approver submits the originally displayed hash."""
+    p = propose(approvals, checkout)
+    tampered = store.get_proposal(p["id"])
+    tampered["args"]["target_version"] = "v2.14.5"
+    store.put_proposal(tampered)
+    with pytest.raises(ApprovalError) as err:
+        approvals.approve(p["id"], operator(tokens), p["params_hash"])
+    assert err.value.code == "integrity_failure"
+    assert not any(e["event"] == "action.executed" for e in store.audit_events())
+
+
+def test_changed_action_hash_is_refused(approvals, store, tokens, checkout):
+    p = propose(approvals, checkout)
+    tampered = store.get_proposal(p["id"])
+    tampered["params_hash"] = "f" * 64
+    store.put_proposal(tampered)
+    with pytest.raises(ApprovalError) as err:
+        approvals.approve(p["id"], operator(tokens), "f" * 64)
+    assert err.value.code == "integrity_failure"
+
+
+def test_rejection_also_requires_authorization(approvals, tokens, checkout):
+    p = propose(approvals, checkout)
+    with pytest.raises(ApprovalError):
+        approvals.reject(p["id"], None, p["params_hash"])
+    with pytest.raises(ApprovalError):
+        approvals.reject(p["id"], operator(tokens, role="viewer"), p["params_hash"])

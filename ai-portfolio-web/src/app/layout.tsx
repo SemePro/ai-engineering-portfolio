@@ -3,19 +3,21 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { PROFILE } from "@/lib/profile";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-geist-sans" });
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
 
+const SITE_TITLE = `${PROFILE.name} — ${PROFILE.title}`;
 const description =
-  "Seme Semeglo — Senior AI Engineer building reliable agentic and production AI systems: tool-using agents, a secure AI gateway, and evaluation and failure-injection harnesses.";
+  `${PROFILE.name} — ${PROFILE.title} building reliable agentic and production AI systems: tool-using agents, a secure AI gateway, and evaluation and failure-injection harnesses.`;
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.semefit.com"),
-  title: { default: "Seme Semeglo — Senior AI Engineer", template: "%s · Seme Semeglo" },
+  title: { default: SITE_TITLE, template: `%s · ${PROFILE.name}` },
   description,
-  openGraph: { title: "Seme Semeglo — Senior AI Engineer", description, type: "website", url: "https://www.semefit.com" },
-  twitter: { card: "summary", title: "Seme Semeglo — Senior AI Engineer", description },
+  openGraph: { title: SITE_TITLE, description, type: "website", url: "https://www.semefit.com" },
+  twitter: { card: "summary", title: SITE_TITLE, description },
 };
 
 export default function RootLayout({

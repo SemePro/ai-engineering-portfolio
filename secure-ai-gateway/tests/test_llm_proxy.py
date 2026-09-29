@@ -142,3 +142,16 @@ def test_usage_endpoint(tmp_path):
     c.post("/v1/messages", json=body(), headers=H)
     u = c.get("/v1/usage", headers=H).json()
     assert u["service"] == "incident-agent" and u["spent_today_usd"] > 0
+
+
+def test_benchmark_mode_disables_fallback(tmp_path):
+    """Formal evaluations must be answered by exactly the requested model."""
+    policy = ServicePolicy(name="incident-agent", key_sha256=hash_key(KEY), allowed_models=["claude-opus-5-5"])
+    up = FakeUpstream()
+    gw = LLMGateway(policies={"incident-agent": policy}, upstream=up, enable_fallback=False)
+    app = FastAPI()
+    app.include_router(gw.router)
+    r = TestClient(app).post("/v1/messages", json=body(), headers=H)
+    assert r.headers["x-gateway-fallback-enabled"] == "false"
+    assert up.sent[0][1] is False
+    assert r.headers["x-gateway-served-model"] == "claude-opus-5-5"

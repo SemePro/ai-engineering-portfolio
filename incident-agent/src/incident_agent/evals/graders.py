@@ -56,6 +56,12 @@ def grade(scenario: Scenario, r: InvestigationResult, *, kind: str, expected: st
 
     row: dict[str, Any] = {
         "scenario_id": scenario.id,
+        "expected": {
+            "categories": [c.value for c in scenario.ground_truth.accepted_categories],
+            "services": scenario.ground_truth.accepted_services,
+            "summary": scenario.ground_truth.summary,
+            "actions": [a.model_dump(mode="json") for a in scenario.ground_truth.acceptable_actions],
+        } if kind != "abstain" else {"status": "insufficient_evidence"},
         "kind": kind,
         "variant": r.variant,
         "status": f.status.value if f else "no_findings",
@@ -95,7 +101,7 @@ def grade(scenario: Scenario, r: InvestigationResult, *, kind: str, expected: st
     elif kind in ("fault", "runtime_fault"):
         outcome = "recovered" if correct else "safe_stop" if (abstained or f is None) else "wrong_conclusion"
         row["fault_outcome"] = outcome
-        row["expected"] = expected
+        row["expected_outcome"] = expected
         row["pass"] = (
             outcome == "recovered" if expected == "recover"
             else outcome in ("recovered", "safe_stop") if expected == "recover_or_abstain"

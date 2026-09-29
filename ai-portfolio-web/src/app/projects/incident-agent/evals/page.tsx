@@ -79,6 +79,24 @@ export default function EvalsPage() {
         <div className="mt-3"><RunProvenance /></div>
       </section>
 
+      <section className="mt-12" aria-labelledby="tradeoffs">
+        <h2 id="tradeoffs" className="text-lg font-semibold">Agent vs fixed playbook: the trade-off</h2>
+        <div className="mt-3 grid gap-4 md:grid-cols-2 text-sm text-muted-foreground">
+          <p>
+            <span className="font-medium text-foreground">The playbook</span> is deterministic, free, instant and
+            auditable line by line. It always runs the same four queries and blames the most recent change near the
+            alerting service. That is right when the incident really is a bad deploy of that service, and wrong
+            whenever the cause is upstream, external, a flag, a credential or a job — and it cannot tell the difference.
+          </p>
+          <p>
+            <span className="font-medium text-foreground">The agent</span> chooses its queries, follows dependencies
+            and can decide the evidence is insufficient. It pays for that in latency, dollars and non-determinism: two
+            runs of the same incident can take different paths. The hard safety properties — no execution without
+            approval, budgets, schema validation — are enforced by code around the model, so they hold for both.
+          </p>
+        </div>
+      </section>
+
       <section className="mt-12" aria-labelledby="caching">
         <h2 id="caching" className="text-lg font-semibold">Prompt caching: off vs on</h2>
         <p className="mt-2 mb-4 max-w-3xl text-sm text-muted-foreground">
@@ -122,6 +140,41 @@ python -m incident_agent.evals.publish`}</code></pre>
             <a className="text-primary hover:underline underline-offset-4" href={repoPath("incident-agent/eval-results")} target="_blank" rel="noopener noreferrer">Run artifacts</a>
           </p>
         </div>
+      </section>
+
+      <section className="mt-12" aria-labelledby="security">
+        <h2 id="security" className="text-lg font-semibold">Security boundary tests</h2>
+        <p className="mt-2 text-sm text-muted-foreground max-w-3xl">
+          Deterministic tests that run on every pull request. Each unauthorized path must be refused and leave no
+          execution in the audit log.
+        </p>
+        <ul className="mt-3 grid gap-1.5 sm:grid-cols-2 text-sm">
+          {[
+            "No operator token → 401",
+            "Forged, malformed or expired token → 401",
+            "Viewer role → 403",
+            "Wrong environment (production token on sandbox) → 403",
+            "Wrong service scope → 403",
+            "Agent principal approving its own proposal → 403",
+            "Params hash differs from the shown proposal → 409",
+            "Stored parameters changed after proposal → 409 integrity failure",
+            "Proposal older than 15 minutes → 410",
+            "Second approval / approval after rejection → 409",
+            "Another demo session's proposal → 403",
+            "Tool calls after any budget is exhausted → never executed",
+          ].map((t) => (
+            <li key={t} className="rounded border px-3 py-1.5">{t}</li>
+          ))}
+        </ul>
+        <p className="mt-3 text-xs text-muted-foreground">
+          <a className="text-primary hover:underline underline-offset-4" href={repoFile("incident-agent/tests/test_approvals.py")} target="_blank" rel="noopener noreferrer">test_approvals.py</a>
+          {" · "}
+          <a className="text-primary hover:underline underline-offset-4" href={repoFile("incident-agent/tests/test_budgets.py")} target="_blank" rel="noopener noreferrer">test_budgets.py</a>
+          {" · "}
+          <a className="text-primary hover:underline underline-offset-4" href={repoFile("incident-agent/tests/test_api.py")} target="_blank" rel="noopener noreferrer">test_api.py</a>
+          {" · "}
+          <a className="text-primary hover:underline underline-offset-4" href={repoFile("incident-agent/docs/SAFETY.md")} target="_blank" rel="noopener noreferrer">SAFETY.md</a>
+        </p>
       </section>
 
       <section className="mt-12" aria-labelledby="dataset">

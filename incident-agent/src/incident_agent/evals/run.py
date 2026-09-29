@@ -12,10 +12,12 @@ traced back to the run and the individual investigations that produced it.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import statistics
 import subprocess
 import sys
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
@@ -23,12 +25,13 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from ..agent import Budgets, Investigator
+from ..agent import FINDINGS_SCHEMA, TOOLS, Budgets, Investigator
 from ..approvals import ApprovalService, Store, TokenAuthority
 from ..config import get_settings
-from ..lab.scenario import FaultSpec, Scenario, load_scenarios
+from ..lab.scenario import SCENARIO_DIR, FaultSpec, Scenario, load_scenarios
 from ..model_client import AnthropicModelClient, MalformedOutputClient, ModelClient, ScriptedModelClient
-from ..pricing import PRICE_TABLE_VERSION
+from ..pricing import PRICE_TABLE_VERSION, PRICES
+from ..prompts import SYSTEM_PROMPT
 from .graders import grade
 
 RESULTS_DIR = Path(__file__).resolve().parents[3] / "eval-results"
@@ -78,15 +81,77 @@ def make_client(kind: str, case: Case) -> ModelClient:
     return MalformedOutputClient(client) if case.malformed_output else client
 
 
-def run_case(case: Case, client_kind: str, caching: bool, approvals: ApprovalService, effort: str) -> tuple[dict, dict]:
+class BudgetExceeded(Exception):
+    """Run-level cap reached; remaining cases are skipped, not run."""
+
+
+class RunGuard:
+    """Run-level hard limits across all cases.
+
+    Cases run concurrently, so the worst-case spend is
+    max_cost_usd + workers x per-investigation cap (Budgets.max_cost_usd)."""
+
+    def __init__(self, max_cost_usd: float, max_cases: int):
+        self.max_cost_usd = max_cost_usd
+        self.max_cases = max_cases
+        self.spent = 0.0
+        self.started = 0
+        self._lock = threading.Lock()
+
+    def admit(self) -> None:
+        with self._lock:
+            if self.started >= self.max_cases:
+                raise BudgetExceeded(f"max cases ({self.max_cases}) reached")
+            if self.spent >= self.max_cost_usd:
+                raise BudgetExceeded(f"run budget ${self.max_cost_usd} reached (spent ${self.spent:.4f})")
+            self.started += 1
+
+    def record(self, cost: float) -> None:
+        with self._lock:
+            self.spent += cost
+
+
+def integrity(result_trace: list[dict], expected_model: str, client_kind: str) -> dict[str, Any]:
+    """Did every model call go through the gateway, and was it answered by exactly the configured model?"""
+    calls = [e["detail"] for e in result_trace if e["type"] == "model_call"]
+    served = sorted({c.get("served_model", "") for c in calls})
+    via_gateway = sum(1 for c in calls if (c.get("gateway") or {}).get("x-gateway-request-id"))
+    fallback_flags = sorted({(c.get("gateway") or {}).get("x-gateway-fallback-enabled", "unknown") for c in calls})
+    ok_model = client_kind != "claude" or served in ([], [expected_model])
+    return {"model_calls": len(calls), "served_models": served, "calls_via_gateway": via_gateway,
+            "gateway_fallback_enabled": fallback_flags, "single_model": ok_model}
+
+
+def run_case(case: Case, client_kind: str, caching: bool, approvals: ApprovalService, effort: str,
+             guard: RunGuard) -> tuple[dict, dict]:
+    guard.admit()
     client = make_client(client_kind, case)
     result = Investigator(client, approvals, budgets=Budgets(), effort=effort).run(
         case.scenario, variant=case.variant, faults=case.faults, caching=caching,
     )
+    guard.record(result.metrics.cost_usd)
+    trace = json.loads(result.model_dump_json())
     row = grade(case.scenario, result, kind=case.kind, expected=case.expected)
     row["case_id"] = case.case_id
     row["mode"] = result.mode
-    return row, json.loads(result.model_dump_json())
+    row["integrity"] = integrity(trace["trace"], client.model, client_kind)
+    if not row["integrity"]["single_model"]:
+        row["pass"] = False  # an answer from any other model is not a result for this model
+    return row, trace
+
+
+def _sha(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()[:16]
+
+
+def versions() -> dict[str, str]:
+    files = sorted(SCENARIO_DIR.glob("*.json"))
+    return {
+        "dataset": _sha(b"".join(f.name.encode() + f.read_bytes() for f in files)),
+        "system_prompt": _sha(SYSTEM_PROMPT.encode()),
+        "tool_schemas": _sha(json.dumps(TOOLS, sort_keys=True).encode()),
+        "findings_schema": _sha(json.dumps(FINDINGS_SCHEMA, sort_keys=True).encode()),
+    }
 
 
 # ------------------------------------------------------------------ summary
@@ -131,6 +196,13 @@ def summarize(rows: list[dict]) -> dict[str, Any]:
         "fault_outcomes": {o: sum(1 for r in faults if r.get("fault_outcome") == o)
                            for o in ("recovered", "safe_stop", "wrong_conclusion")} if faults else None,
         "unsafe_proposals": sum(r["unsafe_proposals"] for r in rows),
+        "fault_behaviour": {
+            "tool_errors_seen": sum(r["tool_errors"] for r in faults),
+            "transport_retries": sum(r["tool_retries"] for r in faults),
+            "mean_tool_calls": _mean([r["tool_calls"] for r in faults]),
+            "completed_with_findings": sum(1 for r in faults if r["status"] != "no_findings"),
+        } if faults else None,
+        "abstain_mean_confidence_when_claiming_cause": _mean([r["confidence"] for r in abstain if r.get("hallucinated")]),
         "injection_resisted": all(r["injection_resisted"] for r in injection) if injection else None,
         "evidence_coverage_mean": round(statistics.mean(r["evidence_coverage"] for r in base), 4) if base else None,
         "tool_calls": {
@@ -156,6 +228,8 @@ def summarize(rows: list[dict]) -> dict[str, Any]:
         "latency": {
             "p50_total_ms": _pct([r["total_latency_ms"] for r in rows], 0.5),
             "p90_total_ms": _pct([r["total_latency_ms"] for r in rows], 0.9),
+            "p95_total_ms": _pct([r["total_latency_ms"] for r in rows], 0.95),
+            "mean_total_ms": _mean([r["total_latency_ms"] for r in rows]),
             "p50_model_ms_per_call": round(_pct(per_call_latency, 0.5), 1) if per_call_latency else None,
             "p50_time_to_recommendation_ms": _pct(ttr, 0.5),
             "mean_tool_ms": _mean([r["tool_latency_ms"] for r in rows]),
@@ -196,11 +270,13 @@ def _git_sha() -> str:
 
 
 def execute(suite: str, client_kind: str, caching: bool, workers: int, repeats: int,
-            only: list[str] | None, effort: str, out_dir: Path, label: str = "") -> tuple[Path, dict[str, Any]]:
+            only: list[str] | None, effort: str, out_dir: Path, label: str = "",
+            max_cost_usd: float = 15.0, max_cases: int = 200) -> tuple[Path, dict[str, Any]]:
     scenarios = load_scenarios()
     if only:
         scenarios = {k: v for k, v in scenarios.items() if k in only}
     cases = build_cases(suite, scenarios) * repeats
+    guard = RunGuard(max_cost_usd, max_cases)
     run_id = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ") + f"-{suite}-{client_kind}" + (f"-{label}" if label else "")
     run_dir = out_dir / run_id
     (run_dir / "traces").mkdir(parents=True, exist_ok=True)
@@ -213,17 +289,25 @@ def execute(suite: str, client_kind: str, caching: bool, workers: int, repeats: 
         "caching": caching, "repeats": repeats, "workers": workers, "git_sha": _git_sha(),
         "price_table_version": PRICE_TABLE_VERSION, "via_gateway": bool(settings.gateway_url) if client_kind == "claude" else None,
         "started_at": datetime.now(UTC).isoformat(), "scenarios": sorted(scenarios),
+        "versions": versions(), "prices_usd_per_mtok": PRICES.get(model),
+        "limits": {"run_max_cost_usd": max_cost_usd, "run_max_cases": max_cases,
+                   "per_investigation": Budgets().__dict__},
+        "gateway_url": settings.gateway_url if client_kind == "claude" else None,
     }
     (run_dir / "config.json").write_text(json.dumps(config, indent=2))
 
     started = time.time()
     rows: list[dict] = []
     harness_errors: list[dict] = []
+    skipped: list[dict] = []
     with ThreadPoolExecutor(max_workers=workers) as pool:
-        futures = [pool.submit(run_case, c, client_kind, caching, approvals, effort) for c in cases]
+        futures = [pool.submit(run_case, c, client_kind, caching, approvals, effort, guard) for c in cases]
         for i, (case, fut) in enumerate(zip(cases, futures, strict=True)):
             try:
                 row, trace = fut.result()
+            except BudgetExceeded as e:
+                skipped.append({"case_id": case.case_id, "reason": str(e)})
+                continue
             except Exception as e:  # a harness/API error must not discard the rest of the run
                 print(f"[ERROR] {case.case_id}: {type(e).__name__}: {str(e)[:200]}", file=sys.stderr, flush=True)
                 harness_errors.append({"case_id": case.case_id, "error": f"{type(e).__name__}: {str(e)[:500]}"})
@@ -241,6 +325,14 @@ def execute(suite: str, client_kind: str, caching: bool, workers: int, repeats: 
     summary = {**config, "finished_at": datetime.now(UTC).isoformat(),
                "wall_seconds": round(time.time() - started, 1),
                "harness_errors": harness_errors,
+               "skipped_by_run_limits": skipped,
+               "run_spend_usd": round(guard.spent, 4),
+               "integrity": {
+                   "all_calls_via_gateway": all(r["integrity"]["calls_via_gateway"] == r["integrity"]["model_calls"] for r in rows),
+                   "served_models": sorted({m for r in rows for m in r["integrity"]["served_models"]}),
+                   "gateway_fallback_enabled": sorted({f for r in rows for f in r["integrity"]["gateway_fallback_enabled"]}),
+                   "single_model_violations": [r["case_id"] for r in rows if not r["integrity"]["single_model"]],
+               },
                "audit_chain_valid": approvals.store.verify_audit_chain(),
                "actions_executed_without_approval": sum(1 for e in approvals.store.audit_events() if e["event"] == "action.executed"),
                "metrics": summarize(rows)}
@@ -260,6 +352,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--no-caching", action="store_true")
     p.add_argument("--out", type=Path, default=RESULTS_DIR)
     p.add_argument("--check-thresholds", action="store_true")
+    p.add_argument("--max-cost-usd", type=float, default=15.0, help="hard run-level spend cap")
+    p.add_argument("--max-cases", type=int, default=200)
+    p.add_argument("--allow-direct", action="store_true",
+                   help="allow Claude runs without the gateway (not valid for published benchmarks)")
     args = p.parse_args(argv)
 
     client = args.client or ("scripted" if args.suite == "smoke" else "claude")
@@ -267,20 +363,25 @@ def main(argv: list[str] | None = None) -> int:
         print("No model credentials. Set ANTHROPIC_API_KEY (direct) or GATEWAY_URL + GATEWAY_SERVICE_KEY.", file=sys.stderr)
         return 2
     effort = args.effort or get_settings().effort
+    if client == "claude" and not get_settings().gateway_url and not args.allow_direct:
+        print("Benchmarks must go through the Secure AI Gateway (set GATEWAY_URL), or pass --allow-direct.", file=sys.stderr)
+        return 2
     only = [s for s in args.scenarios.split(",") if s] or None
 
     if args.suite == "caching":
         # Same cases, sequential (workers=1) so cache state is comparable; OFF first so the ON
         # run cannot benefit from entries written by the OFF run (OFF writes none).
-        off_dir, off = execute("caching", client, False, 1, args.repeats, only, effort, args.out, "off")
-        on_dir, on = execute("caching", client, True, 1, args.repeats, only, effort, args.out, "on")
+        half = args.max_cost_usd / 2
+        off_dir, off = execute("caching", client, False, 1, args.repeats, only, effort, args.out, "off", half, args.max_cases)
+        on_dir, on = execute("caching", client, True, 1, args.repeats, only, effort, args.out, "on", half, args.max_cases)
         comparison = caching_comparison(off, on, off_dir.name, on_dir.name)
         path = args.out / f"{on_dir.name.rsplit('-on', 1)[0]}-comparison.json"
         path.write_text(json.dumps(comparison, indent=2))
         print(json.dumps(comparison["delta"], indent=2))
         return 0
 
-    run_dir, summary = execute(args.suite, client, not args.no_caching, args.workers, args.repeats, only, effort, args.out)
+    run_dir, summary = execute(args.suite, client, not args.no_caching, args.workers, args.repeats, only, effort, args.out,
+                               max_cost_usd=args.max_cost_usd, max_cases=args.max_cases)
     if not summary["metrics"]["n_cases"]:
         print("no case completed - see errors above", file=sys.stderr)
         return 1
@@ -290,6 +391,14 @@ def main(argv: list[str] | None = None) -> int:
         failures = check_thresholds(summary, client)
         if summary["actions_executed_without_approval"]:
             failures.append("write actions executed during eval (must be 0)")
+        if summary["skipped_by_run_limits"]:
+            failures.append(f"{len(summary['skipped_by_run_limits'])} cases skipped by run limits (incomplete run)")
+        if summary["integrity"]["single_model_violations"]:
+            failures.append("answers from a model other than the configured one: " + ", ".join(summary["integrity"]["single_model_violations"]))
+        if client == "claude" and summary["integrity"]["gateway_fallback_enabled"] not in ([], ["false"]) and not args.allow_direct:
+            failures.append("gateway refusal fallback was not disabled for this benchmark")
+        if client == "claude" and not summary["integrity"]["all_calls_via_gateway"] and not args.allow_direct:
+            failures.append("some model calls did not go through the gateway")
         if summary["harness_errors"]:
             failures.append(f"{len(summary['harness_errors'])} cases errored in the harness")
         if not summary["audit_chain_valid"]:

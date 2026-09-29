@@ -125,12 +125,28 @@ const tradeoffs = [
   "Public demo replays recorded runs; live model runs from the site are off by default to keep cost bounded.",
 ];
 
-const next = [
-  "Replace simulated backends with Prometheus, Loki and the deploy system behind the same tool contracts.",
-  "Operator identity from the company IdP (OIDC) instead of locally signed tokens; approvals in Postgres.",
-  "Export traces as OpenTelemetry spans using the GenAI semantic conventions.",
-  "Grow the dataset from sanitised real postmortems; track accuracy per incident class, not just overall.",
-  "Graduated autonomy for low-risk action classes once the measured unsafe-proposal rate justifies it.",
+const demonstrates: [string, string][] = [
+  ["Agentic tool use, not one-shot prompting", "The model chooses which of 6 read tools to call and when to stop; nothing is pre-assembled."],
+  ["Evidence-driven conclusions", "Findings must cite tool-call ids; citations that don't match a successful call are flagged."],
+  ["Human-in-the-loop operational safety", "Write tools only create proposals; execution is authorized by the backend, not the model."],
+  ["Evaluation against known ground truth", "14 incidents with structured answers, deterministic graders, and a no-LLM baseline."],
+  ["Failure injection and recovery testing", "500s, timeouts, missing, malformed, partial and stale data, and invalid model output."],
+  ["Prompt-injection resistance", "A hostile instruction planted in logs; measured on every evaluation run."],
+  ["Cost and latency measurement", "Per-call tokens (incl. cache reads/writes), dollars and latency, with hard budgets."],
+  ["Secure model access through a shared gateway", "Provider key only in the gateway; per-service auth, budgets, PII redaction, audit."],
+  ["Reproducible runs", "Every published number links to a run with its config, versions and per-case traces."],
+];
+
+const next: [string, string][] = [
+  ["Distributed state", "Rate limits, spend ledgers and run state move from process memory to Redis; approvals and audit move from SQLite to Postgres with row-level locking on proposal state."],
+  ["Asynchronous workers", "Alerts land on a queue (e.g. SQS/Kafka); investigations run in background workers with idempotency keys, so a retried alert never starts two investigations or proposes twice."],
+  ["Real telemetry backends", "Prometheus, Loki and the deploy system behind the same tool contracts, with per-tool timeouts, pagination and result-size budgets."],
+  ["Identity and RBAC", "Operators authenticate through the company IdP (OIDC); approval rights come from on-call schedules and service ownership. Services use workload identity instead of shared keys."],
+  ["Event-driven execution", "Approved actions go to the deployment system as change requests (Argo/Spinnaker), which enforces its own policy and emits the outcome back into the trace."],
+  ["OpenTelemetry", "Export model and tool calls as spans with GenAI semantic conventions so investigations appear in the same tracing backend as the services they investigate."],
+  ["Incident data privacy", "Redact before storage as well as before the model; retention limits on traces; tenant isolation for multi-team deployments."],
+  ["Larger evaluation corpus", "Sanitised real postmortems, per-incident-class accuracy, repeated runs for variance, and regression gates on the classes that matter."],
+  ["Provider and region redundancy", "A second provider or region behind the gateway for availability — kept out of benchmarks, which must name one model."],
 ];
 
 export default function IncidentAgentCaseStudy() {
@@ -145,13 +161,25 @@ export default function IncidentAgentCaseStudy() {
           recommend operational actions that a human approves.
         </p>
         <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm">
-          <Link href="/projects/incident-agent/trace" className="font-medium text-primary hover:underline underline-offset-4">Watch an investigation →</Link>
+          <Link href="/projects/incident-agent/trace" className="font-medium text-primary hover:underline underline-offset-4">Replay an evaluation run →</Link>
           <Link href="/projects/incident-agent/evals" className="font-medium text-primary hover:underline underline-offset-4">Full eval results →</Link>
           <a href={repoPath("incident-agent")} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline underline-offset-4">Code & docs →</a>
         </div>
       </header>
 
       <div className="mt-12 grid gap-14 max-w-5xl">
+        <section aria-labelledby="demonstrates">
+          <h2 id="demonstrates" className="text-xl font-semibold">What this project demonstrates</h2>
+          <dl className="mt-4 grid gap-x-8 gap-y-3 sm:grid-cols-2 text-sm">
+            {demonstrates.map(([k, v]) => (
+              <div key={k}>
+                <dt className="font-medium">{k}</dt>
+                <dd className="text-muted-foreground">{v}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
         <section aria-labelledby="problem">
           <h2 id="problem" className="text-xl font-semibold">Problem</h2>
           <div className="mt-3 max-w-3xl space-y-3 text-muted-foreground">
@@ -275,19 +303,24 @@ export default function IncidentAgentCaseStudy() {
           </div>
         </section>
 
-        <section aria-labelledby="tradeoffs" className="grid gap-10 md:grid-cols-2">
-          <div>
-            <h2 id="tradeoffs" className="text-xl font-semibold">Trade-offs: what I chose not to do</h2>
-            <ul className="mt-3 space-y-2 text-sm text-muted-foreground list-disc pl-5">
-              {tradeoffs.map((t) => <li key={t}>{t}</li>)}
-            </ul>
-          </div>
-          <div>
-            <h2 className="text-xl font-semibold">At larger production scale</h2>
-            <ul className="mt-3 space-y-2 text-sm text-muted-foreground list-disc pl-5">
-              {next.map((t) => <li key={t}>{t}</li>)}
-            </ul>
-          </div>
+        <section aria-labelledby="tradeoffs">
+          <h2 id="tradeoffs" className="text-xl font-semibold">Trade-offs: what I chose not to do</h2>
+          <ul className="mt-3 space-y-2 text-sm text-muted-foreground list-disc pl-5 max-w-3xl">
+            {tradeoffs.map((t) => <li key={t}>{t}</li>)}
+          </ul>
+        </section>
+
+        <section aria-labelledby="at-scale">
+          <h2 id="at-scale" className="text-xl font-semibold">What I would change at scale</h2>
+          <p className="mt-2 text-sm text-muted-foreground max-w-3xl">None of this is implemented; it is where the current design would go next.</p>
+          <dl className="mt-4 grid gap-x-8 gap-y-3 sm:grid-cols-2 text-sm">
+            {next.map(([k, v]) => (
+              <div key={k}>
+                <dt className="font-medium">{k}</dt>
+                <dd className="text-muted-foreground">{v}</dd>
+              </div>
+            ))}
+          </dl>
         </section>
       </div>
     </article>

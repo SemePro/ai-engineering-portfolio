@@ -14,7 +14,7 @@ test.describe("Incident agent pages @prod-safe", () => {
     await page.goto("/projects/incident-agent/evals");
     const table = page.getByRole("table", { name: /Incident agent evaluation results/i });
     await expect(table).toBeVisible();
-    const claudeCell = table.getByRole("row", { name: /Root-cause accuracy/i }).getByRole("cell").first();
+    const claudeCell = table.getByRole("row", { name: /Root-cause accuracy/i }).getByRole("cell").last();
     await expect(claudeCell).toHaveText(/(\d+%|Not measured)/);
   });
 

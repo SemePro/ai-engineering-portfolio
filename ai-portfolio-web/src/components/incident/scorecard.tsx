@@ -11,7 +11,7 @@ const ITEMS: Item[] = [
   { capability: "Cost & token accounting", status: "Implemented", evidence: "Per call, incl. cache reads/writes; gateway budget", href: repoFile("secure-ai-gateway/src/llm_proxy.py") },
   { capability: "Tracing", status: "Partial", evidence: "Structured trace + trace_id to gateway audit; no OpenTelemetry export yet", href: repoFile("incident-agent/docs/ARCHITECTURE.md") },
   { capability: "Security controls", status: "Implemented", evidence: "Allowlist, strict schemas, PII redaction, injection test", href: repoFile("incident-agent/docs/SAFETY.md") },
-  { capability: "CI regression gate", status: "Implemented", evidence: "Keyless smoke on PRs; full Claude eval on demand/weekly", href: repoFile(".github/workflows/incident-agent.yml") },
+  { capability: "CI regression gate", status: "Implemented", evidence: "No-LLM smoke eval on every PR; capped Claude eval on demand", href: repoFile(".github/workflows/pr-checks.yml") },
 ];
 
 export function Scorecard() {

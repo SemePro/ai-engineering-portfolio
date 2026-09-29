@@ -8,6 +8,8 @@ type Row = {
   detail?: (s: RunSummary | null) => string;
 };
 
+const isClaude = (s: RunSummary | null) => !!s && s.client === "claude";
+
 const ROWS: Row[] = [
   {
     label: "Root-cause accuracy",
@@ -22,10 +24,19 @@ const ROWS: Row[] = [
     detail: (s) => frac(s?.metrics.abstention_accuracy ?? null),
   },
   {
+    label: "False certainty",
+    hint: "Named a root cause anyway when the evidence had been removed",
+    value: (s) => pct(s?.metrics.hallucination_rate_when_evidence_removed ?? null),
+    detail: (s) => frac(s?.metrics.hallucination_rate_when_evidence_removed ?? null),
+  },
+  {
     label: "Tool-failure handling",
-    hint: "Recovers or stops safely under 500s, timeouts, missing, malformed, partial and stale data",
+    hint: "Recovers or stops safely under 500s, timeouts, missing, malformed, partial and stale data, bad model output",
     value: (s) => pct(s?.metrics.fault_pass_rate ?? null),
-    detail: (s) => frac(s?.metrics.fault_pass_rate ?? null),
+    detail: (s) =>
+      s?.metrics.fault_outcomes
+        ? `${frac(s.metrics.fault_pass_rate)} · ${s.metrics.fault_outcomes.recovered} recovered, ${s.metrics.fault_outcomes.safe_stop} safe stop, ${s.metrics.fault_outcomes.wrong_conclusion} wrong`
+        : "",
   },
   {
     label: "Appropriate remediation",
@@ -39,9 +50,19 @@ const ROWS: Row[] = [
     value: (s) => (s ? String(s.metrics.unsafe_proposals) : NOT_MEASURED),
   },
   {
+    label: "Write actions executed without approval",
+    hint: "Audit-log count of executions during the run (evals never approve)",
+    value: (s) => (s ? String(s.actions_executed_without_approval) : NOT_MEASURED),
+  },
+  {
     label: "Prompt injection resisted",
     hint: "No action or conclusion targeting the service named in the injected log line",
     value: (s) => (s?.metrics.injection_resisted === null || !s ? NOT_MEASURED : s.metrics.injection_resisted ? "Yes" : "No"),
+  },
+  {
+    label: "Evidence coverage",
+    hint: "Share of each scenario's critical evidence sources actually queried (tool selection)",
+    value: (s) => pct(s?.metrics.evidence_coverage_mean ?? null),
   },
   {
     label: "Avg tool calls",
@@ -51,21 +72,23 @@ const ROWS: Row[] = [
   },
   {
     label: "Median investigation time",
-    hint: "Wall clock from alert to findings (p50)",
-    value: (s) => (s && s.client === "claude" ? seconds(s.metrics.latency.p50_total_ms) : NOT_MEASURED),
-    detail: (s) => (s && s.client === "claude" ? `p90 ${seconds(s.metrics.latency.p90_total_ms)}` : ""),
+    hint: "Wall clock from alert to findings",
+    value: (s) => (isClaude(s) ? seconds(s!.metrics.latency.p50_total_ms) : s ? "< 0.1s" : NOT_MEASURED),
+    detail: (s) => (isClaude(s) ? `p95 ${seconds(s!.metrics.latency.p95_total_ms ?? s!.metrics.latency.p90_total_ms)}` : ""),
   },
   {
-    label: "Avg cost per investigation",
+    label: "Cost per incident",
     hint: "Measured token usage × published price table (incl. cache reads/writes)",
-    value: (s) => (s && s.client === "claude" ? usd(s.metrics.cost.mean_per_investigation_usd) : NOT_MEASURED),
-    detail: (s) => (s && s.client === "claude" ? `p90 ${usd(s.metrics.cost.p90_per_investigation_usd)} · total ${usd(s.metrics.cost.total_usd, 2)}` : ""),
+    value: (s) => (isClaude(s) ? usd(s!.metrics.cost.mean_per_investigation_usd) : s ? "$0" : NOT_MEASURED),
+    detail: (s) => (isClaude(s) ? `p90 ${usd(s!.metrics.cost.p90_per_investigation_usd)} · total ${usd(s!.metrics.cost.total_usd, 2)}` : ""),
   },
 ];
 
+const COMPACT = new Set(["Root-cause accuracy", "Correct abstention", "Tool-failure handling", "Unsafe proposals", "Avg tool calls", "Median investigation time", "Cost per incident"]);
+
 export function EvalResultsTable({ compact = false }: { compact?: boolean }) {
   const { claude, baseline } = EVALS;
-  const rows = compact ? ROWS.filter((r) => !["Appropriate remediation", "Prompt injection resisted", "Median investigation time"].includes(r.label)) : ROWS;
+  const rows = compact ? ROWS.filter((r) => COMPACT.has(r.label)) : ROWS;
   return (
     <div className="overflow-x-auto rounded-lg border">
       <table className="w-full text-sm">
@@ -73,13 +96,13 @@ export function EvalResultsTable({ compact = false }: { compact?: boolean }) {
         <thead className="bg-muted/40 text-left">
           <tr>
             <th scope="col" className="px-4 py-2 font-medium">Metric</th>
-            <th scope="col" className="px-4 py-2 font-medium">
-              Claude agent
-              <span className="block text-xs font-normal text-muted-foreground">{claude ? claude.model : "no run yet"}</span>
+            <th scope="col" className="px-4 py-2 font-medium text-right">
+              Fixed playbook
+              <span className="block text-xs font-normal text-muted-foreground">no LLM, deterministic</span>
             </th>
-            <th scope="col" className="px-4 py-2 font-medium">
-              Fixed-playbook baseline
-              <span className="block text-xs font-normal text-muted-foreground">no LLM</span>
+            <th scope="col" className="px-4 py-2 font-medium text-right">
+              Claude agent
+              <span className="block text-xs font-normal text-muted-foreground">{claude ? `${claude.model} · effort ${claude.effort}` : "no run yet"}</span>
             </th>
           </tr>
         </thead>
@@ -93,13 +116,13 @@ export function EvalResultsTable({ compact = false }: { compact?: boolean }) {
                   <span className="font-medium">{r.label}</span>
                   {!compact && <span className="block text-xs text-muted-foreground">{r.hint}</span>}
                 </th>
-                <td className={cn("px-4 py-2.5 tabular-nums", c === NOT_MEASURED ? "text-muted-foreground italic" : "font-semibold")}>
-                  {c}
-                  {r.detail && r.detail(claude) && <span className="block text-xs font-normal text-muted-foreground">{r.detail(claude)}</span>}
-                </td>
-                <td className={cn("px-4 py-2.5 tabular-nums", b === NOT_MEASURED ? "text-muted-foreground italic" : "")}>
+                <td className={cn("px-4 py-2.5 tabular-nums text-right", b === NOT_MEASURED ? "text-muted-foreground italic" : "")}>
                   {b}
                   {r.detail && r.detail(baseline) && <span className="block text-xs text-muted-foreground">{r.detail(baseline)}</span>}
+                </td>
+                <td className={cn("px-4 py-2.5 tabular-nums text-right", c === NOT_MEASURED ? "text-muted-foreground italic" : "font-semibold")}>
+                  {c}
+                  {r.detail && r.detail(claude) && <span className="block text-xs font-normal text-muted-foreground">{r.detail(claude)}</span>}
                 </td>
               </tr>
             );

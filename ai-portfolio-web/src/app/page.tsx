@@ -152,7 +152,7 @@ export default function Home() {
               </dl>
               <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm">
                 <Link href="/projects/incident-agent" className="font-medium text-primary hover:underline underline-offset-4">Case study →</Link>
-                <Link href="/projects/incident-agent/trace" className="font-medium text-primary hover:underline underline-offset-4">Watch an investigation →</Link>
+                <Link href="/projects/incident-agent/trace" className="font-medium text-primary hover:underline underline-offset-4">Replay an evaluation run →</Link>
                 <Link href="/projects/incident-agent/evals" className="font-medium text-primary hover:underline underline-offset-4">Eval results →</Link>
                 <a href={repoPath("incident-agent")} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline underline-offset-4">
                   Code →<span className="sr-only"> (opens in new tab)</span>

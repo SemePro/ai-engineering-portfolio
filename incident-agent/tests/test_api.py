@@ -95,3 +95,21 @@ def test_unknown_fault_and_variant_rejected(client):
 def test_missing_signing_secret_refuses_to_start(tmp_path):
     with pytest.raises(RuntimeError):
         create_app(Settings(approval_signing_secret="", data_dir=tmp_path, _env_file=None))
+
+
+def test_duplicate_execution_and_wrong_environment_refused_via_api(client):
+    approvals = client.app.state.approvals
+    tokens = client.app.state.tokens
+    auth = session(client)
+    inv = client.post("/investigations", json={"scenario_id": "inc-13-report-deadlock"}, headers=auth).json()["investigation_id"]
+    wait(client, inv, auth)
+    from incident_agent.lab import load_scenarios
+    p = approvals.propose(investigation_id=inv, scenario=load_scenarios()["inc-13-report-deadlock"],
+                          action="restart_service", args={"service": "report-generator", "reason": "known deadlock RPT-311"},
+                          proposer="agent:test")
+    body = {"params_hash": p["params_hash"]}
+    prod = tokens.issue("ops@corp", "operator", ["*"], env="production")
+    assert client.post(f"/actions/{p['id']}/approve", json=body, headers={"Authorization": f"Bearer {prod}"}).status_code == 403
+    assert client.post(f"/actions/{p['id']}/approve", json=body, headers=auth).status_code == 200
+    again = client.post(f"/actions/{p['id']}/approve", json=body, headers=auth)
+    assert again.status_code == 409 and again.json()["error"] == "not_pending"

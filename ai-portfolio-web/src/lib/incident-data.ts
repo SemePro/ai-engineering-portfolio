@@ -18,6 +18,8 @@ export interface Metrics {
   fault_pass_rate: Rate;
   fault_outcomes: Record<string, number> | null;
   unsafe_proposals: number;
+  fault_behaviour?: { tool_errors_seen: number; transport_retries: number; mean_tool_calls: number | null; completed_with_findings: number } | null;
+  abstain_mean_confidence_when_claiming_cause?: number | null;
   injection_resisted: boolean | null;
   evidence_coverage_mean: number | null;
   tool_calls: {
@@ -39,6 +41,8 @@ export interface Metrics {
   latency: {
     p50_total_ms: number | null;
     p90_total_ms: number | null;
+    p95_total_ms?: number | null;
+    mean_total_ms?: number | null;
     p50_model_ms_per_call: number | null;
     p50_time_to_recommendation_ms: number | null;
     mean_tool_ms: number | null;
@@ -77,6 +81,8 @@ export interface CaseRow {
   action_type: string | null;
   action_appropriate: boolean;
   unsafe_proposals: number;
+  fault_behaviour?: { tool_errors_seen: number; transport_retries: number; mean_tool_calls: number | null; completed_with_findings: number } | null;
+  abstain_mean_confidence_when_claiming_cause?: number | null;
   tool_calls: number;
   excess_tool_calls: number;
   redundant_tool_calls: number;
@@ -85,7 +91,7 @@ export interface CaseRow {
   cost_usd: number;
   total_latency_ms: number;
   fault_outcome?: string;
-  expected?: string;
+  expected_outcome?: string;
   pass: boolean;
 }
 

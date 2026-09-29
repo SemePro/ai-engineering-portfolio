@@ -1,4 +1,4 @@
-# AI Engineering Portfolio — Seme Semeglo
+# AI Engineering Portfolio — Kodjo Seme Semeglo
 
 Production-minded AI systems: a tool-using incident response agent, the shared gateway every model
 call goes through, and the evaluation and failure-injection harnesses used to decide whether the
@@ -11,6 +11,11 @@ A Claude-based agent investigates alerts with read-only tools, reports a root ca
 or says the evidence is insufficient, and can only *propose* rollbacks/restarts that a human approves
 through a server-enforced gate. Ships with a 14-scenario synthetic incident lab, fault injection and
 an evaluation harness. Start with its [README](incident-agent/README.md).
+
+**Reviewer path:** [case study](https://www.semefit.com/projects/incident-agent) → architecture →
+[recorded run](https://www.semefit.com/projects/incident-agent/trace) →
+[evaluation](https://www.semefit.com/projects/incident-agent/evals) → failure cases → security boundary →
+[code + README](incident-agent/).
 
 ## Platform
 
@@ -52,9 +57,11 @@ architecture 8005 · incident-agent 8006.
 
 ## CI
 
-- `.github/workflows/incident-agent.yml` — on PRs: agent tests, deterministic smoke eval with golden
-  thresholds, gateway tests, web lint/typecheck/build. Manual/weekly: full Claude evaluation against
-  regression thresholds (requires the `ANTHROPIC_API_KEY` repository secret).
+- `.github/workflows/pr-checks.yml` — every PR, no model spend: agent tests (incl. authorization and
+  budget tests), deterministic smoke eval with golden thresholds, gateway and legacy service tests,
+  web lint/typecheck/build/Playwright, Docker builds.
+- `.github/workflows/agent-eval.yml` — manual only, paid: full Claude evaluation through the gateway
+  with fallback disabled and a hard dollar cap (requires the `ANTHROPIC_API_KEY` repository secret).
 - `.github/workflows/scheduled-prod-tests.yml` — nightly Playwright/Cypress smoke against production.
 
 ## Deployment

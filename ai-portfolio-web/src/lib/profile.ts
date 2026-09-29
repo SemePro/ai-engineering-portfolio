@@ -13,7 +13,7 @@ type Profile = {
 };
 
 export const PROFILE: Profile = {
-  name: "Seme Semeglo",
+  name: "Kodjo Seme Semeglo",
   title: "Senior AI Engineer",
   headline: "I build agentic and production AI systems — and the evaluation harnesses that decide whether they can be trusted.",
   github: "https://github.com/SemePro/ai-engineering-portfolio",
