@@ -359,10 +359,19 @@ def _summarize(name: str, result: dict[str, Any] | str) -> str:
     if "note" in result:
         return result["note"]
     if name == "get_service_health":
-        return f"{result['service']}: {result.get('status')} ({', '.join(f'{k}={v}' for k, v in list(result.get('checks', {}).items())[:2])})"
+        checks = ", ".join(f"{k}={v}" for k, v in list(result.get("checks", {}).items())[:3])
+        bad_deps = [f"{d['service']} {d['status']}" for d in result.get("dependencies", []) if d["status"] != "healthy"]
+        return f"{result['service']}: {result.get('status')}" + (f" ({checks})" if checks else "") + (
+            f"; unhealthy deps: {', '.join(bad_deps)}" if bad_deps else "")
     if name == "get_service_metrics":
         if "metrics" in result:
-            return f"{len(result['metrics'])} metrics for {result['service']}"
+            moved = []
+            for m, v in result["metrics"].items():
+                prior, cur = v.get("prior_mean"), v.get("current")
+                if prior is not None and cur is not None and abs(cur - prior) > max(0.5 * abs(prior), 1e-9) and abs(cur - prior) >= 1:
+                    moved.append(f"{m} {prior:g} → {cur:g}")
+            return f"{len(result['metrics'])} metrics for {result['service']}" + (
+                f"; shifted vs prior: {', '.join(moved[:3])}" if moved else "; none shifted vs prior window")
         if "error" in result:
             return f"metric not found; available: {', '.join(result.get('available_metrics', []))}"
         return f"{result['metric']}: min {result['min']} max {result['max']} last {result['last']} {result['unit']}"
@@ -370,9 +379,18 @@ def _summarize(name: str, result: dict[str, Any] | str) -> str:
         return f"{result['returned']} of {result['total_matches']} lines"
     if name == "get_recent_errors":
         groups = result["error_groups"]
-        return f"{len(groups)} error signatures" + (f"; top x{groups[0]['count']}" if groups else "")
+        if not groups:
+            return "no errors in window"
+        top = groups[0]
+        return f"{len(groups)} error signature(s); top ×{top['count']} since {top['first_seen'][11:16]}: {top['sample'][:110]}"
     if name == "get_deployment_history":
-        return f"{len(result['changes'])} changes"
+        changes = result["changes"]
+        if not changes:
+            return "no changes in window"
+        c = changes[0]
+        ver = f" {c['previous_version']} → {c['version']}" if c.get("version") else ""
+        return f"{len(changes)} change(s); latest {c['at'][11:16]} {c['kind']} {c['service']}{ver}: {c['summary'][:80]}"
     if name == "search_past_incidents":
-        return f"{len(result['results'])} similar incidents"
+        res = result["results"]
+        return f"{len(res)} similar incident(s)" + (f"; best match {res[0]['id']}: {res[0]['title'][:80]}" if res else "")
     return ""

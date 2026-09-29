@@ -38,6 +38,6 @@ test.describe("Core pages @prod-safe", () => {
     await expect(
       page.getByRole("heading", { name: /^Architecture$/i })
     ).toBeVisible();
-    await expect(page.getByText(/Secure AI Gateway/i).first()).toBeVisible();
+    await expect(page.getByText(/Secure AI Gateway/i).filter({ visible: true }).first()).toBeVisible();
   });
 });
