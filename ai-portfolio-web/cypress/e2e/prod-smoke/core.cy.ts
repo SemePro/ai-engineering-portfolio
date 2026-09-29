@@ -5,7 +5,7 @@
 describe("Prod smoke @prod-safe", () => {
   it("home and testing overview", () => {
     cy.visit("/");
-    cy.contains("h1", /Applied AI Engineering Portfolio/i);
+    cy.contains("h1", /Senior AI Engineer building reliable agentic/i);
     cy.visit("/testing");
     cy.contains("h1", /^Testing$/);
   });

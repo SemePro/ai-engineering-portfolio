@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Integration Testing | Applied AI Engineering Portfolio",
+  title: "Integration Testing",
   description:
     "System-level validation: frontend through gateway to backend, dependencies, and failure modes.",
 };

@@ -23,7 +23,7 @@ import { ReportRunnerTabs } from "@/components/testing/report-runner-tabs";
 import { ExternalLink, Cloud, HardDrive } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Test reports | Applied AI Engineering Portfolio",
+  title: "Test reports",
   description:
     "Nightly production smoke test results for semefit.com — updated every night via GitHub Actions.",
 };

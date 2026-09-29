@@ -37,7 +37,7 @@ const LANDING_ICONS: Record<
 };
 
 export const metadata: Metadata = {
-  title: "Testing | Applied AI Engineering Portfolio",
+  title: "Testing",
   description:
     "Testing as part of system reliability: UI, API, and integration validation with production smoke and AI-assisted tooling.",
 };

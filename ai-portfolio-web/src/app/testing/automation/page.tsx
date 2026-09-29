@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Automation Testing | Applied AI Engineering Portfolio",
+  title: "Automation Testing",
   description:
     "Automation strategy: smoke, regression, critical workflows, and confidence gating.",
 };

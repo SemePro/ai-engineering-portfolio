@@ -1,279 +1,253 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Bot, Shield, LineChart, Workflow, Github, ExternalLink } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { ArchitectureDiagram } from "@/components/incident/architecture-diagram";
+import { EvalResultsTable } from "@/components/incident/eval-results";
+import { ContactLinks } from "@/components/contact-links";
+import { DATASET_STATS, EVALS, pct } from "@/lib/incident-data";
+import { PROFILE, repoPath } from "@/lib/profile";
 
-const features = [
+const focus = [
+  "Agentic systems",
+  "LLM infrastructure",
+  "AI evaluation",
+  "Secure AI gateways",
+  "RAG",
+  "Human-in-the-loop",
+  "Reliability engineering",
+];
+
+const platform = [
   {
-    icon: Bot,
-    title: "RAG systems with grounded answers and citations",
-    description: "Enterprise-grade retrieval-augmented generation with strict mode for safety",
+    name: "Secure AI Gateway",
+    role: "Shared platform layer",
+    text: "Every model call goes through it: service-key auth, per-service $ budgets, PII redaction, retries, token and cache accounting, audit log.",
+    href: repoPath("secure-ai-gateway"),
+    demo: "/demo/gateway",
   },
   {
-    icon: LineChart,
-    title: "Automated LLM evaluation and regression testing",
-    description: "Catch regressions before they reach production with comprehensive test suites",
+    name: "LLM Evaluation Harness",
+    role: "Quality gates",
+    text: "Regression suites for LLM outputs with deterministic checks, run in CI before changes ship.",
+    href: repoPath("llm-eval-harness"),
+    demo: "/demo/eval",
   },
   {
-    icon: Shield,
-    title: "Secure AI gateways with guardrails and cost controls",
-    description: "Rate limiting, PII redaction, prompt injection detection, and cost tracking",
+    name: "RAG Knowledge Assistant",
+    role: "Grounded answers",
+    text: "Retrieval with citations and a strict mode that refuses when retrieval confidence is low.",
+    href: repoPath("rag-knowledge-assistant"),
+    demo: "/demo/rag",
   },
   {
-    icon: Workflow,
-    title: "CI/CD pipelines for AI systems",
-    description: "Automated testing and deployment workflows for reliable AI delivery",
+    name: "Incident Investigator v1",
+    role: "Predecessor to the agent",
+    text: "Single-pass RAG over a fixed evidence bundle. Its limits — no ability to go look for missing evidence — motivated the agentic rebuild.",
+    href: repoPath("ai-incident-investigator"),
+    demo: "/projects/incident",
+  },
+  {
+    name: "DevOps Risk Analysis",
+    role: "Decision support",
+    text: "Pre-deploy change risk scoring against historical incidents, with a human making the call.",
+    href: repoPath("ai-devops-control-plane"),
+    demo: "/projects/devops",
+  },
+  {
+    name: "Architecture Review Assistant",
+    role: "Decision support",
+    text: "Structured architecture recommendations with trade-offs, including when not to use AI.",
+    href: repoPath("ai-solution-architecture-review"),
+    demo: "/projects/architecture",
   },
 ];
 
-const projects = [
-  {
-    id: "rag",
-    title: "AI Knowledge Retrieval (RAG System)",
-    description: "Evidence-based answers with citations and strict refusal.",
-    tech: ["FastAPI", "ChromaDB", "OpenAI", "Python"],
-    demoUrl: "/demo/rag",
-    githubUrl: "https://github.com/SemePro/ai-engineering-portfolio",
-  },
-  {
-    id: "eval",
-    title: "LLM Evaluation & Regression Testing",
-    description: "Automated quality gates for LLM outputs in CI/CD.",
-    tech: ["FastAPI", "Pydantic", "GitHub Actions", "Python"],
-    demoUrl: "/demo/eval",
-    githubUrl: "https://github.com/SemePro/ai-engineering-portfolio",
-  },
-  {
-    id: "gateway",
-    title: "Secure AI Gateway",
-    description: "PII redaction, prompt injection defense, rate limiting, and cost tracking.",
-    tech: ["FastAPI", "Token Bucket", "Regex", "Python"],
-    demoUrl: "/demo/gateway",
-    githubUrl: "https://github.com/SemePro/ai-engineering-portfolio",
-  },
-  {
-    id: "incident",
-    title: "AI Incident Investigation",
-    description: "Timeline reconstruction and root-cause analysis with evidence and human feedback.",
-    tech: ["FastAPI", "ChromaDB", "OpenAI", "Python"],
-    demoUrl: "/demo/incident",
-    githubUrl: "https://github.com/SemePro/ai-engineering-portfolio",
-  },
-  {
-    id: "devops",
-    title: "AI-Assisted DevOps Risk Analysis",
-    description: "Pre-deployment risk scoring, rollout recommendations, and change impact analysis.",
-    tech: ["FastAPI", "ChromaDB", "OpenAI", "Python"],
-    demoUrl: "/demo/devops",
-    githubUrl: "https://github.com/SemePro/ai-engineering-portfolio",
-  },
-  {
-    id: "architecture",
-    title: "AI Solution Architecture Review",
-    description: "Architecture recommendations with tradeoffs — including when AI should NOT be used.",
-    tech: ["FastAPI", "ChromaDB", "OpenAI", "Python"],
-    demoUrl: "/demo/architecture",
-    githubUrl: "https://github.com/SemePro/ai-engineering-portfolio",
-  },
+const principles = [
+  ["Measure before optimizing.", "Prompt caching went in with an on/off experiment, not an assumption."],
+  ["Models recommend; authorization stays deterministic.", "The agent can propose a rollback. Only a signed, scoped, unexpired operator approval can run one."],
+  ["Uncertainty should be visible.", "“Insufficient evidence” is a first-class outcome, and it is graded."],
+  ["Every agent needs an evaluation strategy.", "Known-ground-truth incidents, deterministic graders, a baseline to beat, thresholds in CI."],
+  ["Failures are test cases, not surprises.", "Tool outages, malformed data and bad model output are injected on purpose."],
+];
+
+const skills = [
+  { group: "Agentic AI", items: ["Tool use", "Agent loops & budgets", "Human-in-the-loop approval", "Structured outputs", "Context management"] },
+  { group: "LLM engineering", items: ["Claude / Anthropic API", "OpenAI API", "Prompt caching", "RAG & embeddings", "ChromaDB"] },
+  { group: "AI platform", items: ["FastAPI", "AI gateway design", "AuthN/Z for agents", "Rate limits & cost controls", "PII redaction"] },
+  { group: "Evaluation & reliability", items: ["LLM evals", "Failure injection", "Regression gates", "Deterministic fixtures", "Playwright & Cypress"] },
+  { group: "Delivery", items: ["Python", "TypeScript / Next.js", "Docker", "GitHub Actions CI", "Railway & Vercel"] },
 ];
 
 export default function Home() {
+  const claude = EVALS.claude;
   return (
     <div className="flex flex-col">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden border-b bg-gradient-to-b from-muted/50 to-background">
-        <div className="container mx-auto px-4 py-24 md:py-32">
-          <div className="mx-auto max-w-3xl text-center">
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-              Applied AI Engineering Portfolio
+      {/* Identity */}
+      <section className="border-b">
+        <div className="container mx-auto px-4 pt-16 pb-14 md:pt-24 md:pb-20">
+          <div className="max-w-3xl">
+            <p className="text-sm font-medium text-muted-foreground">{PROFILE.name}</p>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl md:leading-[1.1]">
+              Senior AI Engineer building reliable agentic and production AI systems.
             </h1>
-            <p className="mt-6 text-xl text-muted-foreground md:text-2xl font-medium">
-              Building reliable, evidence-driven AI systems for real engineering workflows.
+            <p className="mt-5 text-lg text-muted-foreground max-w-2xl">
+              I design, evaluate and operate LLM systems: agents with real tool use, a shared AI gateway, and the
+              evaluation and failure-injection harnesses that decide whether they can be trusted. Before AI, a decade
+              in quality engineering, automation and platform reliability.
             </p>
-            <p className="mt-4 text-base text-muted-foreground md:text-lg max-w-2xl mx-auto">
-              A collection of production-minded AI systems focused on reliability, evaluation, security, incident response, and DevOps decision support.
-            </p>
-            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Button size="lg" asChild>
-                <Link href="/demo">
-                  View Live Demos
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link href="/architecture">
-                  View Architecture
-                </Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                <a href="https://github.com" target="_blank" rel="noopener noreferrer">
-                  <Github className="mr-2 h-4 w-4" />
-                  View Code on GitHub
-                </a>
-              </Button>
+            <ul className="mt-6 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground" aria-label="Focus areas">
+              {focus.map((f) => (
+                <li key={f}>{f}</li>
+              ))}
+            </ul>
+            <div className="mt-8 flex flex-col sm:flex-row sm:items-center gap-4">
+              <Link
+                href="/projects/incident-agent"
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              >
+                See the flagship project
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+              <ContactLinks />
             </div>
           </div>
         </div>
-        
-        {/* Background decoration */}
-        <div className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-primary/5 blur-3xl" />
-        </div>
       </section>
 
-      {/* Value Propositions */}
-      <section className="py-20 md:py-28">
-        <div className="container mx-auto px-4">
-          <div className="mx-auto max-w-2xl text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight">
-              What I Build
-            </h2>
-            <p className="mt-4 text-muted-foreground">
-              Production systems that go beyond demos and prototypes
-            </p>
-          </div>
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-            {features.map((feature, index) => (
-              <Card key={index} className="border-muted bg-muted/30">
-                <CardHeader>
-                  <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                    <feature.icon className="h-6 w-6 text-primary" />
-                  </div>
-                  <CardTitle className="text-lg">{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription>{feature.description}</CardDescription>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Projects Section */}
-      <section className="border-t bg-muted/30 py-20 md:py-28">
-        <div className="container mx-auto px-4">
-          <div className="mx-auto max-w-2xl text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight">
-              Featured Projects
-            </h2>
-            <p className="mt-4 text-muted-foreground">
-              Each project demonstrates real production patterns
-            </p>
-          </div>
-          <div className="grid gap-8 lg:grid-cols-3">
-            {projects.map((project) => (
-              <Card key={project.id} className="flex flex-col">
-                <CardHeader>
-                  <CardTitle>{project.title}</CardTitle>
-                  <CardDescription className="min-h-[60px]">
-                    {project.description}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <div className="flex flex-wrap gap-2 mb-6">
-                    {project.tech.map((tech) => (
-                      <Badge key={tech} variant="secondary">
-                        {tech}
-                      </Badge>
-                    ))}
-                  </div>
-                  <div className="flex gap-3">
-                    <Button size="sm" asChild>
-                      <Link href={project.demoUrl}>
-                        Live Demo
-                        <ExternalLink className="ml-2 h-3 w-3" />
-                      </Link>
-                    </Button>
-                    <Button size="sm" variant="outline" asChild>
-                      <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">
-                        <Github className="mr-2 h-3 w-3" />
-                        Code
-                      </a>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          <div className="mt-12 text-center">
-            <Button variant="outline" size="lg" asChild>
-              <Link href="/projects">
-                View All Projects
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Architecture Overview */}
-      <section className="py-20 md:py-28">
-        <div className="container mx-auto px-4">
-          <div className="mx-auto max-w-2xl text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight">
-              System Architecture
-            </h2>
-            <p className="mt-4 text-muted-foreground">
-              How the components work together
-            </p>
-          </div>
-          <div className="mx-auto max-w-4xl">
-            <Card className="p-8">
-              <div className="aspect-video rounded-lg border bg-muted/50 flex items-center justify-center">
-                <div className="text-center p-8">
-                  <p className="text-muted-foreground mb-4">Architecture Diagram</p>
-                  <div className="flex flex-col items-center space-y-4 text-sm">
-                    <div className="flex items-center space-x-4">
-                      <Badge>Web Frontend</Badge>
-                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                      <Badge variant="secondary">Secure Gateway</Badge>
-                    </div>
-                    <div className="flex items-center space-x-8">
-                      <div className="flex flex-col items-center space-y-2">
-                        <ArrowRight className="h-4 w-4 text-muted-foreground rotate-90" />
-                        <Badge variant="outline">RAG Service</Badge>
-                      </div>
-                      <div className="flex flex-col items-center space-y-2">
-                        <ArrowRight className="h-4 w-4 text-muted-foreground rotate-90" />
-                        <Badge variant="outline">Eval Service</Badge>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <p className="mt-6 text-sm text-muted-foreground text-center">
-                Web → Gateway → Backend Services. All traffic flows through the secure gateway
-                for rate limiting, security checks, and observability.
+      {/* Flagship */}
+      <section className="border-b" aria-labelledby="flagship">
+        <div className="container mx-auto px-4 py-16 md:py-20">
+          <div className="grid gap-10 lg:grid-cols-2 lg:gap-14">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary">Flagship</p>
+              <h2 id="flagship" className="mt-2 text-2xl font-semibold tracking-tight md:text-3xl">
+                Agentic Incident Response Engine
+              </h2>
+              <p className="mt-4 text-muted-foreground">
+                Given an alert, a Claude-based agent decides what to look at — logs, metrics, change history, service
+                health, past incidents — forms and revises hypotheses, and reports a root cause with a confidence, or
+                says the evidence isn't enough. It can propose a rollback or restart; it cannot execute one. That takes
+                a human approval the backend verifies.
               </p>
-            </Card>
+            </div>
+            <div className="lg:pt-8">
+              <dl className="grid grid-cols-2 gap-4 text-sm">
+                <div className="rounded-lg border p-3">
+                  <dt className="text-muted-foreground text-xs">Root-cause accuracy</dt>
+                  <dd className="mt-1 text-xl font-semibold tabular-nums">
+                    {claude ? pct(claude.metrics.root_cause_accuracy) : <span className="text-base italic text-muted-foreground font-normal">Not measured yet</span>}
+                  </dd>
+                </div>
+                <div className="rounded-lg border p-3">
+                  <dt className="text-muted-foreground text-xs">Fixed-playbook baseline</dt>
+                  <dd className="mt-1 text-xl font-semibold tabular-nums">{pct(EVALS.baseline?.metrics.root_cause_accuracy ?? null)}</dd>
+                </div>
+                <div className="rounded-lg border p-3">
+                  <dt className="text-muted-foreground text-xs">Synthetic incidents</dt>
+                  <dd className="mt-1 text-xl font-semibold tabular-nums">{DATASET_STATS.scenarios}</dd>
+                </div>
+                <div className="rounded-lg border p-3">
+                  <dt className="text-muted-foreground text-xs">Abstention + fault variants</dt>
+                  <dd className="mt-1 text-xl font-semibold tabular-nums">{DATASET_STATS.abstainVariants + DATASET_STATS.faultVariants}</dd>
+                </div>
+              </dl>
+              <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+                <Link href="/projects/incident-agent" className="font-medium text-primary hover:underline underline-offset-4">Case study →</Link>
+                <Link href="/projects/incident-agent/trace" className="font-medium text-primary hover:underline underline-offset-4">Watch an investigation →</Link>
+                <Link href="/projects/incident-agent/evals" className="font-medium text-primary hover:underline underline-offset-4">Eval results →</Link>
+                <a href={repoPath("incident-agent")} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline underline-offset-4">
+                  Code →<span className="sr-only"> (opens in new tab)</span>
+                </a>
+              </div>
+            </div>
+          </div>
+          <div className="mt-12 min-w-0">
+            <ArchitectureDiagram />
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="border-t bg-muted/30 py-20">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold tracking-tight mb-4">
-            Explore the Systems
-          </h2>
-          <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Try the live demos to see how these production patterns work together.
-          </p>
-          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Button size="lg" asChild>
-              <Link href="/demo">
-                View All Demos
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button size="lg" variant="outline" asChild>
-              <Link href="/architecture">
-                View Architecture
-              </Link>
-            </Button>
+      {/* Evidence */}
+      <section className="border-b bg-muted/20" aria-labelledby="evidence">
+        <div className="container mx-auto px-4 py-16">
+          <div className="max-w-3xl">
+            <h2 id="evidence" className="text-xl font-semibold tracking-tight">Measured, not claimed</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Every number below comes from a reproducible run in <code>incident-agent/eval-results/</code>.
+              Anything not yet measured says so.
+            </p>
           </div>
+          <div className="mt-6 max-w-4xl">
+            <EvalResultsTable compact />
+          </div>
+        </div>
+      </section>
+
+      {/* Platform */}
+      <section className="border-b" aria-labelledby="platform">
+        <div className="container mx-auto px-4 py-16">
+          <div className="max-w-3xl">
+            <h2 id="platform" className="text-xl font-semibold tracking-tight">One platform, not six demos</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              AI applications → Secure AI Gateway → model providers. The other systems share the same gateway,
+              evaluation and testing practices.
+            </p>
+          </div>
+          <ul className="mt-8 grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 lg:grid-cols-3">
+            {platform.map((p) => (
+              <li key={p.name} className="bg-background p-5">
+                <p className="text-xs text-muted-foreground">{p.role}</p>
+                <h3 className="mt-1 font-medium">{p.name}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{p.text}</p>
+                <div className="mt-3 flex gap-4 text-xs">
+                  <Link href={p.demo} className="text-primary hover:underline underline-offset-4">Details</Link>
+                  <a href={p.href} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline underline-offset-4">
+                    Code<span className="sr-only"> (opens in new tab)</span>
+                  </a>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* Principles + skills */}
+      <section className="border-b" aria-labelledby="principles">
+        <div className="container mx-auto px-4 py-16 grid gap-12 lg:grid-cols-2">
+          <div>
+            <h2 id="principles" className="text-xl font-semibold tracking-tight">Engineering principles</h2>
+            <dl className="mt-6 space-y-4">
+              {principles.map(([p, e]) => (
+                <div key={p}>
+                  <dt className="font-medium">{p}</dt>
+                  <dd className="text-sm text-muted-foreground mt-0.5">{e}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight">Skills</h2>
+            <dl className="mt-6 space-y-4">
+              {skills.map((s) => (
+                <div key={s.group}>
+                  <dt className="text-sm font-medium">{s.group}</dt>
+                  <dd className="text-sm text-muted-foreground mt-0.5">{s.items.join(" · ")}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      {/* Contact */}
+      <section aria-labelledby="contact">
+        <div className="container mx-auto px-4 py-14 flex flex-col md:flex-row md:items-center gap-6">
+          <div className="flex-1">
+            <h2 id="contact" className="text-xl font-semibold tracking-tight">Hiring for AI engineering?</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Senior AI Engineer · Applied AI · AI Platform · Agent engineering roles.
+            </p>
+          </div>
+          <ContactLinks />
         </div>
       </section>
     </div>

@@ -324,8 +324,8 @@ const projects: Project[] = [
   },
   {
     id: "incident",
-    title: "AI Incident Investigation",
-    description: "Timeline reconstruction and root-cause analysis with evidence and human feedback.",
+    title: "AI Incident Investigation (v1)",
+    description: "Predecessor to the incident agent: single-pass RAG over a fixed evidence bundle, with human feedback.",
     longDescription: "An AI-powered incident investigation system that ingests artifacts (logs, alerts, deploy history), reconstructs timelines, and generates ranked root-cause hypotheses with evidence citations, confidence scoring, and strict refusal when evidence is weak.",
     icon: Search,
     tech: ["FastAPI", "ChromaDB", "OpenAI", "RAG", "Python 3.11"],
@@ -820,6 +820,19 @@ export default function ProjectsPage() {
           Production-grade AI systems demonstrating real engineering patterns
         </p>
       </div>
+
+      <Link
+        href="/projects/incident-agent"
+        className="mb-16 block rounded-lg border border-primary/40 bg-primary/5 p-6 hover:bg-primary/10 transition-colors"
+      >
+        <p className="text-xs font-semibold uppercase tracking-wider text-primary">Flagship</p>
+        <p className="mt-1 text-xl font-semibold">Agentic Incident Response Engine →</p>
+        <p className="mt-2 text-sm text-muted-foreground max-w-3xl">
+          Claude-based agent with real tool use, server-enforced human approval for rollbacks and restarts, a
+          14-scenario incident lab, failure injection and a measured evaluation harness. The projects below share its
+          gateway and testing practices; the v1 investigator is its predecessor.
+        </p>
+      </Link>
 
       <div className="space-y-16">
         {projects.map((project) => (

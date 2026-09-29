@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Cypress | Applied AI Engineering Portfolio",
+  title: "Cypress",
   description:
     "Cypress for user flows and interaction testing with a strong developer feedback loop.",
 };

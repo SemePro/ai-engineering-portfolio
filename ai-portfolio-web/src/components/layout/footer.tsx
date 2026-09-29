@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Github, Mail } from "lucide-react";
+import { ContactLinks } from "@/components/contact-links";
+import { PROFILE } from "@/lib/profile";
 import { TESTING_NAV_ITEMS } from "@/lib/testing-nav";
 
 export function Footer() {
@@ -12,21 +13,26 @@ export function Footer() {
             <div className="flex items-center space-x-3">
               <Image
                 src="/logo.png"
-                alt="Logo"
+                alt=""
                 width={48}
                 height={48}
                 className="rounded-md"
               />
-              <span className="font-semibold">Applied AI Engineering Portfolio</span>
+              <span className="font-semibold">{PROFILE.name}</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Building reliable, evidence-driven AI systems for real engineering workflows.
+              {PROFILE.title} · agentic systems, LLM platforms, AI evaluation.
             </p>
           </div>
 
           <div>
             <h4 className="font-semibold mb-4">Projects</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
+              <li>
+                <Link href="/projects/incident-agent" className="hover:text-primary transition-colors">
+                  Incident Response Engine
+                </Link>
+              </li>
               <li>
                 <Link href="/projects#rag" className="hover:text-primary transition-colors">
                   AI Knowledge Retrieval
@@ -44,7 +50,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/projects#incident" className="hover:text-primary transition-colors">
-                  AI Incident Investigation
+                  Incident Investigator v1
                 </Link>
               </li>
               <li>
@@ -114,29 +120,12 @@ export function Footer() {
 
           <div>
             <h4 className="font-semibold mb-4">Connect</h4>
-            <div className="flex space-x-4">
-              <a
-                href="https://github.com/SemePro/ai-engineering-portfolio"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-primary transition-colors"
-                aria-label="GitHub repository (opens in new tab)"
-              >
-                <Github className="h-5 w-5" aria-hidden />
-              </a>
-              <a
-                href="mailto:contact@example.com"
-                className="text-muted-foreground hover:text-primary transition-colors"
-                aria-label="Email contact@example.com"
-              >
-                <Mail className="h-5 w-5" aria-hidden />
-              </a>
-            </div>
+            <ContactLinks size="sm" />
           </div>
         </div>
 
         <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} Applied AI Engineering Portfolio</p>
+          <p>&copy; {new Date().getFullYear()} {PROFILE.name}</p>
         </div>
       </div>
     </footer>

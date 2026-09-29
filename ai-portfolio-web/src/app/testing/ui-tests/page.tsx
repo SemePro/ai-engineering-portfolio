@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "UI Testing | Applied AI Engineering Portfolio",
+  title: "UI Testing",
   description:
     "Visual and layout correctness: navigation, responsive rendering, and page integrity.",
 };

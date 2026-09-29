@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Playwright | Applied AI Engineering Portfolio",
+  title: "Playwright",
   description:
     "Playwright for reliable UI testing: rendering, deterministic checks, and cross-browser coverage.",
 };
