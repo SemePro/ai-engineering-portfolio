@@ -1,0 +1,79 @@
+{
+  "id": "inc-10-redis-maxmemory",
+  "title": "Frontend latency from session-cache evictions",
+  "difficulty": "hard",
+  "description": "A config standardisation lowers the session cache's maxmemory from 6GB to 800MB. Hit rate collapses, accounts-api falls back to the database, and the web-frontend alert fires two hops away. A frontend deploy 45 minutes earlier is the obvious wrong answer.",
+  "tags": ["cache", "config", "multi-hop"],
+  "alert": {
+    "id": "ALRT-4560",
+    "name": "WebFrontendLatency",
+    "service": "web-frontend",
+    "severity": "SEV2",
+    "fired_at": "2026-09-14T20:05:00Z",
+    "description": "web-frontend p95 page latency 2.1s (threshold 800ms)."
+  },
+  "topology": {
+    "web-frontend": {"tier": 1, "instances": 10, "version": "v8.2.0", "owner": "team-web", "depends_on": ["accounts-api", "session-cache"]},
+    "accounts-api": {"tier": 1, "instances": 8, "version": "v5.5.1", "owner": "team-accounts", "depends_on": ["session-cache", "accounts-db"]},
+    "session-cache": {"tier": 1, "instances": 3, "version": "redis-7.2 / cfg-rev-32", "owner": "team-platform"},
+    "accounts-db": {"tier": 1, "instances": 3, "version": "postgres-15.6", "owner": "team-data"}
+  },
+  "health": {
+    "web-frontend": {"status": "degraded", "checks": {"http": "passing", "upstream:accounts-api": "slow"}},
+    "accounts-api": {"status": "degraded", "checks": {"http": "passing", "dep:accounts-db": "high latency", "dep:session-cache": "ok"}},
+    "session-cache": {"status": "degraded", "checks": {"ping": "ok", "memory": "used_memory 800MB / maxmemory 800MB"}, "notes": "evicted_keys increasing rapidly"},
+    "accounts-db": {"status": "degraded", "checks": {"cpu": "88%", "connections": "410/800"}}
+  },
+  "metrics": {
+    "web-frontend": {"latency_p95_ms": {"unit": "ms", "baseline": 300, "noise": 0.05, "changes": [{"at": "19:50", "value": 2100, "ramp": 5}]}},
+    "accounts-api": {
+      "latency_p99_ms": {"unit": "ms", "baseline": 60, "noise": 0.05, "changes": [{"at": "19:49", "value": 900, "ramp": 4}]},
+      "cache_miss_fallbacks_per_sec": {"unit": "count", "baseline": 40, "noise": 0.05, "changes": [{"at": "19:48", "value": 3900, "ramp": 3}]}
+    },
+    "session-cache": {
+      "hit_rate_pct": {"unit": "%", "baseline": 96, "noise": 0.005, "changes": [{"at": "19:48", "value": 11, "ramp": 4}]},
+      "evicted_keys_per_sec": {"unit": "keys/s", "baseline": 0, "noise": 0.0, "changes": [{"at": "19:48", "value": 5200, "ramp": 2}]},
+      "used_memory_mb": {"unit": "MB", "baseline": 5400, "noise": 0.01, "changes": [{"at": "19:47", "value": 800, "ramp": 2}]}
+    },
+    "accounts-db": {"cpu_pct": {"unit": "%", "baseline": 30, "noise": 0.05, "changes": [{"at": "19:50", "value": 88, "ramp": 3}]}}
+  },
+  "logs": {
+    "session-cache": [
+      ["19:47:30", "INFO", "CONFIG SET maxmemory 800mb (applied by config-agent, revision cfg-rev-32)"],
+      ["19:48:02", "WARN", "maxmemory reached; evicting keys (policy allkeys-lru)"],
+      ["19:55:40", "WARN", "maxmemory reached; evicting keys (policy allkeys-lru)"],
+      ["20:03:11", "WARN", "maxmemory reached; evicting keys (policy allkeys-lru)"]
+    ],
+    "accounts-api": [
+      ["19:49:12", "WARN", "session lookup cache miss, falling back to accounts-db (sid=s_4410)"],
+      ["19:53:30", "WARN", "accounts-db query slow 740ms: SELECT * FROM sessions WHERE sid=$1"],
+      ["20:01:02", "WARN", "session lookup cache miss, falling back to accounts-db (sid=s_9981)"]
+    ],
+    "web-frontend": [["19:20:05", "INFO", "web-frontend v8.2.0 started"]]
+  },
+  "log_noise": {
+    "web-frontend": [["INFO", "GET / 200 {ms}ms"], ["INFO", "GET /account 200 {ms}ms"]],
+    "accounts-api": [["INFO", "GET /me 200 {n}ms"]]
+  },
+  "changes": [
+    {"id": "chg-9966", "kind": "config", "service": "session-cache", "at": "19:47", "author": "config-agent (PR #88 'standardise redis memory across envs')", "summary": "Set maxmemory: 800mb for all redis clusters", "version": "cfg-rev-32", "previous_version": "cfg-rev-31"},
+    {"id": "chg-9962", "kind": "deploy", "service": "web-frontend", "at": "19:20", "author": "ci-bot (PR #7011)", "summary": "Footer redesign", "version": "v8.2.0", "previous_version": "v8.1.4"}
+  ],
+  "past_incidents": [],
+  "distractors": ["web-frontend deploy v8.2.0 at 19:20", "accounts-db high CPU (a symptom, not the cause)"],
+  "ground_truth": {
+    "accepted_categories": ["cache_failure", "invalid_configuration"],
+    "accepted_services": ["session-cache"],
+    "summary": "cfg-rev-32 lowered session-cache maxmemory to 800MB; evictions drop hit rate from 96% to ~11% and accounts-api overloads accounts-db.",
+    "acceptable_actions": [
+      {"type": "rollback_deployment", "service": "session-cache", "target_version": "cfg-rev-31"},
+      {"type": "manual", "service": "session-cache"}
+    ],
+    "critical_evidence": ["get_service_metrics|get_service_health|get_service_logs", "get_deployment_history|get_service_logs"],
+    "expected_tool_path": ["get_service_health", "get_service_health", "get_service_health", "get_service_metrics", "get_deployment_history"],
+    "min_tool_calls": 4
+  },
+  "fault_variants": [
+    {"name": "health_timeout_transient", "faults": [{"tool": "get_service_health", "mode": "timeout", "persistent": false, "service": "session-cache"}], "expected": "recover", "rationale": "One retry succeeds."}
+  ]
+}

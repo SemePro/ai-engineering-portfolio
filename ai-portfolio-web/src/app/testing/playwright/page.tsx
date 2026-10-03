@@ -10,27 +10,27 @@ import { Badge } from "@/components/ui/badge";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Playwright | Applied AI Engineering Portfolio",
+  title: "Playwright",
   description:
-    "Playwright for cross-browser UI testing, tracing, and resilient selectors.",
+    "Playwright for reliable UI testing: rendering, deterministic checks, and cross-browser coverage.",
 };
 
 const strengths = [
   {
-    title: "Cross-browser support",
-    body: "Chromium, WebKit, and Firefox from one suite—useful for portfolio and demo consistency.",
+    title: "Reliability and stability",
+    body: "Deterministic checks with auto-waiting reduce flakiness around hydration and async content. Suites run consistently in CI and locally.",
+  },
+  {
+    title: "Cross-browser coverage",
+    body: "Chromium, WebKit, and Firefox from one suite. Validates rendering and behavior across browsers.",
   },
   {
     title: "Tracing",
-    body: "Time-travel debugging when a check fails in CI or local execution.",
-  },
-  {
-    title: "Auto-waiting",
-    body: "Reduces flaky UI tests around hydration and async content.",
+    body: "Time-travel debugging when a check fails. Artifacts support root-cause analysis without repro.",
   },
   {
     title: "Resilient selectors",
-    body: "Role- and text-based locators align with accessible, stable markup.",
+    body: "Role- and text-based locators align with accessible, stable markup. Fewer brittle DOM selectors.",
   },
 ];
 
@@ -47,7 +47,7 @@ const coverageRows: { area: string; status: "implemented" | "planned" }[] = [
   { area: "Demo routes (RAG, eval, gateway, …)", status: "implemented" },
   { area: "Projects & architecture docs", status: "implemented" },
   { area: "Testing section & subpages", status: "implemented" },
-  { area: "LinkedIn absence (contact, footer)", status: "implemented" },
+  { area: "Contact / footer consistency", status: "implemented" },
   { area: "Mobile + desktop (local)", status: "implemented" },
 ];
 
@@ -61,19 +61,17 @@ export default function PlaywrightPage() {
         </Badge>
         <h1 className="text-4xl font-bold tracking-tight mb-4">Playwright</h1>
         <p className="text-muted-foreground text-lg leading-relaxed mb-10">
-          Playwright is the primary choice for cross-browser UI automation on
-          this stack: fast, well-supported, and strong for local execution and
-          CI. It pairs well with Next.js App Router pages and server-rendered
-          content.
+          Playwright is used for reliability-focused UI testing: rendering
+          checks, deterministic assertions, and cross-browser coverage. It pairs
+          well with Next.js App Router and server-rendered content.
         </p>
 
         <section className="mb-12">
-          <h2 className="text-xl font-semibold mb-4">Why Playwright</h2>
+          <h2 className="text-xl font-semibold mb-4">Focus: reliability and rendering</h2>
           <p className="text-muted-foreground leading-relaxed mb-6">
-            For a portfolio with multiple demos and AI-backed flows, you need
-            tools that handle modern SPAs, give actionable failure artifacts, and
-            scale from a few smoke tests to broader regression. Playwright fits
-            that profile.
+            The suite is designed for stability and browser coverage. Tests
+            validate that pages render, navigation works, and key content is
+            present—without depending on non-deterministic behavior.
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
             {strengths.map((s) => (
@@ -90,7 +88,7 @@ export default function PlaywrightPage() {
         </section>
 
         <section className="mb-12">
-          <h2 className="text-xl font-semibold mb-4">Sample coverage areas</h2>
+          <h2 className="text-xl font-semibold mb-4">What is covered</h2>
           <ul className="list-disc list-inside space-y-2 text-muted-foreground">
             {coverageAreas.map((c) => (
               <li key={c}>{c}</li>
@@ -98,19 +96,28 @@ export default function PlaywrightPage() {
           </ul>
         </section>
 
+        <section className="mb-12">
+          <h2 className="text-xl font-semibold mb-2">What is not covered</h2>
+          <p className="text-sm text-muted-foreground mb-2">
+            Exhaustive visual regression, load testing at scale, or destructive
+            production testing. Tradeoffs: prioritizing reliability and speed
+            over full pixel-perfect or stress coverage.
+          </p>
+        </section>
+
         <Card className="overflow-hidden">
           <CardHeader className="border-b bg-muted/30">
             <CardTitle>Planned / implemented coverage</CardTitle>
             <CardDescription>
-              Status reflects Phase 1 documentation; implementation follows in
-              Phase 2.
+              Status reflects current coverage. Specs under{" "}
+              <code className="text-xs">tests/playwright/</code>.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[280px] text-sm">
                 <caption className="sr-only">
-                  Playwright planned and implemented coverage by area
+                  Playwright coverage by area
                 </caption>
                 <thead>
                   <tr className="border-b text-left text-muted-foreground">

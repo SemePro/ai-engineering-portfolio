@@ -1,0 +1,61 @@
+{
+  "id": "inc-13-report-deadlock",
+  "title": "Report generation stalled after long uptime",
+  "difficulty": "easy",
+  "description": "A known deadlock in the font cache after long uptime blocks every worker thread. No recent change. The documented mitigation is a restart - the one scenario where restart_service is the right proposal.",
+  "tags": ["process-hang", "restart", "known-issue"],
+  "alert": {
+    "id": "ALRT-4505",
+    "name": "ReportJobsStalled",
+    "service": "report-generator",
+    "severity": "SEV3",
+    "fired_at": "2026-09-14T09:05:00Z",
+    "description": "report-generator completed 0 reports in the last 40 minutes (normal ~30 per 10m)."
+  },
+  "topology": {
+    "report-generator": {"tier": 3, "instances": 2, "version": "v2.4.1", "owner": "team-analytics", "depends_on": ["reports-db", "object-store"]},
+    "reports-db": {"tier": 2, "instances": 2, "version": "postgres-15.6", "owner": "team-data"},
+    "object-store": {"tier": 1, "instances": 0, "version": "managed", "owner": "team-platform"}
+  },
+  "health": {
+    "report-generator": {"status": "unhealthy", "checks": {"liveness": "failing (no worker heartbeat for 38m)", "process": "running"}, "restarts_1h": 0, "uptime_hours": 212, "notes": "process alive at 0.3% CPU"}
+  },
+  "metrics": {
+    "report-generator": {
+      "reports_completed_per_10m": {"unit": "count", "baseline": 30, "noise": 0.1, "changes": [{"at": "08:25", "value": 0}]},
+      "cpu_pct": {"unit": "%", "baseline": 55, "noise": 0.05, "changes": [{"at": "08:25", "value": 0.3, "ramp": 1}]},
+      "threads_blocked": {"unit": "count", "baseline": 0, "noise": 0.0, "changes": [{"at": "08:25", "value": 16, "ramp": 2}]}
+    },
+    "reports-db": {"cpu_pct": {"unit": "%", "baseline": 15, "noise": 0.05}}
+  },
+  "logs": {
+    "report-generator": [
+      ["08:24:50", "INFO", "Rendering report rpt_55120 (template=monthly_finance)"],
+      ["08:35:00", "WARN", "watchdog: worker threads blocked > 10m (16/16)"],
+      ["08:45:00", "ERROR", "watchdog: thread dump shows 16 threads BLOCKED on lock <0x7f9a2c> held by thread 'pdf-font-cache-loader' (WAITING on <0x7f9b10>)"],
+      ["08:55:00", "ERROR", "watchdog: no report completed in 30m; heartbeat missed"]
+    ]
+  },
+  "log_noise": {
+    "report-generator": [["INFO", "GET /health 200 {n}ms"]]
+  },
+  "changes": [
+    {"id": "chg-9899", "kind": "infra", "service": "object-store", "at": "06:00", "author": "platform-automation", "summary": "Bucket lifecycle policy update for reports-archive"}
+  ],
+  "past_incidents": [
+    {"id": "INC-1102", "title": "report-generator deadlock in font cache after long uptime", "root_cause": "Lock ordering bug between font cache loader and renderer (RPT-311), appears after ~200h uptime", "resolution": "Restart service; permanent fix scheduled in v2.5", "tags": ["report-generator", "deadlock", "hang", "restart"]}
+  ],
+  "distractors": ["object-store lifecycle policy change at 06:00"],
+  "ground_truth": {
+    "accepted_categories": ["process_hang"],
+    "accepted_services": ["report-generator"],
+    "summary": "Known lock-ordering deadlock (RPT-311) after 212h uptime; all 16 worker threads are blocked.",
+    "acceptable_actions": [{"type": "restart_service", "service": "report-generator"}],
+    "critical_evidence": ["get_service_logs|get_recent_errors|get_service_metrics|get_service_health"],
+    "expected_tool_path": ["get_service_health", "get_recent_errors", "search_past_incidents"],
+    "min_tool_calls": 2
+  },
+  "fault_variants": [
+    {"name": "kb_http_500", "faults": [{"tool": "search_past_incidents", "mode": "http_500"}], "expected": "recover_or_abstain", "rationale": "The thread dump alone supports a hang diagnosis."}
+  ]
+}

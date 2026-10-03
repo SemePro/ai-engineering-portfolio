@@ -1,0 +1,68 @@
+{
+  "id": "inc-04-address-validation-timeout",
+  "title": "profile-service latency from third-party timeouts",
+  "difficulty": "easy",
+  "description": "An external address-validation vendor degrades; profile-service waits on 5s timeouts with retries. A feature flag rollout 25 minutes earlier is unrelated. No write tool can fix this.",
+  "tags": ["external-dependency", "timeout", "no-tool-remediation"],
+  "alert": {
+    "id": "ALRT-4471",
+    "name": "ProfileApiLatency",
+    "service": "profile-service",
+    "severity": "SEV3",
+    "fired_at": "2026-09-14T16:32:00Z",
+    "description": "profile-service p99 latency 4.9s (threshold 1s)."
+  },
+  "topology": {
+    "profile-service": {"tier": 2, "instances": 6, "version": "v2.8.0", "owner": "team-accounts", "depends_on": ["users-db", "address-validator-ext"]},
+    "users-db": {"tier": 1, "instances": 3, "version": "postgres-15.6", "owner": "team-data"},
+    "address-validator-ext": {"tier": 3, "instances": 0, "version": "vendor:AddrCheck v3 API", "owner": "vendor (AddrCheck)"}
+  },
+  "health": {
+    "profile-service": {"status": "degraded", "checks": {"http": "passing", "dep:users-db": "ok", "dep:address-validator-ext": "timeout"}},
+    "address-validator-ext": {"status": "degraded", "checks": {"synthetic_probe": "5000ms (timeout)"}, "notes": "vendor status page: 'Elevated latency in us-east' posted 16:21 UTC"}
+  },
+  "metrics": {
+    "profile-service": {
+      "latency_p99_ms": {"unit": "ms", "baseline": 210, "noise": 0.05, "changes": [{"at": "16:20", "value": 4900, "ramp": 5}]},
+      "error_rate_pct": {"unit": "%", "baseline": 0.1, "noise": 0.1, "changes": [{"at": "16:21", "value": 2.4, "ramp": 3}]},
+      "outbound_timeouts_per_min": {"unit": "count", "baseline": 0, "noise": 0.0, "changes": [{"at": "16:19", "value": 85, "ramp": 3}]},
+      "requests_per_sec": {"unit": "rps", "baseline": 140, "noise": 0.05}
+    },
+    "users-db": {"query_p99_ms": {"unit": "ms", "baseline": 8, "noise": 0.08}},
+    "address-validator-ext": {"upstream_latency_p99_ms": {"unit": "ms", "baseline": 320, "noise": 0.05, "changes": [{"at": "16:18", "value": 5000, "ramp": 3}]}}
+  },
+  "logs": {
+    "profile-service": [
+      ["15:55:02", "INFO", "Config reload: feature 'profile_photo_v2' enabled for 10% of users"],
+      ["16:19:40", "WARN", "AddrCheck call exceeded 5000ms timeout, retrying (attempt 2/3)"],
+      ["16:21:03", "ERROR", "PUT /profile/address 504 - upstream timeout (address-validator-ext) after 3 attempts"],
+      ["16:24:40", "WARN", "AddrCheck call exceeded 5000ms timeout, retrying (attempt 2/3)"],
+      ["16:26:12", "ERROR", "PUT /profile/address 504 - upstream timeout (address-validator-ext) after 3 attempts"],
+      ["16:29:55", "ERROR", "POST /signup/complete 504 - upstream timeout (address-validator-ext) after 3 attempts"],
+      ["16:33:30", "ERROR", "PUT /profile/address 504 - upstream timeout (address-validator-ext) after 3 attempts"]
+    ]
+  },
+  "log_noise": {
+    "profile-service": [["INFO", "GET /profile/{id} 200 {ms}ms"], ["INFO", "photo upload stored obj_{id}"]]
+  },
+  "changes": [
+    {"id": "chg-9940", "kind": "feature_flag", "service": "profile-service", "at": "15:55", "author": "pm-tools", "summary": "profile_photo_v2 rollout 0% -> 10%"},
+    {"id": "chg-9860", "kind": "deploy", "service": "profile-service", "at": "2026-09-12T10:00:00Z", "author": "ci-bot (PR #812)", "summary": "Accessibility fixes", "version": "v2.8.0", "previous_version": "v2.7.9"}
+  ],
+  "past_incidents": [
+    {"id": "INC-1204", "title": "AddrCheck vendor outage slows profile updates", "root_cause": "Vendor regional degradation", "resolution": "Enabled ADDRCHECK_DEGRADE_MODE (skip validation, queue for re-validation); contacted vendor", "tags": ["address-validator-ext", "vendor", "timeout", "profile-service"]}
+  ],
+  "distractors": ["profile_photo_v2 flag rollout at 15:55"],
+  "ground_truth": {
+    "accepted_categories": ["dependency_timeout", "downstream_outage"],
+    "accepted_services": ["address-validator-ext"],
+    "summary": "External vendor AddrCheck degraded at 16:18; profile-service blocks on 5s timeouts with retries.",
+    "acceptable_actions": [{"type": "manual", "service": "profile-service"}, {"type": "manual", "service": "address-validator-ext"}],
+    "critical_evidence": ["get_service_logs|get_recent_errors|get_service_health|get_service_metrics"],
+    "expected_tool_path": ["get_service_health", "get_recent_errors", "search_past_incidents"],
+    "min_tool_calls": 2
+  },
+  "fault_variants": [
+    {"name": "health_http_500", "faults": [{"tool": "get_service_health", "mode": "http_500"}], "expected": "recover", "rationale": "Logs and metrics identify the vendor timeouts."}
+  ]
+}
