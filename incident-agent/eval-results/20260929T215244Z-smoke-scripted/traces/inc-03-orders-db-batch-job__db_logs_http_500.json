@@ -1,0 +1,380 @@
+{
+ "investigation_id": "inv_6e223ecd1159",
+ "trace_id": "c248103f4fcaeb22891e8e76245bd5d5",
+ "scenario_id": "inc-03-orders-db-batch-job",
+ "variant": "db_logs_http_500",
+ "mode": "scripted-baseline",
+ "caching": true,
+ "findings": {
+  "status": "root_cause_identified",
+  "root_cause": {
+   "category": "bad_deployment",
+   "service": "orders-api",
+   "summary": "Most recent change on a suspect service: Add free-text order notes field"
+  },
+  "confidence": 0.6,
+  "evidence": [
+   {
+    "tool_call_id": "toolu_scripted_03",
+    "finding": "deploy chg-9901 at 2026-09-13T22:45:00Z"
+   }
+  ],
+  "ruled_out": [],
+  "missing_evidence": [],
+  "recommended_action": {
+   "type": "rollback_deployment",
+   "service": "orders-api",
+   "target_version": "v3.30.0",
+   "description": "Revert the most recent change",
+   "proposal_id": ""
+  },
+  "summary": "Playbook rule: most recent change on the alerting service or an unhealthy dependency."
+ },
+ "findings_error": null,
+ "hypotheses": [],
+ "proposals": [],
+ "tool_calls": [
+  {
+   "id": "toolu_scripted_01",
+   "name": "get_service_health",
+   "args": {
+    "service": "orders-api"
+   },
+   "is_error": false,
+   "error_class": null,
+   "retries": 0,
+   "redundant": false,
+   "latency_ms": 0
+  },
+  {
+   "id": "toolu_scripted_02",
+   "name": "get_recent_errors",
+   "args": {
+    "service": "orders-api",
+    "window_minutes": 60
+   },
+   "is_error": false,
+   "error_class": null,
+   "retries": 0,
+   "redundant": false,
+   "latency_ms": 0
+  },
+  {
+   "id": "toolu_scripted_03",
+   "name": "get_deployment_history",
+   "args": {
+    "service": "*",
+    "hours": 24
+   },
+   "is_error": false,
+   "error_class": null,
+   "retries": 0,
+   "redundant": false,
+   "latency_ms": 0
+  },
+  {
+   "id": "toolu_scripted_04",
+   "name": "get_service_metrics",
+   "args": {
+    "service": "orders-api",
+    "metric": "*",
+    "window_minutes": 60
+   },
+   "is_error": false,
+   "error_class": null,
+   "retries": 0,
+   "redundant": false,
+   "latency_ms": 8
+  }
+ ],
+ "metrics": {
+  "model": "scripted-playbook-v1",
+  "model_calls": 5,
+  "investigation_tool_calls": 4,
+  "ledger_updates": 0,
+  "redundant_tool_calls": 0,
+  "tool_errors": 0,
+  "tool_retries": 0,
+  "usage": {
+   "input_tokens": 0,
+   "output_tokens": 0,
+   "cache_read_input_tokens": 0,
+   "cache_creation_input_tokens": 0
+  },
+  "cost_usd": 0.0,
+  "total_latency_ms": 9,
+  "model_latency_ms": 0,
+  "tool_latency_ms": 8,
+  "time_to_recommendation_ms": 9,
+  "stop_reason": "end_turn"
+ },
+ "trace": [
+  {
+   "seq": 0,
+   "t_ms": 0,
+   "type": "alert",
+   "title": "Alert received: OrdersApiErrorRate",
+   "detail": {
+    "alert_id": "ALRT-4390",
+    "service": "orders-api",
+    "severity": "SEV2",
+    "fired_at": "2026-09-14T02:14:00+00:00",
+    "description": "orders-api 5xx rate 7.8% for 5 minutes (threshold 2%).",
+    "trace_id": "c248103f4fcaeb22891e8e76245bd5d5",
+    "investigation_id": "inv_6e223ecd1159",
+    "variant": "db_logs_http_500",
+    "faults": [
+     {
+      "tool": "get_service_logs",
+      "mode": "http_500",
+      "persistent": true,
+      "service": "orders-db",
+      "metric": ""
+     }
+    ]
+   }
+  },
+  {
+   "seq": 1,
+   "t_ms": 0,
+   "type": "model_call",
+   "title": "Model turn 1",
+   "detail": {
+    "stop_reason": "tool_use",
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0,
+    "request_id": "",
+    "served_model": "scripted-playbook-v1",
+    "gateway": {}
+   }
+  },
+  {
+   "seq": 2,
+   "t_ms": 0,
+   "type": "tool_call",
+   "title": "Service health checked",
+   "detail": {
+    "tool": "get_service_health",
+    "tool_use_id": "toolu_scripted_01",
+    "args": {
+     "service": "orders-api"
+    },
+    "kind": "read"
+   }
+  },
+  {
+   "seq": 3,
+   "t_ms": 0,
+   "type": "tool_result",
+   "title": "orders-api: degraded (http=passing, db=intermittent timeouts acquiring connections); unhealthy deps: orders-db degraded",
+   "detail": {
+    "tool": "get_service_health",
+    "tool_use_id": "toolu_scripted_01",
+    "retries": 0,
+    "redundant": false,
+    "preview": "{\"service\":\"orders-api\",\"observed_at\":\"2026-09-14T02:17:00Z\",\"version\":\"v3.30.1\",\"instances\":8,\"tier\":1,\"owner\":\"team-orders\",\"status\":\"degraded\",\"checks\":{\"http\":\"passing\",\"db\":\"intermittent timeouts acquiring connections\"},\"restarts_1h\":0,\"uptime_hours\":72.0,\"notes\":\"\",\"dependencies\":[{\"service\":\"orders-db\",\"status\":\"degraded\"}],\"dependents\":[\"web-frontend\"]}"
+   }
+  },
+  {
+   "seq": 4,
+   "t_ms": 0,
+   "type": "model_call",
+   "title": "Model turn 2",
+   "detail": {
+    "stop_reason": "tool_use",
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0,
+    "request_id": "",
+    "served_model": "scripted-playbook-v1",
+    "gateway": {}
+   }
+  },
+  {
+   "seq": 5,
+   "t_ms": 0,
+   "type": "tool_call",
+   "title": "Error groups requested",
+   "detail": {
+    "tool": "get_recent_errors",
+    "tool_use_id": "toolu_scripted_02",
+    "args": {
+     "service": "orders-api",
+     "window_minutes": 60
+    },
+    "kind": "read"
+   }
+  },
+  {
+   "seq": 6,
+   "t_ms": 0,
+   "type": "tool_result",
+   "title": "3 error signature(s); top \u00d73 since 02:06: POST /orders 500 - FATAL: sorry, too many clients already (SQLSTATE 53300)",
+   "detail": {
+    "tool": "get_recent_errors",
+    "tool_use_id": "toolu_scripted_02",
+    "retries": 0,
+    "redundant": false,
+    "preview": "{\"service\":\"orders-api\",\"window_minutes\":60,\"error_groups\":[{\"signature\":\"POST /orders N - FATAL: sorry, too many clients already (SQLSTATE N)\",\"count\":3,\"first_seen\":\"2026-09-14T02:06:40Z\",\"last_seen\":\"2026-09-14T02:12:59Z\",\"sample\":\"POST /orders 500 - FATAL: sorry, too many clients already (SQLSTATE 53300)\"},{\"signature\":\"GET /orders/ord_N N - FATAL: sorry, too many clients already (SQLSTATE N)\",\"count\":1,\"first_seen\":\"2026-09-14T02:08:02Z\",\"last_seen\":\"2026-09-14T02:08:02Z\",\"sample\":\"GET /orders/ord_5510 500 - FATAL: sorry, too many clients already (SQLSTATE 53300)\"},{\"signature\":\"PATCH /orders/ord_N N - FATAL: sorry, too many clients already (SQLSTATE N)\",\"count\":1,\"first_seen\":\"2026-09-14T02:15:30Z\",\"last_seen\":\"2026-09-14T02:15:30Z\",\"sample\":\"PATCH /orders/ord_5561 500 - FATAL: sorry, too many clients already (SQLSTATE 53300)\"}]}"
+   }
+  },
+  {
+   "seq": 7,
+   "t_ms": 0,
+   "type": "model_call",
+   "title": "Model turn 3",
+   "detail": {
+    "stop_reason": "tool_use",
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0,
+    "request_id": "",
+    "served_model": "scripted-playbook-v1",
+    "gateway": {}
+   }
+  },
+  {
+   "seq": 8,
+   "t_ms": 0,
+   "type": "tool_call",
+   "title": "Change history queried",
+   "detail": {
+    "tool": "get_deployment_history",
+    "tool_use_id": "toolu_scripted_03",
+    "args": {
+     "service": "*",
+     "hours": 24
+    },
+    "kind": "read"
+   }
+  },
+  {
+   "seq": 9,
+   "t_ms": 1,
+   "type": "tool_result",
+   "title": "2 change(s); latest 22:45 deploy orders-api v3.30.0 \u2192 v3.30.1: Add free-text order notes field",
+   "detail": {
+    "tool": "get_deployment_history",
+    "tool_use_id": "toolu_scripted_03",
+    "retries": 0,
+    "redundant": false,
+    "preview": "{\"service\":\"*\",\"hours\":24,\"changes\":[{\"id\":\"chg-9901\",\"kind\":\"deploy\",\"service\":\"orders-api\",\"at\":\"2026-09-13T22:45:00Z\",\"author\":\"ci-bot (PR #3302)\",\"summary\":\"Add free-text order notes field\",\"version\":\"v3.30.1\",\"previous_version\":\"v3.30.0\"},{\"id\":\"chg-9888\",\"kind\":\"config\",\"service\":\"reconciliation-worker\",\"at\":\"2026-09-13T17:30:00Z\",\"author\":\"a.novak\",\"summary\":\"Raise nightly-reconcile parallelism 8 -> 64 to shorten runtime\",\"version\":\"cfg-rev-42\",\"previous_version\":\"cfg-rev-41\"}]}"
+   }
+  },
+  {
+   "seq": 10,
+   "t_ms": 1,
+   "type": "model_call",
+   "title": "Model turn 4",
+   "detail": {
+    "stop_reason": "tool_use",
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0,
+    "request_id": "",
+    "served_model": "scripted-playbook-v1",
+    "gateway": {}
+   }
+  },
+  {
+   "seq": 11,
+   "t_ms": 1,
+   "type": "tool_call",
+   "title": "Metrics queried",
+   "detail": {
+    "tool": "get_service_metrics",
+    "tool_use_id": "toolu_scripted_04",
+    "args": {
+     "service": "orders-api",
+     "metric": "*",
+     "window_minutes": 60
+    },
+    "kind": "read"
+   }
+  },
+  {
+   "seq": 12,
+   "t_ms": 9,
+   "type": "tool_result",
+   "title": "4 metrics for orders-api; shifted vs prior: error_rate_pct 0.1 \u2192 8.13, latency_p99_ms 150.32 \u2192 2471.95",
+   "detail": {
+    "tool": "get_service_metrics",
+    "tool_use_id": "toolu_scripted_04",
+    "retries": 0,
+    "redundant": false,
+    "preview": "{\"service\":\"orders-api\",\"window_minutes\":60,\"metrics\":{\"db_connections_held\":{\"unit\":\"count\",\"current\":109.01,\"window_max\":128.0,\"prior_mean\":119.65},\"error_rate_pct\":{\"unit\":\"%\",\"current\":8.13,\"window_max\":8.17,\"prior_mean\":0.1},\"latency_p99_ms\":{\"unit\":\"ms\",\"current\":2471.95,\"window_max\":2648.57,\"prior_mean\":150.32},\"requests_per_sec\":{\"unit\":\"rps\",\"current\":314.44,\"window_max\":340.84,\"prior_mean\":300.61}}}"
+   }
+  },
+  {
+   "seq": 13,
+   "t_ms": 9,
+   "type": "model_call",
+   "title": "Model turn 5",
+   "detail": {
+    "stop_reason": "end_turn",
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0,
+    "request_id": "",
+    "served_model": "scripted-playbook-v1",
+    "gateway": {}
+   }
+  },
+  {
+   "seq": 14,
+   "t_ms": 9,
+   "type": "guardrail",
+   "title": "Recommended action has no matching proposal; nothing can be approved",
+   "detail": {
+    "proposal_id": ""
+   }
+  },
+  {
+   "seq": 15,
+   "t_ms": 9,
+   "type": "findings",
+   "title": "Root cause: bad_deployment in orders-api (60% confidence)",
+   "detail": {
+    "status": "root_cause_identified",
+    "root_cause": {
+     "category": "bad_deployment",
+     "service": "orders-api",
+     "summary": "Most recent change on a suspect service: Add free-text order notes field"
+    },
+    "confidence": 0.6,
+    "evidence": [
+     {
+      "tool_call_id": "toolu_scripted_03",
+      "finding": "deploy chg-9901 at 2026-09-13T22:45:00Z"
+     }
+    ],
+    "ruled_out": [],
+    "missing_evidence": [],
+    "recommended_action": {
+     "type": "rollback_deployment",
+     "service": "orders-api",
+     "target_version": "v3.30.0",
+     "description": "Revert the most recent change",
+     "proposal_id": ""
+    },
+    "summary": "Playbook rule: most recent change on the alerting service or an unhealthy dependency."
+   }
+  }
+ ]
+}

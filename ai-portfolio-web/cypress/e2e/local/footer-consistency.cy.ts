@@ -5,9 +5,9 @@ describe("Footer consistency (local)", () => {
     it(`footer has Testing + Projects on ${path}`, () => {
       cy.visit(path);
       cy.get("footer").within(() => {
-        cy.contains("h4", "Testing").should("exist");
-        cy.contains("h4", "Projects").should("exist");
-        cy.get('a[href*="linkedin"]').should("not.exist");
+        cy.contains("h2", "Testing").should("exist");
+        cy.contains("h2", "Projects").should("exist");
+        cy.get('a[href*="example.com"], a[href="#"]').should("not.exist");
       });
     });
   });
