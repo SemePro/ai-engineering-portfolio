@@ -60,7 +60,7 @@ class InjectionDetector:
     
     # System override attempt patterns
     SYSTEM_OVERRIDE_PATTERNS = [
-        r'ignore\s+(previous|all|above)\s+(instructions?|prompts?)',
+        r'ignore\s+(all\s+)?(previous|prior|above|earlier)?\s*(instructions?|prompts?)',
         r'disregard\s+(previous|all|above)',
         r'forget\s+(everything|all|previous)',
         r'you\s+are\s+now\s+(?:a|an)',
@@ -72,7 +72,7 @@ class InjectionDetector:
     
     # Data exfiltration patterns
     EXFILTRATION_PATTERNS = [
-        r'reveal\s+(your|the|system)\s+(prompt|instructions?)',
+        r'reveal\s+(your|the)?\s*(system\s+)?(prompt|instructions?)',
         r'show\s+me\s+(your|the)\s+(system|prompt|instructions?)',
         r'what\s+(are|is)\s+(your|the)\s+(system|instructions?|prompt)',
         r'print\s+(your|the|all)\s+(instructions?|prompt)',
@@ -82,7 +82,7 @@ class InjectionDetector:
     
     # Jailbreak patterns
     JAILBREAK_PATTERNS = [
-        r'DAN\s+mode',
+        r'\bdan\s+mode',  # matched against lowercased text
         r'developer\s+mode',
         r'jailbreak',
         r'bypass\s+(filters?|restrictions?|safety)',

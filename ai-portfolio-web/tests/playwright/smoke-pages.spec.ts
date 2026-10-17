@@ -7,12 +7,12 @@ test.describe("Core pages @prod-safe", () => {
       page
         .locator("main")
         .getByRole("heading", {
-          name: /Applied AI Engineering Portfolio/i,
+          name: /Senior AI Engineer building reliable agentic/i,
           level: 1,
         })
     ).toBeVisible();
     await expect(
-      page.getByRole("link", { name: /View Live Demos/i })
+      page.getByRole("link", { name: /See the flagship project/i })
     ).toBeVisible();
   });
 
@@ -38,6 +38,6 @@ test.describe("Core pages @prod-safe", () => {
     await expect(
       page.getByRole("heading", { name: /^Architecture$/i })
     ).toBeVisible();
-    await expect(page.getByText(/Secure AI Gateway/i).first()).toBeVisible();
+    await expect(page.getByText(/Secure AI Gateway/i).filter({ visible: true }).first()).toBeVisible();
   });
 });

@@ -10,27 +10,27 @@ import { Badge } from "@/components/ui/badge";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Cypress | Applied AI Engineering Portfolio",
+  title: "Cypress",
   description:
-    "Cypress for E2E workflow validation, API interception, and developer-friendly debugging.",
+    "Cypress for user flows and interaction testing with a strong developer feedback loop.",
 };
 
 const strengths = [
   {
-    title: "E2E workflow validation",
-    body: "Full user journeys through the SPA with readable specs and time-travel UI.",
+    title: "User flows and interaction",
+    body: "Full user journeys through the app with readable specs. Validates that key flows work end-to-end.",
+  },
+  {
+    title: "Developer feedback loop",
+    body: "Interactive runner during development; screenshots, video, and command log make local iteration fast. Headless runs in CI.",
   },
   {
     title: "API interception",
-    body: "Stub or assert on network calls—useful for gateway responses and error simulations.",
+    body: "Stub or assert on network calls—useful for gateway responses and error simulations. Planned extension for more coverage.",
   },
   {
-    title: "Debugging experience",
-    body: "Screenshots, video, and command log make local iteration fast.",
-  },
-  {
-    title: "Fast feedback loop",
-    body: "Interactive runner during development; headless runs in CI.",
+    title: "Time-travel debugging",
+    body: "Inspect state at each step when a spec fails. Complements Playwright tracing with a different workflow.",
   },
 ];
 
@@ -45,7 +45,7 @@ const coverageRows: { area: string; status: "implemented" | "planned" }[] = [
   { area: "Journeys: home → demos → projects", status: "implemented" },
   { area: "Testing hub + return home", status: "implemented" },
   { area: "Footer consistency (multi-page)", status: "implemented" },
-  { area: "Contact + LinkedIn regression", status: "implemented" },
+  { area: "Contact / footer consistency", status: "implemented" },
   { area: "Prod smoke (read-only)", status: "implemented" },
   { area: "API intercept / error UI (planned extension)", status: "planned" },
 ];
@@ -60,17 +60,19 @@ export default function CypressPage() {
         </Badge>
         <h1 className="text-4xl font-bold tracking-tight mb-4">Cypress</h1>
         <p className="text-muted-foreground text-lg leading-relaxed mb-10">
-          Cypress complements Playwright for scenarios where its developer
-          experience and network stubbing shine—especially journey-style tests
-          and rapid local debugging on the same codebase.
+          Cypress is focused on user flows and interaction testing. Its
+          developer experience and interactive runner support a fast feedback
+          loop during development; headless runs feed into CI and production
+          smoke.
         </p>
 
         <section className="mb-12">
-          <h2 className="text-xl font-semibold mb-4">Why Cypress</h2>
+          <h2 className="text-xl font-semibold mb-4">Focus: user flows and feedback</h2>
           <p className="text-muted-foreground leading-relaxed mb-6">
-            Not every team runs both Cypress and Playwright; this portfolio
-            documents both to show breadth. Cypress is strong for interactive
-            demo pages and for validating UI against controlled API responses.
+            Cypress is used for journey-style specs and validating that
+            interactions work as expected. The focus is on readable tests and
+            quick iteration when debugging, not on replacing Playwright’s
+            cross-browser or tracing strengths.
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
             {strengths.map((s) => (
@@ -87,12 +89,22 @@ export default function CypressPage() {
         </section>
 
         <section className="mb-12">
-          <h2 className="text-xl font-semibold mb-4">Sample coverage areas</h2>
+          <h2 className="text-xl font-semibold mb-4">What is covered</h2>
           <ul className="list-disc list-inside space-y-2 text-muted-foreground">
             {coverageAreas.map((c) => (
               <li key={c}>{c}</li>
             ))}
           </ul>
+        </section>
+
+        <section className="mb-12">
+          <h2 className="text-xl font-semibold mb-2">Tradeoffs</h2>
+          <p className="text-sm text-muted-foreground">
+            Running both Cypress and Playwright adds maintenance; the tradeoff is
+            breadth of tooling and different strengths (flows vs.
+            cross-browser stability). Production smoke uses a minimal subset
+            for speed.
+          </p>
         </section>
 
         <Card className="overflow-hidden border-primary/20">

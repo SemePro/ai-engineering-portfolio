@@ -9,6 +9,7 @@ import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 
 const navigation = [
+  { name: "Incident Agent", href: "/projects/incident-agent" },
   { name: "Projects", href: "/projects" },
   { name: "Demos", href: "/demo" },
   { name: "Architecture", href: "/architecture" },
@@ -17,7 +18,14 @@ const navigation = [
   { name: "Contact", href: "/contact" },
 ];
 
-const GITHUB_URL = "https://github.com/SemePro/ai-engineering-portfolio";
+import { PROFILE } from "@/lib/profile";
+
+const GITHUB_URL = PROFILE.github;
+
+function isActive(pathname: string, href: string) {
+  if (href === "/projects" && pathname.startsWith("/projects/incident-agent")) return false;
+  return pathname === href || pathname.startsWith(href + "/");
+}
 
 export function Header() {
   const pathname = usePathname();
@@ -30,16 +38,17 @@ export function Header() {
         className="container mx-auto flex h-16 items-center justify-between px-4"
         aria-label="Main"
       >
-        <Link href="/" className="flex items-center space-x-3">
+        <Link href="/" className="flex items-center space-x-3" aria-label="Home">
           <Image
             src="/logo.png"
-            alt="Logo"
+            alt=""
             width={48}
             height={48}
             className="rounded-md"
           />
           <span className="hidden font-semibold sm:inline-block">
-            Applied AI Engineering
+            {PROFILE.name}
+            <span className="text-muted-foreground font-normal"> · AI Engineering</span>
           </span>
         </Link>
 
@@ -50,7 +59,7 @@ export function Header() {
               href={item.href}
               className={cn(
                 "text-sm font-medium transition-colors hover:text-primary",
-                pathname === item.href || pathname.startsWith(item.href + "/")
+                isActive(pathname, item.href)
                   ? "text-primary"
                   : "text-muted-foreground"
               )}
@@ -101,8 +110,7 @@ export function Header() {
                 href={item.href}
                 className={cn(
                   "block py-2 text-sm font-medium transition-colors",
-                  pathname === item.href ||
-                    pathname.startsWith(item.href + "/")
+                  isActive(pathname, item.href)
                     ? "text-primary"
                     : "text-muted-foreground"
                 )}

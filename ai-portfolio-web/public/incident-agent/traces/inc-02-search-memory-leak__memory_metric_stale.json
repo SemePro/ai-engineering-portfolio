@@ -1,0 +1,380 @@
+{
+ "investigation_id": "inv_0242a1e6df90",
+ "trace_id": "2fa0201b6eb694f22342ff398a6b58c1",
+ "scenario_id": "inc-02-search-memory-leak",
+ "variant": "memory_metric_stale",
+ "mode": "scripted-baseline",
+ "caching": true,
+ "findings": {
+  "status": "root_cause_identified",
+  "root_cause": {
+   "category": "bad_deployment",
+   "service": "search-service",
+   "summary": "Most recent change on a suspect service: Add per-tenant search result cache to reduce index load"
+  },
+  "confidence": 0.6,
+  "evidence": [
+   {
+    "tool_call_id": "toolu_scripted_03",
+    "finding": "deploy chg-9931 at 2026-09-14T11:02:00Z"
+   }
+  ],
+  "ruled_out": [],
+  "missing_evidence": [],
+  "recommended_action": {
+   "type": "rollback_deployment",
+   "service": "search-service",
+   "target_version": "v5.2.4",
+   "description": "Revert the most recent change",
+   "proposal_id": ""
+  },
+  "summary": "Playbook rule: most recent change on the alerting service or an unhealthy dependency."
+ },
+ "findings_error": null,
+ "hypotheses": [],
+ "proposals": [],
+ "tool_calls": [
+  {
+   "id": "toolu_scripted_01",
+   "name": "get_service_health",
+   "args": {
+    "service": "search-service"
+   },
+   "is_error": false,
+   "error_class": null,
+   "retries": 0,
+   "redundant": false,
+   "latency_ms": 0
+  },
+  {
+   "id": "toolu_scripted_02",
+   "name": "get_recent_errors",
+   "args": {
+    "service": "search-service",
+    "window_minutes": 60
+   },
+   "is_error": false,
+   "error_class": null,
+   "retries": 0,
+   "redundant": false,
+   "latency_ms": 0
+  },
+  {
+   "id": "toolu_scripted_03",
+   "name": "get_deployment_history",
+   "args": {
+    "service": "*",
+    "hours": 24
+   },
+   "is_error": false,
+   "error_class": null,
+   "retries": 0,
+   "redundant": false,
+   "latency_ms": 0
+  },
+  {
+   "id": "toolu_scripted_04",
+   "name": "get_service_metrics",
+   "args": {
+    "service": "search-service",
+    "metric": "*",
+    "window_minutes": 60
+   },
+   "is_error": false,
+   "error_class": null,
+   "retries": 0,
+   "redundant": false,
+   "latency_ms": 2
+  }
+ ],
+ "metrics": {
+  "model": "scripted-playbook-v1",
+  "model_calls": 5,
+  "investigation_tool_calls": 4,
+  "ledger_updates": 0,
+  "redundant_tool_calls": 0,
+  "tool_errors": 0,
+  "tool_retries": 0,
+  "usage": {
+   "input_tokens": 0,
+   "output_tokens": 0,
+   "cache_read_input_tokens": 0,
+   "cache_creation_input_tokens": 0
+  },
+  "cost_usd": 0.0,
+  "total_latency_ms": 3,
+  "model_latency_ms": 0,
+  "tool_latency_ms": 2,
+  "time_to_recommendation_ms": 3,
+  "stop_reason": "end_turn"
+ },
+ "trace": [
+  {
+   "seq": 0,
+   "t_ms": 0,
+   "type": "alert",
+   "title": "Alert received: SearchPodsRestarting",
+   "detail": {
+    "alert_id": "ALRT-4520",
+    "service": "search-service",
+    "severity": "SEV2",
+    "fired_at": "2026-09-14T13:20:00+00:00",
+    "description": "search-service: 11 container restarts in the last 60 minutes.",
+    "trace_id": "2fa0201b6eb694f22342ff398a6b58c1",
+    "investigation_id": "inv_0242a1e6df90",
+    "variant": "memory_metric_stale",
+    "faults": [
+     {
+      "tool": "get_service_metrics",
+      "mode": "stale",
+      "persistent": true,
+      "service": "search-service",
+      "metric": "memory_rss_mb"
+     }
+    ]
+   }
+  },
+  {
+   "seq": 1,
+   "t_ms": 0,
+   "type": "model_call",
+   "title": "Model turn 1",
+   "detail": {
+    "stop_reason": "tool_use",
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0,
+    "request_id": "",
+    "served_model": "scripted-playbook-v1",
+    "gateway": {}
+   }
+  },
+  {
+   "seq": 2,
+   "t_ms": 0,
+   "type": "tool_call",
+   "title": "Service health checked",
+   "detail": {
+    "tool": "get_service_health",
+    "tool_use_id": "toolu_scripted_01",
+    "args": {
+     "service": "search-service"
+    },
+    "kind": "read"
+   }
+  },
+  {
+   "seq": 3,
+   "t_ms": 0,
+   "type": "tool_result",
+   "title": "search-service: degraded (liveness=flapping, readiness=4/6 ready)",
+   "detail": {
+    "tool": "get_service_health",
+    "tool_use_id": "toolu_scripted_01",
+    "retries": 0,
+    "redundant": false,
+    "preview": "{\"service\":\"search-service\",\"observed_at\":\"2026-09-14T13:23:00Z\",\"version\":\"v5.3.0\",\"instances\":6,\"tier\":2,\"owner\":\"team-discovery\",\"status\":\"degraded\",\"checks\":{\"liveness\":\"flapping\",\"readiness\":\"4/6 ready\"},\"restarts_1h\":11,\"uptime_hours\":0.3,\"notes\":\"last termination reason: OOMKilled (exit 137), memory limit 2048Mi\",\"dependencies\":[{\"service\":\"search-index\",\"status\":\"healthy\"}],\"dependents\":[\"web-frontend\"]}"
+   }
+  },
+  {
+   "seq": 4,
+   "t_ms": 0,
+   "type": "model_call",
+   "title": "Model turn 2",
+   "detail": {
+    "stop_reason": "tool_use",
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0,
+    "request_id": "",
+    "served_model": "scripted-playbook-v1",
+    "gateway": {}
+   }
+  },
+  {
+   "seq": 5,
+   "t_ms": 0,
+   "type": "tool_call",
+   "title": "Error groups requested",
+   "detail": {
+    "tool": "get_recent_errors",
+    "tool_use_id": "toolu_scripted_02",
+    "args": {
+     "service": "search-service",
+     "window_minutes": 60
+    },
+    "kind": "read"
+   }
+  },
+  {
+   "seq": 6,
+   "t_ms": 0,
+   "type": "tool_result",
+   "title": "1 error signature(s); top \u00d72 since 12:51: java.lang.OutOfMemoryError: Java heap space at com.acme.search.cache.TenantResultCache.put(TenantResultCache.j",
+   "detail": {
+    "tool": "get_recent_errors",
+    "tool_use_id": "toolu_scripted_02",
+    "retries": 0,
+    "redundant": false,
+    "preview": "{\"service\":\"search-service\",\"window_minutes\":60,\"error_groups\":[{\"signature\":\"java.lang.OutOfMemoryError: Java heap space at com.acme.search.cache.TenantResultCache.put(TenantResultCache.java:N)\",\"count\":2,\"first_seen\":\"2026-09-14T12:51:30Z\",\"last_seen\":\"2026-09-14T13:18:02Z\",\"sample\":\"java.lang.OutOfMemoryError: Java heap space at com.acme.search.cache.TenantResultCache.put(TenantResultCache.java:88)\"}]}"
+   }
+  },
+  {
+   "seq": 7,
+   "t_ms": 0,
+   "type": "model_call",
+   "title": "Model turn 3",
+   "detail": {
+    "stop_reason": "tool_use",
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0,
+    "request_id": "",
+    "served_model": "scripted-playbook-v1",
+    "gateway": {}
+   }
+  },
+  {
+   "seq": 8,
+   "t_ms": 0,
+   "type": "tool_call",
+   "title": "Change history queried",
+   "detail": {
+    "tool": "get_deployment_history",
+    "tool_use_id": "toolu_scripted_03",
+    "args": {
+     "service": "*",
+     "hours": 24
+    },
+    "kind": "read"
+   }
+  },
+  {
+   "seq": 9,
+   "t_ms": 0,
+   "type": "tool_result",
+   "title": "2 change(s); latest 11:02 deploy search-service v5.2.4 \u2192 v5.3.0: Add per-tenant search result cache to reduce index load",
+   "detail": {
+    "tool": "get_deployment_history",
+    "tool_use_id": "toolu_scripted_03",
+    "retries": 0,
+    "redundant": false,
+    "preview": "{\"service\":\"*\",\"hours\":24,\"changes\":[{\"id\":\"chg-9931\",\"kind\":\"deploy\",\"service\":\"search-service\",\"at\":\"2026-09-14T11:02:00Z\",\"author\":\"ci-bot (PR #2210)\",\"summary\":\"Add per-tenant search result cache to reduce index load\",\"version\":\"v5.3.0\",\"previous_version\":\"v5.2.4\"},{\"id\":\"chg-9928\",\"kind\":\"infra\",\"service\":\"search-index\",\"at\":\"2026-09-14T10:15:00Z\",\"author\":\"platform-automation\",\"summary\":\"Elasticsearch rolling restart for 8.13.2 patch upgrade\",\"version\":\"elasticsearch-8.13.2\",\"previous_version\":\"elasticsearch-8.13.1\"}]}"
+   }
+  },
+  {
+   "seq": 10,
+   "t_ms": 0,
+   "type": "model_call",
+   "title": "Model turn 4",
+   "detail": {
+    "stop_reason": "tool_use",
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0,
+    "request_id": "",
+    "served_model": "scripted-playbook-v1",
+    "gateway": {}
+   }
+  },
+  {
+   "seq": 11,
+   "t_ms": 0,
+   "type": "tool_call",
+   "title": "Metrics queried",
+   "detail": {
+    "tool": "get_service_metrics",
+    "tool_use_id": "toolu_scripted_04",
+    "args": {
+     "service": "search-service",
+     "metric": "*",
+     "window_minutes": 60
+    },
+    "kind": "read"
+   }
+  },
+  {
+   "seq": 12,
+   "t_ms": 3,
+   "type": "tool_result",
+   "title": "4 metrics for search-service; shifted vs prior: gc_pause_p99_ms 124.57 \u2192 485.11, latency_p99_ms 120.93 \u2192 248.53",
+   "detail": {
+    "tool": "get_service_metrics",
+    "tool_use_id": "toolu_scripted_04",
+    "retries": 0,
+    "redundant": false,
+    "preview": "{\"service\":\"search-service\",\"window_minutes\":60,\"metrics\":{\"gc_pause_p99_ms\":{\"unit\":\"ms\",\"current\":485.11,\"window_max\":588.74,\"prior_mean\":124.57},\"latency_p99_ms\":{\"unit\":\"ms\",\"current\":248.53,\"window_max\":306.7,\"prior_mean\":120.93},\"memory_rss_mb\":{\"unit\":\"MB\",\"current\":1139.89,\"window_max\":1139.89,\"prior_mean\":1139.89},\"requests_per_sec\":{\"unit\":\"rps\",\"current\":919.21,\"window_max\":1031.73,\"prior_mean\":907.13}}}"
+   }
+  },
+  {
+   "seq": 13,
+   "t_ms": 3,
+   "type": "model_call",
+   "title": "Model turn 5",
+   "detail": {
+    "stop_reason": "end_turn",
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0,
+    "request_id": "",
+    "served_model": "scripted-playbook-v1",
+    "gateway": {}
+   }
+  },
+  {
+   "seq": 14,
+   "t_ms": 3,
+   "type": "guardrail",
+   "title": "Recommended action has no matching proposal; nothing can be approved",
+   "detail": {
+    "proposal_id": ""
+   }
+  },
+  {
+   "seq": 15,
+   "t_ms": 3,
+   "type": "findings",
+   "title": "Root cause: bad_deployment in search-service (60% confidence)",
+   "detail": {
+    "status": "root_cause_identified",
+    "root_cause": {
+     "category": "bad_deployment",
+     "service": "search-service",
+     "summary": "Most recent change on a suspect service: Add per-tenant search result cache to reduce index load"
+    },
+    "confidence": 0.6,
+    "evidence": [
+     {
+      "tool_call_id": "toolu_scripted_03",
+      "finding": "deploy chg-9931 at 2026-09-14T11:02:00Z"
+     }
+    ],
+    "ruled_out": [],
+    "missing_evidence": [],
+    "recommended_action": {
+     "type": "rollback_deployment",
+     "service": "search-service",
+     "target_version": "v5.2.4",
+     "description": "Revert the most recent change",
+     "proposal_id": ""
+    },
+    "summary": "Playbook rule: most recent change on the alerting service or an unhealthy dependency."
+   }
+  }
+ ]
+}

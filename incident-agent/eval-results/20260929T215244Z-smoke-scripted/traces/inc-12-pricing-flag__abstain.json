@@ -1,0 +1,357 @@
+{
+ "investigation_id": "inv_8859f22770cd",
+ "trace_id": "3f361714f4a3538999ae8a4dc6e984a4",
+ "scenario_id": "inc-12-pricing-flag",
+ "variant": "abstain",
+ "mode": "scripted-baseline",
+ "caching": true,
+ "findings": {
+  "status": "insufficient_evidence",
+  "root_cause": {
+   "category": "unknown",
+   "service": "",
+   "summary": ""
+  },
+  "confidence": 0.0,
+  "evidence": [],
+  "ruled_out": [],
+  "missing_evidence": [
+   "no recent change on the alerting service or unhealthy dependencies"
+  ],
+  "recommended_action": {
+   "type": "none",
+   "service": "",
+   "target_version": "",
+   "description": "",
+   "proposal_id": ""
+  },
+  "summary": "Playbook found no recent change to blame."
+ },
+ "findings_error": null,
+ "hypotheses": [],
+ "proposals": [],
+ "tool_calls": [
+  {
+   "id": "toolu_scripted_01",
+   "name": "get_service_health",
+   "args": {
+    "service": "pricing-service"
+   },
+   "is_error": false,
+   "error_class": null,
+   "retries": 0,
+   "redundant": false,
+   "latency_ms": 0
+  },
+  {
+   "id": "toolu_scripted_02",
+   "name": "get_recent_errors",
+   "args": {
+    "service": "pricing-service",
+    "window_minutes": 60
+   },
+   "is_error": false,
+   "error_class": null,
+   "retries": 0,
+   "redundant": false,
+   "latency_ms": 0
+  },
+  {
+   "id": "toolu_scripted_03",
+   "name": "get_deployment_history",
+   "args": {
+    "service": "*",
+    "hours": 24
+   },
+   "is_error": false,
+   "error_class": null,
+   "retries": 0,
+   "redundant": false,
+   "latency_ms": 0
+  },
+  {
+   "id": "toolu_scripted_04",
+   "name": "get_service_metrics",
+   "args": {
+    "service": "pricing-service",
+    "metric": "*",
+    "window_minutes": 60
+   },
+   "is_error": false,
+   "error_class": null,
+   "retries": 0,
+   "redundant": false,
+   "latency_ms": 1
+  }
+ ],
+ "metrics": {
+  "model": "scripted-playbook-v1",
+  "model_calls": 5,
+  "investigation_tool_calls": 4,
+  "ledger_updates": 0,
+  "redundant_tool_calls": 0,
+  "tool_errors": 0,
+  "tool_retries": 0,
+  "usage": {
+   "input_tokens": 0,
+   "output_tokens": 0,
+   "cache_read_input_tokens": 0,
+   "cache_creation_input_tokens": 0
+  },
+  "cost_usd": 0.0,
+  "total_latency_ms": 2,
+  "model_latency_ms": 0,
+  "tool_latency_ms": 1,
+  "time_to_recommendation_ms": 2,
+  "stop_reason": "end_turn"
+ },
+ "trace": [
+  {
+   "seq": 0,
+   "t_ms": 0,
+   "type": "alert",
+   "title": "Alert received: PricingErrors",
+   "detail": {
+    "alert_id": "ALRT-4540",
+    "service": "pricing-service",
+    "severity": "SEV2",
+    "fired_at": "2026-09-14T14:18:00+00:00",
+    "description": "pricing-service 5xx rate 12% (threshold 1%).",
+    "trace_id": "3f361714f4a3538999ae8a4dc6e984a4",
+    "investigation_id": "inv_8859f22770cd",
+    "variant": "abstain",
+    "faults": []
+   }
+  },
+  {
+   "seq": 1,
+   "t_ms": 0,
+   "type": "model_call",
+   "title": "Model turn 1",
+   "detail": {
+    "stop_reason": "tool_use",
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0,
+    "request_id": "",
+    "served_model": "scripted-playbook-v1",
+    "gateway": {}
+   }
+  },
+  {
+   "seq": 2,
+   "t_ms": 0,
+   "type": "tool_call",
+   "title": "Service health checked",
+   "detail": {
+    "tool": "get_service_health",
+    "tool_use_id": "toolu_scripted_01",
+    "args": {
+     "service": "pricing-service"
+    },
+    "kind": "read"
+   }
+  },
+  {
+   "seq": 3,
+   "t_ms": 0,
+   "type": "tool_result",
+   "title": "pricing-service: degraded (http=passing, dep:pricing-db=ok, dep:promo-service=ok)",
+   "detail": {
+    "tool": "get_service_health",
+    "tool_use_id": "toolu_scripted_01",
+    "retries": 0,
+    "redundant": false,
+    "preview": "{\"service\":\"pricing-service\",\"observed_at\":\"2026-09-14T14:21:00Z\",\"version\":\"v7.1.2\",\"instances\":8,\"tier\":1,\"owner\":\"team-pricing\",\"status\":\"degraded\",\"checks\":{\"http\":\"passing\",\"dep:pricing-db\":\"ok\",\"dep:promo-service\":\"ok\"},\"restarts_1h\":0,\"uptime_hours\":72.0,\"notes\":\"\",\"dependencies\":[{\"service\":\"pricing-db\",\"status\":\"healthy\"},{\"service\":\"promo-service\",\"status\":\"healthy\"}],\"dependents\":[\"checkout-api\"]}"
+   }
+  },
+  {
+   "seq": 4,
+   "t_ms": 0,
+   "type": "model_call",
+   "title": "Model turn 2",
+   "detail": {
+    "stop_reason": "tool_use",
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0,
+    "request_id": "",
+    "served_model": "scripted-playbook-v1",
+    "gateway": {}
+   }
+  },
+  {
+   "seq": 5,
+   "t_ms": 0,
+   "type": "tool_call",
+   "title": "Error groups requested",
+   "detail": {
+    "tool": "get_recent_errors",
+    "tool_use_id": "toolu_scripted_02",
+    "args": {
+     "service": "pricing-service",
+     "window_minutes": 60
+    },
+    "kind": "read"
+   }
+  },
+  {
+   "seq": 6,
+   "t_ms": 0,
+   "type": "tool_result",
+   "title": "1 error signature(s); top \u00d74 since 14:10: GET /price 500 sku=sku_2203",
+   "detail": {
+    "tool": "get_recent_errors",
+    "tool_use_id": "toolu_scripted_02",
+    "retries": 0,
+    "redundant": false,
+    "preview": "{\"service\":\"pricing-service\",\"window_minutes\":60,\"error_groups\":[{\"signature\":\"GET /price N sku=sku_N\",\"count\":4,\"first_seen\":\"2026-09-14T14:10:41Z\",\"last_seen\":\"2026-09-14T14:19:12Z\",\"sample\":\"GET /price 500 sku=sku_2203\"}]}"
+   }
+  },
+  {
+   "seq": 7,
+   "t_ms": 0,
+   "type": "model_call",
+   "title": "Model turn 3",
+   "detail": {
+    "stop_reason": "tool_use",
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0,
+    "request_id": "",
+    "served_model": "scripted-playbook-v1",
+    "gateway": {}
+   }
+  },
+  {
+   "seq": 8,
+   "t_ms": 0,
+   "type": "tool_call",
+   "title": "Change history queried",
+   "detail": {
+    "tool": "get_deployment_history",
+    "tool_use_id": "toolu_scripted_03",
+    "args": {
+     "service": "*",
+     "hours": 24
+    },
+    "kind": "read"
+   }
+  },
+  {
+   "seq": 9,
+   "t_ms": 0,
+   "type": "tool_result",
+   "title": "1 change(s); latest 13:30 deploy promo-service v3.2.9 \u2192 v3.3.0: Promo stacking rules",
+   "detail": {
+    "tool": "get_deployment_history",
+    "tool_use_id": "toolu_scripted_03",
+    "retries": 0,
+    "redundant": false,
+    "preview": "{\"service\":\"*\",\"hours\":24,\"changes\":[{\"id\":\"chg-9942\",\"kind\":\"deploy\",\"service\":\"promo-service\",\"at\":\"2026-09-14T13:30:00Z\",\"author\":\"ci-bot (PR #350)\",\"summary\":\"Promo stacking rules\",\"version\":\"v3.3.0\",\"previous_version\":\"v3.2.9\"}]}"
+   }
+  },
+  {
+   "seq": 10,
+   "t_ms": 0,
+   "type": "model_call",
+   "title": "Model turn 4",
+   "detail": {
+    "stop_reason": "tool_use",
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0,
+    "request_id": "",
+    "served_model": "scripted-playbook-v1",
+    "gateway": {}
+   }
+  },
+  {
+   "seq": 11,
+   "t_ms": 0,
+   "type": "tool_call",
+   "title": "Metrics queried",
+   "detail": {
+    "tool": "get_service_metrics",
+    "tool_use_id": "toolu_scripted_04",
+    "args": {
+     "service": "pricing-service",
+     "metric": "*",
+     "window_minutes": 60
+    },
+    "kind": "read"
+   }
+  },
+  {
+   "seq": 12,
+   "t_ms": 2,
+   "type": "tool_result",
+   "title": "3 metrics for pricing-service; shifted vs prior: error_rate_pct 0.6 \u2192 11.73",
+   "detail": {
+    "tool": "get_service_metrics",
+    "tool_use_id": "toolu_scripted_04",
+    "retries": 0,
+    "redundant": false,
+    "preview": "{\"service\":\"pricing-service\",\"window_minutes\":60,\"metrics\":{\"error_rate_pct\":{\"unit\":\"%\",\"current\":11.73,\"window_max\":12.94,\"prior_mean\":0.6},\"latency_p99_ms\":{\"unit\":\"ms\",\"current\":59.54,\"window_max\":67.05,\"prior_mean\":60.02},\"requests_per_sec\":{\"unit\":\"rps\",\"current\":2454.04,\"window_max\":2699.51,\"prior_mean\":2397.75}}}"
+   }
+  },
+  {
+   "seq": 13,
+   "t_ms": 2,
+   "type": "model_call",
+   "title": "Model turn 5",
+   "detail": {
+    "stop_reason": "end_turn",
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0,
+    "request_id": "",
+    "served_model": "scripted-playbook-v1",
+    "gateway": {}
+   }
+  },
+  {
+   "seq": 14,
+   "t_ms": 2,
+   "type": "findings",
+   "title": "Insufficient evidence to determine root cause",
+   "detail": {
+    "status": "insufficient_evidence",
+    "root_cause": {
+     "category": "unknown",
+     "service": "",
+     "summary": ""
+    },
+    "confidence": 0.0,
+    "evidence": [],
+    "ruled_out": [],
+    "missing_evidence": [
+     "no recent change on the alerting service or unhealthy dependencies"
+    ],
+    "recommended_action": {
+     "type": "none",
+     "service": "",
+     "target_version": "",
+     "description": "",
+     "proposal_id": ""
+    },
+    "summary": "Playbook found no recent change to blame."
+   }
+  }
+ ]
+}
