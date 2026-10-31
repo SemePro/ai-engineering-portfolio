@@ -66,12 +66,13 @@ The workflow uses **actions/checkout@v6** and **actions/setup-node@v5** (Node 24
 2. **Read-only**: prod Playwright grep `@prod-safe` — no demo form submissions, no POST to gateway in automated prod API tests.
 3. **Rate**: use modest workers; do not hammer the site.
 
-## LinkedIn regression
+## Contact / footer consistency
 
-Asserted in:
+Specs assert that the contact page and footer do not expose certain
+third-party links (e.g. no social links in automated checks). Asserted in:
 
 - Playwright prod: `live-report-hub.spec.ts`, `smoke-pages.spec.ts`, `testing-section.spec.ts`, etc.
-- Cypress prod-smoke: `core.cy.ts` (journeys) + `prod-routes.cy.ts` (~23 route checks, aligned with Playwright breadth)
+- Cypress prod-smoke: `core.cy.ts` (journeys) + `prod-routes.cy.ts` (route checks, aligned with Playwright breadth)
 
 ## Layout
 

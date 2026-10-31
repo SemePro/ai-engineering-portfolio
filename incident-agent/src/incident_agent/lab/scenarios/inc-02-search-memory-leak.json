@@ -1,0 +1,90 @@
+{
+  "id": "inc-02-search-memory-leak",
+  "title": "search-service pods OOM-looping",
+  "difficulty": "medium",
+  "description": "A new per-tenant result cache with no eviction makes search-service heap grow until pods are OOMKilled. An Elasticsearch rolling restart earlier the same morning is a tempting but wrong explanation.",
+  "tags": ["deploy", "memory", "oom"],
+  "alert": {
+    "id": "ALRT-4520",
+    "name": "SearchPodsRestarting",
+    "service": "search-service",
+    "severity": "SEV2",
+    "fired_at": "2026-09-14T13:20:00Z",
+    "description": "search-service: 11 container restarts in the last 60 minutes."
+  },
+  "topology": {
+    "web-frontend": {"tier": 1, "instances": 10, "version": "v8.1.4", "owner": "team-web", "depends_on": ["search-service"]},
+    "search-service": {"tier": 2, "instances": 6, "version": "v5.3.0", "owner": "team-discovery", "depends_on": ["search-index"]},
+    "search-index": {"tier": 2, "instances": 5, "version": "elasticsearch-8.13.2", "owner": "team-data"}
+  },
+  "health": {
+    "search-service": {"status": "degraded", "checks": {"liveness": "flapping", "readiness": "4/6 ready"}, "restarts_1h": 11, "uptime_hours": 0.3, "notes": "last termination reason: OOMKilled (exit 137), memory limit 2048Mi"},
+    "search-index": {"status": "healthy", "checks": {"cluster": "green", "shards": "all active"}}
+  },
+  "metrics": {
+    "search-service": {
+      "memory_rss_mb": {"unit": "MB", "baseline": 910, "noise": 0.02, "changes": [
+        {"at": "11:02", "value": 2040, "ramp": 35}, {"at": "11:38", "value": 930}, {"at": "11:39", "value": 2040, "ramp": 34},
+        {"at": "12:14", "value": 930}, {"at": "12:15", "value": 2040, "ramp": 35}, {"at": "12:51", "value": 930},
+        {"at": "12:52", "value": 2040, "ramp": 26}, {"at": "13:19", "value": 930}, {"at": "13:20", "value": 1150, "ramp": 3}]},
+      "gc_pause_p99_ms": {"unit": "ms", "baseline": 12, "noise": 0.1, "changes": [{"at": "11:10", "value": 480, "ramp": 60}]},
+      "latency_p99_ms": {"unit": "ms", "baseline": 95, "noise": 0.06, "changes": [{"at": "11:40", "value": 260, "ramp": 30}]},
+      "requests_per_sec": {"unit": "rps", "baseline": 900, "noise": 0.05}
+    },
+    "search-index": {
+      "query_latency_p99_ms": {"unit": "ms", "baseline": 30, "noise": 0.08, "changes": [{"at": "10:15", "value": 70, "ramp": 1}, {"at": "10:40", "value": 30, "ramp": 5}]},
+      "cpu_pct": {"unit": "%", "baseline": 40, "noise": 0.05}
+    }
+  },
+  "logs": {
+    "search-service": [
+      ["11:02:10", "INFO", "search-service v5.3.0 started; ResultCache initialised (scope=per-tenant, eviction=none)"],
+      ["11:30:12", "WARN", "GC overhead: 31% of time spent in GC over last 60s (heap 1.71G/1.80G)"],
+      ["11:37:40", "ERROR", "java.lang.OutOfMemoryError: Java heap space at com.acme.search.cache.TenantResultCache.put(TenantResultCache.java:88)"],
+      ["11:37:41", "INFO", "Received SIGTERM, shutting down"],
+      ["11:38:55", "INFO", "search-service v5.3.0 started; ResultCache initialised (scope=per-tenant, eviction=none)"],
+      ["12:08:03", "WARN", "GC overhead: 34% of time spent in GC over last 60s (heap 1.74G/1.80G)"],
+      ["12:14:55", "ERROR", "java.lang.OutOfMemoryError: Java heap space at com.acme.search.cache.TenantResultCache.put(TenantResultCache.java:88)"],
+      ["12:15:40", "INFO", "search-service v5.3.0 started; ResultCache initialised (scope=per-tenant, eviction=none)"],
+      ["12:20:31", "WARN", "search-index slow shard response 410ms shard=7"],
+      ["12:44:18", "WARN", "GC overhead: 38% of time spent in GC over last 60s (heap 1.77G/1.80G)"],
+      ["12:51:30", "ERROR", "java.lang.OutOfMemoryError: Java heap space at com.acme.search.cache.TenantResultCache.put(TenantResultCache.java:88)"],
+      ["12:52:20", "INFO", "search-service v5.3.0 started; ResultCache initialised (scope=per-tenant, eviction=none)"],
+      ["13:15:47", "WARN", "GC overhead: 41% of time spent in GC over last 60s (heap 1.78G/1.80G)"],
+      ["13:18:02", "ERROR", "java.lang.OutOfMemoryError: Java heap space at com.acme.search.cache.TenantResultCache.put(TenantResultCache.java:88)"]
+    ],
+    "search-index": [
+      ["10:15:00", "INFO", "Rolling restart initiated for upgrade 8.13.1 -> 8.13.2"],
+      ["10:38:20", "INFO", "Rolling restart complete; cluster health GREEN"]
+    ]
+  },
+  "log_noise": {
+    "search-service": [["INFO", "GET /search?q=... 200 {ms}ms tenant=t{n}"], ["INFO", "ResultCache stats hits={id} tenants={n}"], ["INFO", "GET /health 200 {n}ms"]],
+    "search-index": [["INFO", "[gc][young] duration {n}ms"], ["INFO", "index refresh completed in {ms}ms"]]
+  },
+  "changes": [
+    {"id": "chg-9931", "kind": "deploy", "service": "search-service", "at": "11:02", "author": "ci-bot (PR #2210)", "summary": "Add per-tenant search result cache to reduce index load", "version": "v5.3.0", "previous_version": "v5.2.4"},
+    {"id": "chg-9928", "kind": "infra", "service": "search-index", "at": "10:15", "author": "platform-automation", "summary": "Elasticsearch rolling restart for 8.13.2 patch upgrade", "version": "elasticsearch-8.13.2", "previous_version": "elasticsearch-8.13.1"}
+  ],
+  "past_incidents": [
+    {"id": "INC-1742", "title": "search-service OOM from unbounded thread pool", "root_cause": "Executor queue without bound after library upgrade", "resolution": "Rollback, then bounded queue", "tags": ["search-service", "oom", "memory"]},
+    {"id": "INC-2012", "title": "Slow searches after Elasticsearch upgrade", "root_cause": "Shard relocation during rolling restart", "resolution": "Waited for relocation to finish", "tags": ["search-index", "latency", "upgrade"]}
+  ],
+  "distractors": ["Elasticsearch rolling restart at 10:15", "slow shard warning at 12:20", "INC-2012 in the knowledge base"],
+  "ground_truth": {
+    "accepted_categories": ["memory_exhaustion", "bad_deployment"],
+    "accepted_services": ["search-service"],
+    "summary": "v5.3.0 introduced a per-tenant result cache without eviction; heap fills in ~35 minutes and pods are OOMKilled.",
+    "acceptable_actions": [{"type": "rollback_deployment", "service": "search-service", "target_version": "v5.2.4"}],
+    "critical_evidence": ["get_deployment_history|get_service_logs", "get_service_metrics|get_recent_errors|get_service_logs"],
+    "expected_tool_path": ["get_service_health", "get_recent_errors", "get_deployment_history", "get_service_metrics"],
+    "min_tool_calls": 3
+  },
+  "abstain_variant": {
+    "remove": ["changes:search-service", "logs:search-service", "metrics:search-service:memory_rss_mb", "metrics:search-service:gc_pause_p99_ms", "health:search-service"],
+    "rationale": "Restarts are visible from the alert, but nothing indicates why; the Elasticsearch restart is the only remaining change."
+  },
+  "fault_variants": [
+    {"name": "memory_metric_stale", "faults": [{"tool": "get_service_metrics", "mode": "stale", "service": "search-service", "metric": "memory_rss_mb"}], "expected": "recover_or_abstain", "rationale": "Memory metric looks flat (stale scrape) and contradicts OOM logs; agent must weigh sources."}
+  ]
+}

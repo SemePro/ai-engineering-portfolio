@@ -1,0 +1,89 @@
+{
+  "id": "inc-03-orders-db-batch-job",
+  "title": "orders-api 5xx from DB connection exhaustion",
+  "difficulty": "hard",
+  "description": "A nightly reconciliation job's parallelism was raised 8x by a config change the previous afternoon. When it starts at 02:00 it consumes nearly all orders-db connections. The alerting service (orders-api) had an unrelated deploy a few hours earlier.",
+  "tags": ["database", "batch-job", "config", "multi-service"],
+  "alert": {
+    "id": "ALRT-4390",
+    "name": "OrdersApiErrorRate",
+    "service": "orders-api",
+    "severity": "SEV2",
+    "fired_at": "2026-09-14T02:14:00Z",
+    "description": "orders-api 5xx rate 7.8% for 5 minutes (threshold 2%)."
+  },
+  "topology": {
+    "web-frontend": {"tier": 1, "instances": 10, "version": "v8.1.4", "owner": "team-web", "depends_on": ["orders-api"]},
+    "orders-api": {"tier": 1, "instances": 8, "version": "v3.30.1", "owner": "team-orders", "depends_on": ["orders-db"]},
+    "orders-db": {"tier": 1, "instances": 3, "version": "postgres-15.6", "owner": "team-data"},
+    "reconciliation-worker": {"tier": 3, "instances": 2, "version": "cfg-rev-42", "owner": "team-finance-eng", "depends_on": ["orders-db"]}
+  },
+  "health": {
+    "orders-api": {"status": "degraded", "checks": {"http": "passing", "db": "intermittent timeouts acquiring connections"}},
+    "orders-db": {"status": "degraded", "checks": {"connections": "497/500 (max_connections)", "replication": "in sync"}, "notes": "connection slots nearly exhausted"},
+    "reconciliation-worker": {"status": "healthy", "checks": {"scheduler": "ok"}, "notes": "job 'nightly-reconcile' running since 02:00:00"}
+  },
+  "metrics": {
+    "orders-db": {
+      "active_connections": {"unit": "count", "baseline": 182, "noise": 0.02, "changes": [{"at": "02:00", "value": 497, "ramp": 6}]},
+      "cpu_pct": {"unit": "%", "baseline": 22, "noise": 0.05, "changes": [{"at": "02:00", "value": 78, "ramp": 5}]},
+      "lock_waits_per_sec": {"unit": "count", "baseline": 2, "noise": 0.2, "changes": [{"at": "02:01", "value": 40, "ramp": 4}]}
+    },
+    "orders-api": {
+      "error_rate_pct": {"unit": "%", "baseline": 0.1, "noise": 0.1, "changes": [{"at": "02:05", "value": 7.8, "ramp": 4}]},
+      "latency_p99_ms": {"unit": "ms", "baseline": 150, "noise": 0.05, "changes": [{"at": "02:03", "value": 2400, "ramp": 5}]},
+      "requests_per_sec": {"unit": "rps", "baseline": 300, "noise": 0.05},
+      "db_connections_held": {"unit": "count", "baseline": 120, "noise": 0.03, "changes": [{"at": "02:04", "value": 104, "ramp": 3}]}
+    },
+    "reconciliation-worker": {
+      "db_connections_held": {"unit": "count", "baseline": 0, "noise": 0.0, "changes": [{"at": "02:00", "value": 318, "ramp": 5}]},
+      "jobs_running": {"unit": "count", "baseline": 0, "noise": 0.0, "changes": [{"at": "02:00", "value": 64}]}
+    }
+  },
+  "logs": {
+    "orders-api": [
+      ["02:06:11", "WARN", "db acquire slow: waited 1800ms for connection"],
+      ["02:06:40", "ERROR", "POST /orders 500 - FATAL: sorry, too many clients already (SQLSTATE 53300)"],
+      ["02:08:02", "ERROR", "GET /orders/ord_5510 500 - FATAL: sorry, too many clients already (SQLSTATE 53300)"],
+      ["02:10:27", "ERROR", "POST /orders 500 - FATAL: sorry, too many clients already (SQLSTATE 53300)"],
+      ["02:12:59", "ERROR", "POST /orders 500 - FATAL: sorry, too many clients already (SQLSTATE 53300)"],
+      ["02:15:30", "ERROR", "PATCH /orders/ord_5561 500 - FATAL: sorry, too many clients already (SQLSTATE 53300)"]
+    ],
+    "orders-db": [
+      ["02:05:10", "ERROR", "FATAL: remaining connection slots are reserved for non-replication superuser connections"],
+      ["02:09:44", "WARN", "connections by application: reconciliation-worker=318 orders-api=104 other=75"]
+    ],
+    "reconciliation-worker": [
+      ["02:00:00", "INFO", "nightly-reconcile started parallelism=64 batch_size=5000 (config cfg-rev-42)"],
+      ["02:00:04", "INFO", "opened 64 worker sessions, pool size per worker=5"]
+    ]
+  },
+  "log_noise": {
+    "orders-api": [["INFO", "POST /orders 201 {ms}ms"], ["INFO", "GET /orders/{id} 200 {ms}ms"]],
+    "reconciliation-worker": [["INFO", "batch {id} reconciled rows=5000 in {ms}0ms"]],
+    "orders-db": [["INFO", "checkpoint complete: wrote {n}000 buffers"]]
+  },
+  "changes": [
+    {"id": "chg-9901", "kind": "deploy", "service": "orders-api", "at": "2026-09-13T22:45:00Z", "author": "ci-bot (PR #3302)", "summary": "Add free-text order notes field", "version": "v3.30.1", "previous_version": "v3.30.0"},
+    {"id": "chg-9888", "kind": "config", "service": "reconciliation-worker", "at": "2026-09-13T17:30:00Z", "author": "a.novak", "summary": "Raise nightly-reconcile parallelism 8 -> 64 to shorten runtime", "version": "cfg-rev-42", "previous_version": "cfg-rev-41"}
+  ],
+  "past_incidents": [
+    {"id": "INC-1450", "title": "orders-db max_connections exhausted by analytics export", "root_cause": "Ad-hoc export opened hundreds of sessions", "resolution": "Killed export, added per-role connection limits", "tags": ["orders-db", "connections", "batch"]}
+  ],
+  "distractors": ["orders-api deploy v3.30.1 at 22:45 the previous evening"],
+  "ground_truth": {
+    "accepted_categories": ["db_connection_saturation"],
+    "accepted_services": ["reconciliation-worker"],
+    "summary": "cfg-rev-42 raised reconciliation-worker parallelism to 64; at 02:00 the job holds ~318 connections and orders-db runs out of slots.",
+    "acceptable_actions": [
+      {"type": "rollback_deployment", "service": "reconciliation-worker", "target_version": "cfg-rev-41"},
+      {"type": "manual", "service": "reconciliation-worker"}
+    ],
+    "critical_evidence": ["get_service_metrics|get_service_logs|get_service_health", "get_deployment_history|get_service_logs"],
+    "expected_tool_path": ["get_service_health", "get_service_health", "get_service_metrics", "get_deployment_history", "get_service_logs"],
+    "min_tool_calls": 4
+  },
+  "fault_variants": [
+    {"name": "db_logs_http_500", "faults": [{"tool": "get_service_logs", "mode": "http_500", "service": "orders-db"}], "expected": "recover", "rationale": "Worker metrics and change history still identify the job."}
+  ]
+}

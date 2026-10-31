@@ -10,9 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Integration Testing | Applied AI Engineering Portfolio",
+  title: "Integration Testing",
   description:
-    "End-to-end integration: frontend, gateway, backends, UI rendering of responses, and fallbacks.",
+    "System-level validation: frontend through gateway to backend, dependencies, and failure modes.",
 };
 
 const layers = [
@@ -46,14 +46,15 @@ export default function IntegrationTestsPage() {
           Integration testing
         </h1>
         <p className="text-muted-foreground text-lg leading-relaxed mb-10">
-          Integration tests prove the full path works together: not just that
-          each box responds in isolation, but that the portfolio behaves as a
-          system under realistic conditions.
+          Integration tests focus on system behavior: frontend through gateway
+          to backend, including dependencies and failure modes. They validate
+          that the system behaves correctly when components work together, not
+          only in isolation.
         </p>
 
         <section className="mb-12">
           <h2 className="text-xl font-semibold mb-6">
-            End-to-end system coverage
+            What is covered
           </h2>
           <div className="space-y-4">
             {layers.map((layer, i) => (
@@ -72,9 +73,19 @@ export default function IntegrationTestsPage() {
           </div>
         </section>
 
+        <section className="mb-12">
+          <h2 className="text-xl font-semibold mb-2">What is not covered / tradeoffs</h2>
+          <p className="text-sm text-muted-foreground mb-2">
+            Full chaos or failure-injection testing, or exercising every
+            dependency combination. Tradeoffs: balancing test speed vs depth;
+            production smoke is intentionally narrow to avoid impacting live
+            systems.
+          </p>
+        </section>
+
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Local vs production smoke</CardTitle>
+            <CardTitle>Run modes: local vs production smoke</CardTitle>
             <CardDescription>
               Different environments, different risk profiles.
             </CardDescription>
@@ -97,10 +108,9 @@ export default function IntegrationTestsPage() {
         </Card>
 
         <p className="text-sm text-muted-foreground">
-          <Badge variant="outline" className="mr-2">
-            Planned coverage
-          </Badge>
-          Phase 2 will add runnable integration specs aligned with this map.
+          Runnable integration specs (e.g. RAG error UI, eval shell when
+          backend unreachable) are implemented. See the Testing overview for
+          suite commands (<code className="text-xs bg-muted px-1 rounded">npm run test:integration</code>).
         </p>
       </div>
     </div>

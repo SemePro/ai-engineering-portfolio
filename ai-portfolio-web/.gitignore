@@ -8,3 +8,4 @@ tests/reports/ai-*.json
 cypress/screenshots/
 cypress/videos/
 coverage/
+tsconfig.tsbuildinfo

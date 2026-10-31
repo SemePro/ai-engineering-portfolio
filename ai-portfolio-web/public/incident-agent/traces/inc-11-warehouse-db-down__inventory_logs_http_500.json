@@ -1,0 +1,380 @@
+{
+ "investigation_id": "inv_8c48340e1a66",
+ "trace_id": "8d14d7aa282e890567af69318defa3bc",
+ "scenario_id": "inc-11-warehouse-db-down",
+ "variant": "inventory_logs_http_500",
+ "mode": "scripted-baseline",
+ "caching": true,
+ "findings": {
+  "status": "root_cause_identified",
+  "root_cause": {
+   "category": "bad_deployment",
+   "service": "storefront",
+   "summary": "Most recent change on a suspect service: Image carousel lazy loading"
+  },
+  "confidence": 0.6,
+  "evidence": [
+   {
+    "tool_call_id": "toolu_scripted_03",
+    "finding": "deploy chg-9903 at 2026-09-14T04:00:00Z"
+   }
+  ],
+  "ruled_out": [],
+  "missing_evidence": [],
+  "recommended_action": {
+   "type": "rollback_deployment",
+   "service": "storefront",
+   "target_version": "v12.0.2",
+   "description": "Revert the most recent change",
+   "proposal_id": ""
+  },
+  "summary": "Playbook rule: most recent change on the alerting service or an unhealthy dependency."
+ },
+ "findings_error": null,
+ "hypotheses": [],
+ "proposals": [],
+ "tool_calls": [
+  {
+   "id": "toolu_scripted_01",
+   "name": "get_service_health",
+   "args": {
+    "service": "storefront"
+   },
+   "is_error": false,
+   "error_class": null,
+   "retries": 0,
+   "redundant": false,
+   "latency_ms": 0
+  },
+  {
+   "id": "toolu_scripted_02",
+   "name": "get_recent_errors",
+   "args": {
+    "service": "storefront",
+    "window_minutes": 60
+   },
+   "is_error": false,
+   "error_class": null,
+   "retries": 0,
+   "redundant": false,
+   "latency_ms": 0
+  },
+  {
+   "id": "toolu_scripted_03",
+   "name": "get_deployment_history",
+   "args": {
+    "service": "*",
+    "hours": 24
+   },
+   "is_error": false,
+   "error_class": null,
+   "retries": 0,
+   "redundant": false,
+   "latency_ms": 0
+  },
+  {
+   "id": "toolu_scripted_04",
+   "name": "get_service_metrics",
+   "args": {
+    "service": "storefront",
+    "metric": "*",
+    "window_minutes": 60
+   },
+   "is_error": false,
+   "error_class": null,
+   "retries": 0,
+   "redundant": false,
+   "latency_ms": 0
+  }
+ ],
+ "metrics": {
+  "model": "scripted-playbook-v1",
+  "model_calls": 5,
+  "investigation_tool_calls": 4,
+  "ledger_updates": 0,
+  "redundant_tool_calls": 0,
+  "tool_errors": 0,
+  "tool_retries": 0,
+  "usage": {
+   "input_tokens": 0,
+   "output_tokens": 0,
+   "cache_read_input_tokens": 0,
+   "cache_creation_input_tokens": 0
+  },
+  "cost_usd": 0.0,
+  "total_latency_ms": 1,
+  "model_latency_ms": 0,
+  "tool_latency_ms": 0,
+  "time_to_recommendation_ms": 1,
+  "stop_reason": "end_turn"
+ },
+ "trace": [
+  {
+   "seq": 0,
+   "t_ms": 0,
+   "type": "alert",
+   "title": "Alert received: StorefrontAvailability",
+   "detail": {
+    "alert_id": "ALRT-4380",
+    "service": "storefront",
+    "severity": "SEV1",
+    "fired_at": "2026-09-14T04:31:00+00:00",
+    "description": "storefront availability 71% over 5 minutes (SLO 99.9%).",
+    "trace_id": "8d14d7aa282e890567af69318defa3bc",
+    "investigation_id": "inv_8c48340e1a66",
+    "variant": "inventory_logs_http_500",
+    "faults": [
+     {
+      "tool": "get_service_logs",
+      "mode": "http_500",
+      "persistent": true,
+      "service": "inventory-service",
+      "metric": ""
+     }
+    ]
+   }
+  },
+  {
+   "seq": 1,
+   "t_ms": 0,
+   "type": "model_call",
+   "title": "Model turn 1",
+   "detail": {
+    "stop_reason": "tool_use",
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0,
+    "request_id": "",
+    "served_model": "scripted-playbook-v1",
+    "gateway": {}
+   }
+  },
+  {
+   "seq": 2,
+   "t_ms": 0,
+   "type": "tool_call",
+   "title": "Service health checked",
+   "detail": {
+    "tool": "get_service_health",
+    "tool_use_id": "toolu_scripted_01",
+    "args": {
+     "service": "storefront"
+    },
+    "kind": "read"
+   }
+  },
+  {
+   "seq": 3,
+   "t_ms": 0,
+   "type": "tool_result",
+   "title": "storefront: degraded (http=passing, upstream:inventory-service=502); unhealthy deps: inventory-service unhealthy",
+   "detail": {
+    "tool": "get_service_health",
+    "tool_use_id": "toolu_scripted_01",
+    "retries": 0,
+    "redundant": false,
+    "preview": "{\"service\":\"storefront\",\"observed_at\":\"2026-09-14T04:34:00Z\",\"version\":\"v12.0.3\",\"instances\":12,\"tier\":1,\"owner\":\"team-web\",\"status\":\"degraded\",\"checks\":{\"http\":\"passing\",\"upstream:inventory-service\":\"502\"},\"restarts_1h\":0,\"uptime_hours\":72.0,\"notes\":\"\",\"dependencies\":[{\"service\":\"inventory-service\",\"status\":\"unhealthy\"},{\"service\":\"cart-service\",\"status\":\"healthy\"}],\"dependents\":[]}"
+   }
+  },
+  {
+   "seq": 4,
+   "t_ms": 0,
+   "type": "model_call",
+   "title": "Model turn 2",
+   "detail": {
+    "stop_reason": "tool_use",
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0,
+    "request_id": "",
+    "served_model": "scripted-playbook-v1",
+    "gateway": {}
+   }
+  },
+  {
+   "seq": 5,
+   "t_ms": 0,
+   "type": "tool_call",
+   "title": "Error groups requested",
+   "detail": {
+    "tool": "get_recent_errors",
+    "tool_use_id": "toolu_scripted_02",
+    "args": {
+     "service": "storefront",
+     "window_minutes": 60
+    },
+    "kind": "read"
+   }
+  },
+  {
+   "seq": 6,
+   "t_ms": 0,
+   "type": "tool_result",
+   "title": "1 error signature(s); top \u00d72 since 04:23: GET /product/p_1181 502 from inventory-service",
+   "detail": {
+    "tool": "get_recent_errors",
+    "tool_use_id": "toolu_scripted_02",
+    "retries": 0,
+    "redundant": false,
+    "preview": "{\"service\":\"storefront\",\"window_minutes\":60,\"error_groups\":[{\"signature\":\"GET /product/p_N N from inventory-service\",\"count\":2,\"first_seen\":\"2026-09-14T04:23:02Z\",\"last_seen\":\"2026-09-14T04:28:17Z\",\"sample\":\"GET /product/p_1181 502 from inventory-service\"}]}"
+   }
+  },
+  {
+   "seq": 7,
+   "t_ms": 0,
+   "type": "model_call",
+   "title": "Model turn 3",
+   "detail": {
+    "stop_reason": "tool_use",
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0,
+    "request_id": "",
+    "served_model": "scripted-playbook-v1",
+    "gateway": {}
+   }
+  },
+  {
+   "seq": 8,
+   "t_ms": 0,
+   "type": "tool_call",
+   "title": "Change history queried",
+   "detail": {
+    "tool": "get_deployment_history",
+    "tool_use_id": "toolu_scripted_03",
+    "args": {
+     "service": "*",
+     "hours": 24
+    },
+    "kind": "read"
+   }
+  },
+  {
+   "seq": 9,
+   "t_ms": 0,
+   "type": "tool_result",
+   "title": "2 change(s); latest 04:15 infra warehouse-db: Kernel patching on host group db-wh (automated rolling reboot)",
+   "detail": {
+    "tool": "get_deployment_history",
+    "tool_use_id": "toolu_scripted_03",
+    "retries": 0,
+    "redundant": false,
+    "preview": "{\"service\":\"*\",\"hours\":24,\"changes\":[{\"id\":\"chg-9905\",\"kind\":\"infra\",\"service\":\"warehouse-db\",\"at\":\"2026-09-14T04:15:00Z\",\"author\":\"patch-automation\",\"summary\":\"Kernel patching on host group db-wh (automated rolling reboot)\",\"version\":\"\",\"previous_version\":\"\"},{\"id\":\"chg-9903\",\"kind\":\"deploy\",\"service\":\"storefront\",\"at\":\"2026-09-14T04:00:00Z\",\"author\":\"ci-bot (PR #9120)\",\"summary\":\"Image carousel lazy loading\",\"version\":\"v12.0.3\",\"previous_version\":\"v12.0.2\"}]}"
+   }
+  },
+  {
+   "seq": 10,
+   "t_ms": 0,
+   "type": "model_call",
+   "title": "Model turn 4",
+   "detail": {
+    "stop_reason": "tool_use",
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0,
+    "request_id": "",
+    "served_model": "scripted-playbook-v1",
+    "gateway": {}
+   }
+  },
+  {
+   "seq": 11,
+   "t_ms": 0,
+   "type": "tool_call",
+   "title": "Metrics queried",
+   "detail": {
+    "tool": "get_service_metrics",
+    "tool_use_id": "toolu_scripted_04",
+    "args": {
+     "service": "storefront",
+     "metric": "*",
+     "window_minutes": 60
+    },
+    "kind": "read"
+   }
+  },
+  {
+   "seq": 12,
+   "t_ms": 1,
+   "type": "tool_result",
+   "title": "1 metrics for storefront; shifted vs prior: error_rate_pct 0.2 \u2192 31.09",
+   "detail": {
+    "tool": "get_service_metrics",
+    "tool_use_id": "toolu_scripted_04",
+    "retries": 0,
+    "redundant": false,
+    "preview": "{\"service\":\"storefront\",\"window_minutes\":60,\"metrics\":{\"error_rate_pct\":{\"unit\":\"%\",\"current\":31.09,\"window_max\":37.89,\"prior_mean\":0.2}}}"
+   }
+  },
+  {
+   "seq": 13,
+   "t_ms": 1,
+   "type": "model_call",
+   "title": "Model turn 5",
+   "detail": {
+    "stop_reason": "end_turn",
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0,
+    "request_id": "",
+    "served_model": "scripted-playbook-v1",
+    "gateway": {}
+   }
+  },
+  {
+   "seq": 14,
+   "t_ms": 1,
+   "type": "guardrail",
+   "title": "Recommended action has no matching proposal; nothing can be approved",
+   "detail": {
+    "proposal_id": ""
+   }
+  },
+  {
+   "seq": 15,
+   "t_ms": 1,
+   "type": "findings",
+   "title": "Root cause: bad_deployment in storefront (60% confidence)",
+   "detail": {
+    "status": "root_cause_identified",
+    "root_cause": {
+     "category": "bad_deployment",
+     "service": "storefront",
+     "summary": "Most recent change on a suspect service: Image carousel lazy loading"
+    },
+    "confidence": 0.6,
+    "evidence": [
+     {
+      "tool_call_id": "toolu_scripted_03",
+      "finding": "deploy chg-9903 at 2026-09-14T04:00:00Z"
+     }
+    ],
+    "ruled_out": [],
+    "missing_evidence": [],
+    "recommended_action": {
+     "type": "rollback_deployment",
+     "service": "storefront",
+     "target_version": "v12.0.2",
+     "description": "Revert the most recent change",
+     "proposal_id": ""
+    },
+    "summary": "Playbook rule: most recent change on the alerting service or an unhealthy dependency."
+   }
+  }
+ ]
+}
