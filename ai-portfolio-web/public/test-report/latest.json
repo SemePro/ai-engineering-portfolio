@@ -1,217 +1,25 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-05T13:01:52.863Z",
+  "generatedAt": "2026-11-06T12:49:49.918Z",
   "environment": "production",
   "targetUrl": "https://www.semefit.com",
   "playwright": {
-    "ok": true,
-    "exitCode": 0,
-    "passed": 25,
+    "ok": false,
+    "exitCode": null,
+    "error": "Playwright run failed before report was written",
+    "passed": 0,
     "failed": 0,
     "skipped": 0,
     "timedOut": 0,
-    "total": 25,
-    "passRate": 100,
-    "byFile": [
-      {
-        "file": "about-contact.spec.ts",
-        "passed": 2,
-        "failed": 0,
-        "skipped": 0
-      },
-      {
-        "file": "demo-smoke.spec.ts",
-        "passed": 6,
-        "failed": 0,
-        "skipped": 0
-      },
-      {
-        "file": "live-report-hub.spec.ts",
-        "passed": 2,
-        "failed": 0,
-        "skipped": 0
-      },
-      {
-        "file": "navigation.spec.ts",
-        "passed": 1,
-        "failed": 0,
-        "skipped": 0
-      },
-      {
-        "file": "smoke-pages.spec.ts",
-        "passed": 4,
-        "failed": 0,
-        "skipped": 0
-      },
-      {
-        "file": "testing-section.spec.ts",
-        "passed": 7,
-        "failed": 0,
-        "skipped": 0
-      },
-      {
-        "file": "ui-integrity.spec.ts",
-        "passed": 3,
-        "failed": 0,
-        "skipped": 0
-      }
-    ],
+    "total": 0,
+    "byFile": [],
     "failures": [],
-    "durationMsTotal": 14273
+    "durationMsTotal": 0
   },
-  "cypress": {
-    "ok": true,
-    "exitCode": 0,
-    "note": "cypress/e2e/prod-smoke (module API)",
-    "passed": 25,
-    "failed": 0,
-    "total": 25,
-    "passRate": 100,
-    "byFile": [
-      {
-        "file": "core.cy.ts",
-        "passed": 2,
-        "failed": 0
-      },
-      {
-        "file": "prod-routes.cy.ts",
-        "passed": 23,
-        "failed": 0
-      }
-    ],
-    "tests": [
-      {
-        "title": "Prod smoke @prod-safe › home and testing overview",
-        "file": "core.cy.ts",
-        "ok": true
-      },
-      {
-        "title": "Prod smoke @prod-safe › testing reports page loads",
-        "file": "core.cy.ts",
-        "ok": true
-      },
-      {
-        "title": "Prod routes @prod-safe › main visible on /",
-        "file": "prod-routes.cy.ts",
-        "ok": true
-      },
-      {
-        "title": "Prod routes @prod-safe › main visible on /about",
-        "file": "prod-routes.cy.ts",
-        "ok": true
-      },
-      {
-        "title": "Prod routes @prod-safe › main visible on /contact",
-        "file": "prod-routes.cy.ts",
-        "ok": true
-      },
-      {
-        "title": "Prod routes @prod-safe › main visible on /projects",
-        "file": "prod-routes.cy.ts",
-        "ok": true
-      },
-      {
-        "title": "Prod routes @prod-safe › main visible on /architecture",
-        "file": "prod-routes.cy.ts",
-        "ok": true
-      },
-      {
-        "title": "Prod routes @prod-safe › main visible on /demo",
-        "file": "prod-routes.cy.ts",
-        "ok": true
-      },
-      {
-        "title": "Prod routes @prod-safe › main visible on /demo/gateway",
-        "file": "prod-routes.cy.ts",
-        "ok": true
-      },
-      {
-        "title": "Prod routes @prod-safe › main visible on /demo/rag",
-        "file": "prod-routes.cy.ts",
-        "ok": true
-      },
-      {
-        "title": "Prod routes @prod-safe › main visible on /demo/eval",
-        "file": "prod-routes.cy.ts",
-        "ok": true
-      },
-      {
-        "title": "Prod routes @prod-safe › main visible on /demo/architecture",
-        "file": "prod-routes.cy.ts",
-        "ok": true
-      },
-      {
-        "title": "Prod routes @prod-safe › main visible on /demo/devops",
-        "file": "prod-routes.cy.ts",
-        "ok": true
-      },
-      {
-        "title": "Prod routes @prod-safe › main visible on /demo/incident",
-        "file": "prod-routes.cy.ts",
-        "ok": true
-      },
-      {
-        "title": "Prod routes @prod-safe › main visible on /testing",
-        "file": "prod-routes.cy.ts",
-        "ok": true
-      },
-      {
-        "title": "Prod routes @prod-safe › main visible on /testing/automation",
-        "file": "prod-routes.cy.ts",
-        "ok": true
-      },
-      {
-        "title": "Prod routes @prod-safe › main visible on /testing/playwright",
-        "file": "prod-routes.cy.ts",
-        "ok": true
-      },
-      {
-        "title": "Prod routes @prod-safe › main visible on /testing/cypress",
-        "file": "prod-routes.cy.ts",
-        "ok": true
-      },
-      {
-        "title": "Prod routes @prod-safe › main visible on /testing/ui-tests",
-        "file": "prod-routes.cy.ts",
-        "ok": true
-      },
-      {
-        "title": "Prod routes @prod-safe › main visible on /testing/api-tests",
-        "file": "prod-routes.cy.ts",
-        "ok": true
-      },
-      {
-        "title": "Prod routes @prod-safe › main visible on /testing/integration-tests",
-        "file": "prod-routes.cy.ts",
-        "ok": true
-      },
-      {
-        "title": "Prod routes @prod-safe › main visible on /testing/reports",
-        "file": "prod-routes.cy.ts",
-        "ok": true
-      },
-      {
-        "title": "Prod routes @prod-safe › main visible on /projects/architecture",
-        "file": "prod-routes.cy.ts",
-        "ok": true
-      },
-      {
-        "title": "Prod routes @prod-safe › main visible on /projects/devops",
-        "file": "prod-routes.cy.ts",
-        "ok": true
-      },
-      {
-        "title": "Prod routes @prod-safe › main visible on /projects/incident",
-        "file": "prod-routes.cy.ts",
-        "ok": true
-      }
-    ],
-    "failures": [],
-    "hasDetail": true
-  },
-  "workflowRunUrl": "https://github.com/SemePro/ai-engineering-portfolio/actions/runs/42031900197",
-  "commitSha": "ce465a2",
-  "githubRunId": "42031900197",
-  "overallOk": true,
+  "cypress": null,
+  "workflowRunUrl": "https://github.com/SemePro/ai-engineering-portfolio/actions/runs/42220512579",
+  "commitSha": "e9c0db5",
+  "githubRunId": "42220512579",
+  "overallOk": false,
   "placeholder": false
 }
