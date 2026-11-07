@@ -13,8 +13,8 @@ export function ImplementationStatus() {
     <section className="mb-16">
       <h2 className="text-xl font-semibold mb-2">Implemented test infrastructure</h2>
       <p className="text-sm text-muted-foreground mb-6 max-w-3xl">
-        Phase 2 adds runnable Playwright, Cypress, Vitest API checks, and AI-assisted
-        CLI utilities. Production smoke is read-only (GET navigations only).
+        Playwright, Cypress, Vitest API checks, and AI-assisted CLI utilities
+        are implemented. Production smoke is read-only (GET navigations only).
       </p>
 
       <div className="grid gap-4 md:grid-cols-2 mb-10">
@@ -66,10 +66,10 @@ export function ImplementationStatus() {
           </div>
         ))}
         <p className="text-xs text-muted-foreground pt-2 border-t">
-          Requires <code className="bg-muted px-1 rounded">OPENAI_API_KEY</code>{" "}
-          for suggest/triage/gap narrative. Outputs under{" "}
-          <code className="bg-muted px-1 rounded">tests/reports/</code> — always
-          human-reviewed before acting.
+          Uses <code className="bg-muted px-1 rounded">OPENAI_API_KEY</code> for
+          suggest/triage/gap. Outputs under{" "}
+          <code className="bg-muted px-1 rounded">tests/reports/</code>. All
+          AI-assisted outputs are reviewed and validated before use.
         </p>
       </div>
 

@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -341,6 +343,14 @@ export default function IncidentDemoPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <div className="container mx-auto px-4 pt-6">
+        <p className="rounded-md border border-primary/40 bg-primary/5 px-4 py-3 text-sm">
+          This v1 demo calls a hosted backend and may be unavailable. It is single-pass RAG. Its successor, the{" "}
+          <Link href="/projects/incident-agent" className="text-primary underline underline-offset-4">Agentic Incident Response Engine</Link>,
+          decides what evidence to gather itself and gates operational actions behind human approval — with recorded investigations you can replay.
+        </p>
+      </div>
+
       <div className="container mx-auto px-4 py-8">
         <div className="mx-auto max-w-7xl">
           {/* Header */}

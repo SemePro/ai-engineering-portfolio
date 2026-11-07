@@ -4,11 +4,11 @@ import uuid
 import time
 import logging
 import json
+from pathlib import Path
 from datetime import datetime
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 import httpx
 
 from .config import get_settings
@@ -36,7 +36,6 @@ from .models import (
     DevOpsChangesResponse,
     DevOpsChangeDetailResponse,
     DevOpsChangeSummary,
-    DevOpsRerunRequest,
     IncidentFeedbackRequest,
     IncidentFeedbackResponse,
     ArchitectureReviewRequest,
@@ -49,6 +48,7 @@ from .models import (
 from .rate_limiter import RateLimiter
 from .security import SecurityMiddleware
 from .cost import CostEstimator
+from .llm_proxy import AnthropicUpstream, LLMGateway, parse_service_policies
 
 # Configure structured logging
 logging.basicConfig(
@@ -128,11 +128,34 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS middleware
+
+def _build_llm_gateway() -> LLMGateway:
+    """Model-call route (/v1/messages). Disabled (503) until provider credentials exist."""
+    settings = get_settings()
+    upstream = (
+        AnthropicUpstream(settings.anthropic_api_key, settings.llm_upstream_timeout_s, settings.llm_upstream_max_retries)
+        if settings.anthropic_api_key else None
+    )
+    audit_path = None
+    if settings.llm_audit_log_path:
+        audit_path = Path(settings.llm_audit_log_path)
+        audit_path.parent.mkdir(parents=True, exist_ok=True)
+    return LLMGateway(
+        policies=parse_service_policies(settings.llm_service_policies),
+        upstream=upstream,
+        audit_path=audit_path,
+        enable_fallback=settings.llm_enable_refusal_fallback,
+    )
+
+
+llm_gateway = _build_llm_gateway()
+app.include_router(llm_gateway.router)
+
+# CORS middleware (browser-facing proxy routes; /v1/messages is server-to-server and key-authenticated)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

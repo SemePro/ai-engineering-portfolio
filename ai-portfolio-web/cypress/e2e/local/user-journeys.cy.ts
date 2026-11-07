@@ -1,9 +1,9 @@
 describe("User journeys (local)", () => {
   it("walks main sections from home", () => {
     cy.visit("/");
-    cy.contains("h1", /Applied AI Engineering Portfolio/i);
-    cy.get('a[href="/demo"]').first().click();
-    cy.url().should("include", "/demo");
+    cy.contains("h1", /Senior AI Engineer building reliable agentic/i);
+    cy.get('main a[href="/projects/incident-agent"]').first().click();
+    cy.url().should("include", "/projects/incident-agent");
     cy.visit("/projects");
     cy.contains("h1", /Projects/i);
     cy.visit("/architecture");
@@ -16,7 +16,7 @@ describe("User journeys (local)", () => {
     cy.contains("main a", "Read more").first().click();
     cy.url().should("match", /\/testing\//);
     cy.visit("/");
-    cy.contains("h1", /Applied AI Engineering Portfolio/i);
+    cy.contains("h1", /Senior AI Engineer building reliable agentic/i);
   });
 
   it("opens demo hub and a demo card path", () => {
@@ -36,7 +36,7 @@ describe("User journeys (local)", () => {
   it("testing landing shows area cards", () => {
     cy.visit("/testing");
     cy.contains("h2", /Areas/i);
-    cy.contains(/Automation Testing/i);
+    cy.contains(/Automation/i);
     cy.contains(/Playwright/i);
     cy.contains(/Cypress/i);
   });

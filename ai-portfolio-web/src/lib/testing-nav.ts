@@ -50,51 +50,51 @@ export const TESTING_LANDING_CARDS: ReadonlyArray<{
 }> = [
   {
     href: "/testing/automation",
-    title: "Automation Testing",
+    title: "Automation",
     description:
-      "Smoke, regression, and critical workflows with confidence gating across the stack.",
+      "Run modes, smoke vs regression, and confidence gating. Local full suite and production smoke.",
     icon: "workflow",
   },
   {
     href: "/testing/playwright",
     title: "Playwright",
     description:
-      "Cross-browser UI coverage, tracing, and resilient selectors for the Next.js portfolio.",
+      "Reliability and rendering: deterministic UI checks, cross-browser coverage, tracing.",
     icon: "monitor",
   },
   {
     href: "/testing/cypress",
     title: "Cypress",
     description:
-      "E2E journeys, API interception, and fast feedback on user flows and demos.",
+      "User flows and interaction testing. Developer feedback loop and journey-style specs.",
     icon: "testTube",
   },
   {
     href: "/testing/ui-tests",
     title: "UI Testing",
     description:
-      "Header, layout, responsive rendering, and route-level UI validation.",
+      "Visual and layout correctness, page integrity, responsive rendering.",
     icon: "layers",
   },
   {
     href: "/testing/api-tests",
     title: "API Testing",
     description:
-      "Health, schema shape, errors, and consistency for gateway-backed AI services.",
+      "Contracts, schemas, error paths. Health and response validation for gateway-backed services.",
     icon: "network",
   },
   {
     href: "/testing/integration-tests",
     title: "Integration Testing",
     description:
-      "Frontend through gateway to backend: end-to-end system behavior and fallbacks.",
+      "System behavior: frontend through gateway to backend, dependencies and failure modes.",
     icon: "bot",
   },
   {
     href: "/testing/reports",
-    title: "Production test report",
+    title: "Reports",
     description:
-      "Scheduled smoke results, pass rate, spec breakdown, and GitHub Actions link.",
+      "Nightly production smoke results, pass rate, and run history. Live from repo.",
     icon: "network",
   },
 ];

@@ -1,5 +1,5 @@
 /**
- * Static metadata for Testing pages — mirrors implemented suites (Phase 2).
+ * Static metadata for Testing pages — mirrors implemented suites and run modes.
  */
 export const testSuiteMeta = {
   runModes: [
@@ -23,7 +23,7 @@ export const testSuiteMeta = {
       areas: [
         "Navigation & core pages",
         "Testing section + subpages",
-        "LinkedIn absence (contact, footer, multiple routes)",
+        "Contact / footer consistency (multiple routes)",
         "UI integrity (header, footer, main)",
         "Demo page shells (h1 + layout)",
         "Mobile + desktop viewports (local)",
@@ -37,7 +37,7 @@ export const testSuiteMeta = {
         "User journeys (home → demo → projects)",
         "Testing hub flow",
         "Footer consistency",
-        "Contact / LinkedIn regression",
+        "Contact / footer regression",
         "Specs: cypress/e2e/local/ and cypress/e2e/prod-smoke/",
       ],
       commands: ["npm run test:cypress", "npm run test:cypress:prod"],

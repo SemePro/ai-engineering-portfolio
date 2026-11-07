@@ -3,10 +3,8 @@
 import sys
 import json
 import click
-from datetime import datetime
 from pathlib import Path
 
-from .config import get_settings
 from .runner import EvalRunner
 
 
