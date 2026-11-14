@@ -1,0 +1,102 @@
+{
+  "id": "inc-01-checkout-pool-saturation",
+  "title": "Checkout latency spike after deploy",
+  "difficulty": "medium",
+  "description": "checkout-api p99 latency rises ~5x minutes after a deploy that migrated datasource settings to a new config loader. The client-side DB connection pool silently shrank; the database itself is healthy.",
+  "tags": ["deploy", "database", "connection-pool"],
+  "alert": {
+    "id": "ALRT-4412",
+    "name": "CheckoutLatencyP99High",
+    "service": "checkout-api",
+    "severity": "SEV2",
+    "fired_at": "2026-09-14T09:41:00Z",
+    "description": "checkout-api p99 latency above 800ms for 5 minutes (current 1.04s)."
+  },
+  "topology": {
+    "web-frontend": {"tier": 1, "instances": 10, "version": "v8.1.4", "owner": "team-web", "depends_on": ["checkout-api"]},
+    "checkout-api": {"tier": 1, "instances": 12, "version": "v2.14.7", "owner": "team-checkout", "depends_on": ["orders-db", "payments-gateway", "inventory-service"]},
+    "orders-db": {"tier": 1, "instances": 3, "version": "postgres-15.4", "owner": "team-data"},
+    "payments-gateway": {"tier": 1, "instances": 6, "version": "v4.2.1", "owner": "team-payments"},
+    "inventory-service": {"tier": 2, "instances": 4, "version": "v1.9.3", "owner": "team-inventory", "depends_on": ["orders-db"]}
+  },
+  "health": {
+    "checkout-api": {"status": "degraded", "checks": {"http": "passing", "db_pool": "saturated (active=10, idle=0, waiting=41)"}, "restarts_1h": 0, "uptime_hours": 0.1},
+    "web-frontend": {"status": "degraded", "checks": {"http": "passing", "upstream:checkout-api": "slow"}},
+    "orders-db": {"status": "healthy", "checks": {"connections": "214/500", "replication": "in sync"}}
+  },
+  "metrics": {
+    "checkout-api": {
+      "latency_p99_ms": {"unit": "ms", "baseline": 180, "noise": 0.05, "changes": [{"at": "09:35", "value": 1040, "ramp": 6}]},
+      "error_rate_pct": {"unit": "%", "baseline": 0.2, "noise": 0.1, "changes": [{"at": "09:37", "value": 3.1, "ramp": 4}]},
+      "db_pool_in_use_pct": {"unit": "%", "baseline": 38, "noise": 0.04, "changes": [{"at": "09:35", "value": 100, "ramp": 5}]},
+      "requests_per_sec": {"unit": "rps", "baseline": 420, "noise": 0.05},
+      "cpu_pct": {"unit": "%", "baseline": 41, "noise": 0.06}
+    },
+    "orders-db": {
+      "active_connections": {"unit": "count", "baseline": 214, "noise": 0.03},
+      "query_p99_ms": {"unit": "ms", "baseline": 12, "noise": 0.08},
+      "cpu_pct": {"unit": "%", "baseline": 35, "noise": 0.05, "changes": [{"at": "09:36", "value": 27, "ramp": 3}]}
+    },
+    "payments-gateway": {
+      "latency_p99_ms": {"unit": "ms", "baseline": 240, "noise": 0.05, "changes": [{"at": "08:50", "value": 520, "ramp": 2}, {"at": "09:02", "value": 250, "ramp": 3}]},
+      "error_rate_pct": {"unit": "%", "baseline": 0.1, "noise": 0.1}
+    }
+  },
+  "logs": {
+    "checkout-api": [
+      ["09:35:02", "INFO", "Starting checkout-api v2.14.7 (build 8f3a2c1) with UnifiedConfigLoader"],
+      ["09:35:03", "INFO", "HikariPool-1 - Starting... maximumPoolSize=10, minimumIdle=2, connectionTimeout=3000"],
+      ["09:35:04", "INFO", "HikariPool-1 - Start completed."],
+      ["09:37:44", "WARN", "HikariPool-1 - Connection is not available, request timed out after 3000ms (total=10, active=10, idle=0, waiting=37)"],
+      ["09:38:10", "ERROR", "POST /checkout 503 - SQLTransientConnectionException: HikariPool-1 - Connection is not available, request timed out after 3000ms"],
+      ["09:38:52", "ERROR", "POST /checkout 503 - SQLTransientConnectionException: HikariPool-1 - Connection is not available, request timed out after 3000ms"],
+      ["09:39:15", "WARN", "payments-gateway call took 612ms (threshold 500ms) order=ord_88412"],
+      ["09:39:31", "ERROR", "GET /cart/summary 503 - SQLTransientConnectionException: HikariPool-1 - Connection is not available, request timed out after 3000ms"],
+      ["09:40:02", "WARN", "HikariPool-1 - Connection is not available, request timed out after 3000ms (total=10, active=10, idle=0, waiting=44)"],
+      ["09:40:40", "ERROR", "POST /checkout 503 - SQLTransientConnectionException: HikariPool-1 - Connection is not available, request timed out after 3000ms"],
+      ["09:41:22", "ERROR", "POST /checkout 503 - SQLTransientConnectionException: HikariPool-1 - Connection is not available, request timed out after 3000ms"],
+      ["09:43:05", "ERROR", "POST /checkout 503 - SQLTransientConnectionException: HikariPool-1 - Connection is not available, request timed out after 3000ms"]
+    ],
+    "payments-gateway": [
+      ["08:51:10", "WARN", "Provider latency elevated: acquirer=adyen p99=880ms"],
+      ["09:03:40", "INFO", "Provider latency recovered: acquirer=adyen p99=210ms"]
+    ]
+  },
+  "log_noise": {
+    "checkout-api": [["INFO", "GET /cart/{id} 200 {ms}ms"], ["INFO", "POST /checkout 200 {ms}ms"], ["INFO", "GET /health 200 {n}ms"], ["WARN", "Slow downstream inventory-service {ms}ms sku={id}"]],
+    "payments-gateway": [["INFO", "POST /authorize 200 {ms}ms"], ["INFO", "webhook delivered evt_{id}"]],
+    "orders-db": [["INFO", "checkpoint complete: wrote {n}000 buffers"], ["INFO", "autovacuum: table orders tuples removed {id}"]]
+  },
+  "changes": [
+    {"id": "chg-9921", "kind": "deploy", "service": "checkout-api", "at": "09:35", "author": "ci-bot (PR #4821)", "summary": "Migrate datasource settings to UnifiedConfigLoader; bump HikariCP 5.0.1 -> 5.1.0", "version": "v2.14.7", "previous_version": "v2.14.6"},
+    {"id": "chg-9917", "kind": "config", "service": "payments-gateway", "at": "07:10", "author": "m.chen", "summary": "Raise webhook retry timeout 5s -> 8s", "version": "cfg-rev-88", "previous_version": "cfg-rev-87"},
+    {"id": "chg-9890", "kind": "deploy", "service": "inventory-service", "at": "2026-09-13T16:20:00Z", "author": "ci-bot (PR #1175)", "summary": "Add bulk stock endpoint", "version": "v1.9.3", "previous_version": "v1.9.2"},
+    {"id": "chg-9874", "kind": "deploy", "service": "checkout-api", "at": "2026-09-12T14:05:00Z", "author": "ci-bot (PR #4790)", "summary": "Gift card validation copy change", "version": "v2.14.6", "previous_version": "v2.14.5"}
+  ],
+  "past_incidents": [
+    {"id": "INC-2231", "title": "Checkout 503s from exhausted Hikari connection pool", "root_cause": "CHECKOUT_DB_POOL_MAX env var dropped during Helm refactor; pool fell back to library default of 10", "resolution": "Rolled back checkout-api; restored explicit pool size in chart values", "tags": ["checkout-api", "hikari", "connection-pool", "deploy"]},
+    {"id": "INC-1987", "title": "Payments latency from acquirer degradation", "root_cause": "Adyen regional latency", "resolution": "Waited for provider recovery; added latency alert on provider", "tags": ["payments-gateway", "latency", "external"]}
+  ],
+  "distractors": [
+    "payments-gateway latency blip at 08:50 that recovered by 09:03",
+    "payments-gateway config change at 07:10",
+    "a single slow payments call logged at 09:39"
+  ],
+  "ground_truth": {
+    "accepted_categories": ["db_connection_saturation", "bad_deployment"],
+    "accepted_services": ["checkout-api"],
+    "summary": "Deploy v2.14.7 lost the explicit pool size during the config-loader migration; HikariCP defaulted to 10 connections and requests queue for connections.",
+    "acceptable_actions": [{"type": "rollback_deployment", "service": "checkout-api", "target_version": "v2.14.6"}],
+    "critical_evidence": ["get_deployment_history", "get_service_logs|get_recent_errors"],
+    "expected_tool_path": ["get_service_health", "get_deployment_history", "get_recent_errors", "get_service_metrics"],
+    "min_tool_calls": 3
+  },
+  "abstain_variant": {
+    "remove": ["changes:checkout-api", "logs:checkout-api:match=hikari", "logs:checkout-api:match=starting", "metrics:checkout-api:db_pool_in_use_pct", "health:checkout-api", "past_incidents"],
+    "rationale": "Without change history, pool logs or pool metrics only the symptom (latency) and distractors remain."
+  },
+  "fault_variants": [
+    {"name": "logs_http_500", "faults": [{"tool": "get_service_logs", "mode": "http_500"}], "expected": "recover", "rationale": "Error groups, metrics and change history still establish the cause."},
+    {"name": "changes_timeout_transient", "faults": [{"tool": "get_deployment_history", "mode": "timeout", "persistent": false}], "expected": "recover", "rationale": "A single retry succeeds."}
+  ]
+}

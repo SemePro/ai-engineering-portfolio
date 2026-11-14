@@ -28,6 +28,14 @@ class Settings(BaseSettings):
     cost_per_1k_input_tokens: float = 0.0015
     cost_per_1k_output_tokens: float = 0.002
     
+    # Model-call gateway (/v1/messages)
+    anthropic_api_key: str = ""
+    llm_service_policies: str = ""  # JSON; see llm_proxy.parse_service_policies
+    llm_upstream_timeout_s: float = 90.0
+    llm_upstream_max_retries: int = 2
+    llm_enable_refusal_fallback: bool = True
+    llm_audit_log_path: str = ""
+
     # Server Configuration
     host: str = "0.0.0.0"
     port: int = 8000

@@ -6,7 +6,7 @@ from openai import OpenAI
 
 from .config import get_settings
 from .vector_store import VectorStore
-from .models import AskRequest, AskResponse, Citation
+from .models import AskRequest, AskResponse
 
 logger = logging.getLogger(__name__)
 

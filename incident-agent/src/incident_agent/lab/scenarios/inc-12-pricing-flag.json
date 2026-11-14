@@ -1,0 +1,73 @@
+{
+  "id": "inc-12-pricing-flag",
+  "title": "Pricing errors after a feature flag ramp",
+  "difficulty": "medium",
+  "description": "A pricing-engine flag ramps from 5% to 100% and exposes a null-region bug that had been failing quietly for the 5% cohort. No deploy happened on pricing-service; rolling back its version would not help.",
+  "tags": ["feature-flag", "no-tool-remediation"],
+  "alert": {
+    "id": "ALRT-4540",
+    "name": "PricingErrors",
+    "service": "pricing-service",
+    "severity": "SEV2",
+    "fired_at": "2026-09-14T14:18:00Z",
+    "description": "pricing-service 5xx rate 12% (threshold 1%)."
+  },
+  "topology": {
+    "checkout-api": {"tier": 1, "instances": 12, "version": "v2.14.6", "owner": "team-checkout", "depends_on": ["pricing-service"]},
+    "pricing-service": {"tier": 1, "instances": 8, "version": "v7.1.2", "owner": "team-pricing", "depends_on": ["pricing-db", "promo-service"]},
+    "pricing-db": {"tier": 1, "instances": 3, "version": "postgres-15.6", "owner": "team-data"},
+    "promo-service": {"tier": 2, "instances": 4, "version": "v3.3.0", "owner": "team-growth"}
+  },
+  "health": {
+    "pricing-service": {"status": "degraded", "checks": {"http": "passing", "dep:pricing-db": "ok", "dep:promo-service": "ok"}}
+  },
+  "metrics": {
+    "pricing-service": {
+      "error_rate_pct": {"unit": "%", "baseline": 0.6, "noise": 0.1, "changes": [{"at": "14:10", "value": 12, "ramp": 2}]},
+      "latency_p99_ms": {"unit": "ms", "baseline": 60, "noise": 0.05},
+      "requests_per_sec": {"unit": "rps", "baseline": 2400, "noise": 0.04}
+    },
+    "promo-service": {"latency_p99_ms": {"unit": "ms", "baseline": 80, "noise": 0.05, "changes": [{"at": "13:30", "value": 140, "ramp": 3}]}}
+  },
+  "logs": {
+    "pricing-service": [
+      ["13:41:20", "ERROR", "NullPointerException in PricingEngineV2.applyRegionalTax (region=null) sku=sku_1182"],
+      ["13:57:02", "ERROR", "NullPointerException in PricingEngineV2.applyRegionalTax (region=null) sku=sku_7710"],
+      ["14:10:05", "INFO", "Flag update received: new_pricing_engine rollout 5% -> 100%"],
+      ["14:10:41", "ERROR", "NullPointerException in PricingEngineV2.applyRegionalTax (region=null) sku=sku_2203"],
+      ["14:10:41", "ERROR", "GET /price 500 sku=sku_2203"],
+      ["14:12:18", "ERROR", "NullPointerException in PricingEngineV2.applyRegionalTax (region=null) sku=sku_0091"],
+      ["14:12:18", "ERROR", "GET /price 500 sku=sku_0091"],
+      ["14:15:55", "ERROR", "NullPointerException in PricingEngineV2.applyRegionalTax (region=null) sku=sku_5530"],
+      ["14:15:55", "ERROR", "GET /price 500 sku=sku_5530"],
+      ["14:19:12", "ERROR", "GET /price 500 sku=sku_6612"]
+    ],
+    "promo-service": [["13:30:04", "INFO", "promo-service v3.3.0 started"]]
+  },
+  "log_noise": {
+    "pricing-service": [["INFO", "GET /price 200 {n}ms sku=sku_{id}"]],
+    "promo-service": [["INFO", "GET /promos 200 {ms}ms"]]
+  },
+  "changes": [
+    {"id": "chg-9945", "kind": "feature_flag", "service": "pricing-service", "at": "14:10", "author": "pm-tools", "summary": "new_pricing_engine rollout 5% -> 100%"},
+    {"id": "chg-9942", "kind": "deploy", "service": "promo-service", "at": "13:30", "author": "ci-bot (PR #350)", "summary": "Promo stacking rules", "version": "v3.3.0", "previous_version": "v3.2.9"},
+    {"id": "chg-9831", "kind": "deploy", "service": "pricing-service", "at": "2026-09-12T09:30:00Z", "author": "ci-bot (PR #905)", "summary": "PricingEngineV2 regional tax support (behind new_pricing_engine flag)", "version": "v7.1.2", "previous_version": "v7.1.1"}
+  ],
+  "past_incidents": [
+    {"id": "INC-1590", "title": "Flag ramp exposed null region in EU checkout", "root_cause": "Flagged code path assumed region always set", "resolution": "Reverted flag percentage; fixed null handling", "tags": ["feature-flag", "pricing-service", "null"]}
+  ],
+  "distractors": ["promo-service deploy at 13:30 with a mild latency increase", "pricing-service v7.1.2 deploy two days earlier"],
+  "ground_truth": {
+    "accepted_categories": ["feature_flag_misconfiguration"],
+    "accepted_services": ["pricing-service"],
+    "summary": "new_pricing_engine ramped to 100% at 14:10; PricingEngineV2 throws NPE when region is null.",
+    "acceptable_actions": [{"type": "manual", "service": "pricing-service"}],
+    "critical_evidence": ["get_service_logs|get_recent_errors|get_deployment_history"],
+    "expected_tool_path": ["get_recent_errors", "get_deployment_history"],
+    "min_tool_calls": 2
+  },
+  "abstain_variant": {
+    "remove": ["changes:pricing-service", "logs:pricing-service:match=flag", "logs:pricing-service:match=PricingEngineV2", "past_incidents"],
+    "rationale": "Only generic 500s remain; the promo-service deploy is the sole visible change."
+  }
+}

@@ -13,7 +13,7 @@ test.describe("UI integrity @prod-safe", () => {
     await expect(footer.getByRole("heading", { name: "Projects" })).toBeVisible();
     await expect(footer.getByRole("heading", { name: "Testing" })).toBeVisible();
     await expect(
-      footer.getByRole("link", { name: "GitHub repository" })
+      footer.getByRole("link", { name: /GitHub/ })
     ).toBeVisible();
   });
 

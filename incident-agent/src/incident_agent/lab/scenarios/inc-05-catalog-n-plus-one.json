@@ -1,0 +1,80 @@
+{
+  "id": "inc-05-catalog-n-plus-one",
+  "title": "catalog-api latency regression with no errors",
+  "difficulty": "medium",
+  "description": "A listing-page feature introduces an N+1 query pattern. Latency rises ~5x with zero error increase. A pricing-service deploy 18 minutes earlier is a plausible distractor.",
+  "tags": ["deploy", "latency", "n+1"],
+  "alert": {
+    "id": "ALRT-4483",
+    "name": "CatalogLatencyP99",
+    "service": "catalog-api",
+    "severity": "SEV3",
+    "fired_at": "2026-09-14T10:12:00Z",
+    "description": "catalog-api p99 latency 1.3s (baseline ~230ms)."
+  },
+  "topology": {
+    "catalog-api": {"tier": 1, "instances": 10, "version": "v3.8.0", "owner": "team-catalog", "depends_on": ["catalog-db", "pricing-service", "image-cdn"]},
+    "catalog-db": {"tier": 1, "instances": 3, "version": "postgres-15.6", "owner": "team-data"},
+    "pricing-service": {"tier": 1, "instances": 8, "version": "v7.1.2", "owner": "team-pricing", "depends_on": []},
+    "image-cdn": {"tier": 3, "instances": 0, "version": "managed", "owner": "team-web"}
+  },
+  "health": {
+    "catalog-api": {"status": "degraded", "checks": {"http": "passing", "latency_slo": "burning 14x"}},
+    "catalog-db": {"status": "healthy", "checks": {"connections": "240/600", "cpu": "elevated"}}
+  },
+  "metrics": {
+    "catalog-api": {
+      "latency_p99_ms": {"unit": "ms", "baseline": 230, "noise": 0.05, "changes": [{"at": "09:58", "value": 1300, "ramp": 4}]},
+      "error_rate_pct": {"unit": "%", "baseline": 0.05, "noise": 0.1},
+      "db_queries_per_request": {"unit": "count", "baseline": 3, "noise": 0.02, "changes": [{"at": "09:58", "value": 41, "ramp": 2}]},
+      "requests_per_sec": {"unit": "rps", "baseline": 1100, "noise": 0.04},
+      "cpu_pct": {"unit": "%", "baseline": 35, "noise": 0.05, "changes": [{"at": "09:58", "value": 52, "ramp": 3}]}
+    },
+    "catalog-db": {
+      "queries_per_sec": {"unit": "qps", "baseline": 3300, "noise": 0.04, "changes": [{"at": "09:58", "value": 45000, "ramp": 3}]},
+      "cpu_pct": {"unit": "%", "baseline": 25, "noise": 0.05, "changes": [{"at": "09:58", "value": 71, "ramp": 3}]}
+    },
+    "pricing-service": {
+      "latency_p99_ms": {"unit": "ms", "baseline": 45, "noise": 0.06},
+      "error_rate_pct": {"unit": "%", "baseline": 0.02, "noise": 0.1}
+    }
+  },
+  "logs": {
+    "catalog-api": [
+      ["09:58:01", "INFO", "catalog-api v3.8.0 started"],
+      ["10:01:12", "WARN", "slow request GET /products?category=shoes 1287ms queries=42"],
+      ["10:04:40", "WARN", "slow request GET /products?category=bags 1190ms queries=39"],
+      ["10:07:03", "WARN", "slow request GET /products?category=shoes&page=2 1402ms queries=44"],
+      ["10:10:55", "WARN", "slow request GET /products?category=outdoor 1255ms queries=40"]
+    ],
+    "pricing-service": [["09:40:02", "INFO", "pricing-service v7.1.2 started"]]
+  },
+  "log_noise": {
+    "catalog-api": [["INFO", "GET /products/{id} 200 {ms}ms"], ["INFO", "GET /health 200 {n}ms"], ["WARN", "image-cdn origin fetch {ms}0ms img_{id}"]],
+    "pricing-service": [["INFO", "GET /price/{id} 200 {n}ms"]]
+  },
+  "changes": [
+    {"id": "chg-9936", "kind": "deploy", "service": "catalog-api", "at": "09:58", "author": "ci-bot (PR #6120)", "summary": "Show variant availability on listing cards (ProductCard.variants)", "version": "v3.8.0", "previous_version": "v3.7.5"},
+    {"id": "chg-9934", "kind": "deploy", "service": "pricing-service", "at": "09:40", "author": "ci-bot (PR #911)", "summary": "Currency rounding fix for JPY", "version": "v7.1.2", "previous_version": "v7.1.1"}
+  ],
+  "past_incidents": [
+    {"id": "INC-1666", "title": "Listing page slow from ORM lazy loading (N+1)", "root_cause": "Variants loaded per product in a loop", "resolution": "Rollback; eager-load variants", "tags": ["catalog-api", "n+1", "latency", "database"]}
+  ],
+  "distractors": ["pricing-service deploy at 09:40", "image-cdn origin fetch warnings in catalog-api logs"],
+  "ground_truth": {
+    "accepted_categories": ["latency_regression", "bad_deployment"],
+    "accepted_services": ["catalog-api"],
+    "summary": "v3.8.0 loads variants per product (N+1): queries per request 3 -> ~41, catalog-db qps x13.",
+    "acceptable_actions": [{"type": "rollback_deployment", "service": "catalog-api", "target_version": "v3.7.5"}],
+    "critical_evidence": ["get_deployment_history", "get_service_metrics|get_service_logs"],
+    "expected_tool_path": ["get_service_health", "get_deployment_history", "get_service_metrics", "get_service_metrics"],
+    "min_tool_calls": 3
+  },
+  "abstain_variant": {
+    "remove": ["changes:catalog-api", "metrics:catalog-api:db_queries_per_request", "metrics:catalog-db:queries_per_sec", "logs:catalog-api:match=queries=", "logs:catalog-api:match=started", "past_incidents"],
+    "rationale": "Without the catalog-api deploy record and query-count evidence, only the pricing-service deploy remains - and pricing metrics are flat, so blaming it would be a hallucination."
+  },
+  "fault_variants": [
+    {"name": "catalog_metrics_missing", "faults": [{"tool": "get_service_metrics", "mode": "missing_data", "service": "catalog-api"}], "expected": "recover_or_abstain", "rationale": "catalog-db metrics, logs and change history remain."}
+  ]
+}

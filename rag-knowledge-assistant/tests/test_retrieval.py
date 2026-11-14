@@ -1,7 +1,7 @@
 """Tests for retrieval and strict mode behavior."""
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from src.models import AskRequest, DocumentChunk
 from src.rag_engine import RAGEngine
 

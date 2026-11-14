@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Database, Shield, Gauge, Search, Zap, Globe } from "lucide-react";
 import Link from "next/link";
+import { ArchitectureDiagram } from "@/components/incident/architecture-diagram";
 
 const services = [
   {
@@ -62,20 +63,34 @@ export default function ArchitecturePage() {
           </p>
         </div>
 
-        {/* Architecture Diagram */}
         <Card className="mb-12">
           <CardHeader>
-            <CardTitle>System Overview</CardTitle>
+            <CardTitle>Model-call path: incident agent</CardTitle>
             <CardDescription>
-              All traffic flows through the Secure AI Gateway for rate limiting, security checks, and observability.
+              The agent calls Claude through the gateway's Anthropic-compatible /v1/messages route; only the gateway
+              holds the provider key. Write actions stop at a server-enforced approval gate.{" "}
+              <Link href="/projects/incident-agent" className="text-primary underline underline-offset-4">Case study</Link>
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {/* TODO: Replace with actual diagram image from /public/architecture-diagram.png when available */}
+            <ArchitectureDiagram />
+          </CardContent>
+        </Card>
+
+        {/* Architecture Diagram */}
+        <Card className="mb-12">
+          <CardHeader>
+            <CardTitle>Service routing (earlier services)</CardTitle>
+            <CardDescription>
+              Browser traffic to the earlier services flows through the gateway for rate limiting, security checks and
+              logging; those services call OpenAI directly.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
             <div className="bg-slate-900 rounded-lg p-6 overflow-x-auto">
               <pre className="text-xs text-green-400 font-mono whitespace-pre">
 {`┌─────────────────────────────────────────────────────────────────────────────┐
-│                         Applied AI Engineering Portfolio                      │
+│              Service routing — RAG, eval, v1 incident, DevOps                │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                               │
 │    ┌──────────────┐                                                          │
