@@ -8,7 +8,7 @@ test.describe("Testing section @prod-safe", () => {
       page.locator("main").getByRole("heading", { name: /^Testing$/i, level: 1 })
     ).toBeVisible();
     await expect(
-      page.getByText(/reliability-first engineering workflow/i)
+      page.getByText(/Testing is part of system reliability/i)
     ).toBeVisible();
     await expect(
       page.getByRole("heading", { name: /AI in the testing workflow/i })

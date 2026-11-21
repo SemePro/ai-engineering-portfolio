@@ -1,0 +1,70 @@
+{
+  "id": "inc-06-upload-body-limit",
+  "title": "upload-service rejects uploads after config push",
+  "difficulty": "easy",
+  "description": "A config normalisation change turns max_body_size '1mb' into '1kb'. Uploads fail with 413. A media-transcoder deploy nearby is unrelated.",
+  "tags": ["config", "4xx"],
+  "alert": {
+    "id": "ALRT-4502",
+    "name": "UploadErrorRate",
+    "service": "upload-service",
+    "severity": "SEV2",
+    "fired_at": "2026-09-14T11:08:00Z",
+    "description": "upload-service 4xx rate 38% (threshold 5%)."
+  },
+  "topology": {
+    "edge-gateway": {"tier": 1, "instances": 6, "version": "v5.0.2", "owner": "team-edge", "depends_on": ["upload-service"]},
+    "upload-service": {"tier": 2, "instances": 5, "version": "v4.4.2 / cfg-rev-118", "owner": "team-media", "depends_on": ["object-store", "media-transcoder"]},
+    "object-store": {"tier": 1, "instances": 0, "version": "managed", "owner": "team-platform"},
+    "media-transcoder": {"tier": 2, "instances": 8, "version": "v2.0.3", "owner": "team-media"}
+  },
+  "health": {
+    "upload-service": {"status": "degraded", "checks": {"http": "passing", "object-store": "ok"}}
+  },
+  "metrics": {
+    "upload-service": {
+      "http_413_rate_pct": {"unit": "%", "baseline": 0.01, "noise": 0.05, "changes": [{"at": "11:02", "value": 37, "ramp": 1}]},
+      "error_rate_5xx_pct": {"unit": "%", "baseline": 0.1, "noise": 0.1},
+      "request_bytes_p50": {"unit": "bytes", "baseline": 480000, "noise": 0.05},
+      "requests_per_sec": {"unit": "rps", "baseline": 60, "noise": 0.06}
+    },
+    "media-transcoder": {"queue_depth": {"unit": "count", "baseline": 40, "noise": 0.2, "changes": [{"at": "10:35", "value": 140, "ramp": 5}, {"at": "10:50", "value": 30, "ramp": 10}]}}
+  },
+  "logs": {
+    "upload-service": [
+      ["11:02:04", "INFO", "Config reloaded from config-service revision cfg-rev-118"],
+      ["11:02:04", "INFO", "limits: max_body_size=1kb max_files=20 allowed_types=[jpg,png,mp4,pdf]"],
+      ["11:02:31", "WARN", "Rejected upload: body size 2.4MB exceeds max_body_size (1kb) -> 413"],
+      ["11:03:12", "WARN", "Rejected upload: body size 812KB exceeds max_body_size (1kb) -> 413"],
+      ["11:05:40", "WARN", "Rejected upload: body size 14.1MB exceeds max_body_size (1kb) -> 413"],
+      ["11:07:55", "WARN", "Rejected upload: body size 3.3MB exceeds max_body_size (1kb) -> 413"],
+      ["11:09:10", "WARN", "Rejected upload: body size 640KB exceeds max_body_size (1kb) -> 413"]
+    ],
+    "media-transcoder": [["10:40:22", "WARN", "queue depth 140 above soft limit 100"]]
+  },
+  "log_noise": {
+    "upload-service": [["INFO", "POST /uploads 201 {ms}ms size={n}00KB"], ["INFO", "GET /uploads/{id} 200 {ms}ms"]],
+    "media-transcoder": [["INFO", "transcode job {id} done in {ms}00ms"]]
+  },
+  "changes": [
+    {"id": "chg-9938", "kind": "config", "service": "upload-service", "at": "11:02", "author": "j.okafor", "summary": "Normalize size units in limits.yaml (1mb, 50mb, ...)", "version": "cfg-rev-118", "previous_version": "cfg-rev-117"},
+    {"id": "chg-9935", "kind": "deploy", "service": "media-transcoder", "at": "10:30", "author": "ci-bot (PR #402)", "summary": "Upgrade ffmpeg to 7.1", "version": "v2.0.3", "previous_version": "v2.0.2"}
+  ],
+  "past_incidents": [],
+  "distractors": ["media-transcoder deploy and queue spike around 10:30-10:50"],
+  "ground_truth": {
+    "accepted_categories": ["invalid_configuration"],
+    "accepted_services": ["upload-service"],
+    "summary": "cfg-rev-118 set max_body_size to 1kb (intended 1mb); nearly all uploads are rejected with 413.",
+    "acceptable_actions": [
+      {"type": "rollback_deployment", "service": "upload-service", "target_version": "cfg-rev-117"},
+      {"type": "manual", "service": "upload-service"}
+    ],
+    "critical_evidence": ["get_service_logs|get_deployment_history"],
+    "expected_tool_path": ["get_service_logs", "get_deployment_history"],
+    "min_tool_calls": 2
+  },
+  "fault_variants": [
+    {"name": "changes_timeout_persistent", "faults": [{"tool": "get_deployment_history", "mode": "timeout"}], "expected": "recover_or_abstain", "rationale": "The config reload log line names the revision; change history is unavailable."}
+  ]
+}

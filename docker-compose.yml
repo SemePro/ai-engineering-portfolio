@@ -25,6 +25,10 @@ services:
       - ENABLE_PII_REDACTION=true
       - ENABLE_INJECTION_DETECTION=true
       - LOG_REQUESTS=true
+      # Model-call route (/v1/messages): provider key lives only here
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - LLM_SERVICE_POLICIES=${LLM_SERVICE_POLICIES:-}
+      - LLM_AUDIT_LOG_PATH=/app/var/llm-audit.jsonl
     depends_on:
       rag:
         condition: service_healthy
@@ -189,6 +193,24 @@ services:
       - ai-network
     restart: unless-stopped
 
+  # Agentic Incident Response Engine (calls Claude through the gateway)
+  incident-agent:
+    build:
+      context: ./incident-agent
+      dockerfile: Dockerfile
+    ports:
+      - "8006:8006"
+    environment:
+      - GATEWAY_URL=http://gateway:8000
+      - GATEWAY_SERVICE_KEY=${GATEWAY_SERVICE_KEY:-}
+      - APPROVAL_SIGNING_SECRET=${APPROVAL_SIGNING_SECRET:-}  # required; the service refuses to start without it
+      - DEMO_LIVE_ENABLED=false
+    volumes:
+      - incident-agent-data:/app/var
+    networks:
+      - ai-network
+    restart: unless-stopped
+
   # Portfolio Website (Next.js)
   web:
     build:
@@ -219,3 +241,4 @@ volumes:
   devops-chroma:
   architecture-reviews:
   architecture-chroma:
+  incident-agent-data:

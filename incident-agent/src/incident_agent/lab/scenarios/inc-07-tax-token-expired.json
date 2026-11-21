@@ -1,0 +1,67 @@
+{
+  "id": "inc-07-tax-token-expired",
+  "title": "Invoice finalisation failing at midnight",
+  "difficulty": "easy",
+  "description": "An API token for the external tax service expires at 00:00; the rotation job has not succeeded for a month. Restarting or rolling back does nothing. A DB maintenance window and an older deploy are distractors.",
+  "tags": ["credential", "external-dependency", "no-tool-remediation"],
+  "alert": {
+    "id": "ALRT-4531",
+    "name": "BillingJobFailures",
+    "service": "billing-worker",
+    "severity": "SEV2",
+    "fired_at": "2026-09-15T00:07:00Z",
+    "description": "billing-worker invoice finalisation failure rate 100% for 5 minutes."
+  },
+  "topology": {
+    "billing-worker": {"tier": 2, "instances": 4, "version": "v6.2.0", "owner": "team-billing", "depends_on": ["tax-service-ext", "billing-db", "secrets-manager"]},
+    "tax-service-ext": {"tier": 3, "instances": 0, "version": "vendor:TaxCalc v2 API", "owner": "vendor (TaxCalc)"},
+    "billing-db": {"tier": 1, "instances": 2, "version": "postgres-15.6", "owner": "team-data"},
+    "secrets-manager": {"tier": 1, "instances": 0, "version": "managed", "owner": "team-security"}
+  },
+  "health": {
+    "billing-worker": {"status": "degraded", "checks": {"queue_consumer": "running", "dep:tax-service-ext": "401 Unauthorized", "dep:billing-db": "ok"}},
+    "tax-service-ext": {"status": "healthy", "checks": {"vendor_status_page": "all systems operational"}}
+  },
+  "metrics": {
+    "billing-worker": {
+      "invoice_failures_per_min": {"unit": "count", "baseline": 0, "noise": 0.0, "changes": [{"at": "00:00", "value": 42}]},
+      "job_success_rate_pct": {"unit": "%", "baseline": 99.8, "noise": 0.001, "changes": [{"at": "00:00", "value": 0}]},
+      "tax_api_401_per_min": {"unit": "count", "baseline": 0, "noise": 0.0, "changes": [{"at": "00:00", "value": 42}]}
+    },
+    "billing-db": {"cpu_pct": {"unit": "%", "baseline": 20, "noise": 0.05, "changes": [{"at": "23:30", "value": 55, "ramp": 2}, {"at": "23:55", "value": 20, "ramp": 3}]}}
+  },
+  "logs": {
+    "billing-worker": [
+      ["23:00:00", "WARN", "Credential 'tax-service/prod' expires in 60 minutes; last successful rotation by job 'rotate-tax-token' on 2026-08-15"],
+      ["00:00:04", "ERROR", "TaxCalc request failed: 401 Unauthorized {\"error\":\"invalid_token\",\"error_description\":\"token expired at 2026-09-15T00:00:00Z\"}"],
+      ["00:00:04", "INFO", "Retrying invoice inv_77120 in 30s"],
+      ["00:01:10", "ERROR", "TaxCalc request failed: 401 Unauthorized {\"error\":\"invalid_token\",\"error_description\":\"token expired at 2026-09-15T00:00:00Z\"}"],
+      ["00:03:22", "ERROR", "TaxCalc request failed: 401 Unauthorized {\"error\":\"invalid_token\",\"error_description\":\"token expired at 2026-09-15T00:00:00Z\"}"],
+      ["00:05:48", "ERROR", "Invoice inv_77120 moved to failed state after 5 attempts: tax calculation unavailable"],
+      ["00:08:13", "ERROR", "TaxCalc request failed: 401 Unauthorized {\"error\":\"invalid_token\",\"error_description\":\"token expired at 2026-09-15T00:00:00Z\"}"]
+    ],
+    "billing-db": [["23:30:00", "INFO", "Maintenance: VACUUM (ANALYZE) invoices started"], ["23:54:10", "INFO", "Maintenance: VACUUM (ANALYZE) invoices finished"]]
+  },
+  "log_noise": {
+    "billing-worker": [["INFO", "Invoice inv_{id} queued for finalisation"], ["INFO", "heartbeat ok consumers={n}"]]
+  },
+  "changes": [
+    {"id": "chg-9880", "kind": "infra", "service": "billing-db", "at": "2026-09-14T23:30:00Z", "author": "dba-automation", "summary": "Scheduled VACUUM ANALYZE on invoices table"},
+    {"id": "chg-9851", "kind": "deploy", "service": "billing-worker", "at": "2026-09-12T15:00:00Z", "author": "ci-bot (PR #1520)", "summary": "Retry jitter for invoice queue", "version": "v6.2.0", "previous_version": "v6.1.9"}
+  ],
+  "past_incidents": [],
+  "distractors": ["billing-db VACUUM from 23:30 to 23:54", "billing-worker deploy 2.5 days earlier"],
+  "ground_truth": {
+    "accepted_categories": ["expired_credential"],
+    "accepted_services": ["billing-worker", "tax-service-ext"],
+    "summary": "The TaxCalc API token used by billing-worker expired at 00:00; the rotation job has been failing since 2026-08-15.",
+    "acceptable_actions": [{"type": "manual", "service": "billing-worker"}, {"type": "manual", "service": "tax-service-ext"}],
+    "critical_evidence": ["get_service_logs|get_recent_errors"],
+    "expected_tool_path": ["get_recent_errors", "get_service_logs"],
+    "min_tool_calls": 1
+  },
+  "abstain_variant": {
+    "remove": ["logs:billing-worker:match=expire", "logs:billing-worker:match=401", "logs:billing-worker:match=tax", "metrics:billing-worker:tax_api_401_per_min", "health:billing-worker"],
+    "rationale": "Failures are visible but their cause is gone; the DB vacuum and old deploy are the only other signals."
+  }
+}

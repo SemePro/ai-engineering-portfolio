@@ -40,11 +40,10 @@ class TestChunkText:
         text = "The quick brown fox jumps over the lazy dog. Another sentence here for testing."
         chunks = list(chunk_text(text, chunk_size=50, chunk_overlap=20, source="test.md"))
         
-        if len(chunks) >= 2:
-            # The end of the first chunk should appear in the start of the second
-            end_of_first = chunks[0].content[-20:]
-            # Overlap should be present (some flexibility for sentence boundaries)
-            assert len(chunks) >= 1
+        assert len(chunks) >= 2
+        # The tail of the first chunk is carried into the start of the second
+        end_of_first = chunks[0].content[-20:].strip()
+        assert chunks[1].content.startswith(end_of_first)
     
     def test_chunk_indices_sequential(self):
         """Chunk indices should be sequential starting from 0."""

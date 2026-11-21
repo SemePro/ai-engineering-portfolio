@@ -1,158 +1,70 @@
-# Applied AI Engineering Portfolio
+# AI Engineering Portfolio — Kodjo Seme Semeglo
 
-[![Deploy Status](https://img.shields.io/badge/status-live-brightgreen)](https://sec-gateway-production.up.railway.app/health)
+Production-minded AI systems: a tool-using incident response agent, the shared gateway every model
+call goes through, and the evaluation and failure-injection harnesses used to decide whether the
+systems can be trusted. Live site: **https://www.semefit.com**
 
-A cohesive AI portfolio demonstrating production-grade LLM engineering: RAG systems, evaluation pipelines, security gateways, and modern DevOps practices.
+## Start here
 
-## Overview
+**[incident-agent/](incident-agent/)** — Agentic Incident Response Engine (flagship).
+A Claude-based agent investigates alerts with read-only tools, reports a root cause with a confidence
+or says the evidence is insufficient, and can only *propose* rollbacks/restarts that a human approves
+through a server-enforced gate. Ships with a 14-scenario synthetic incident lab, fault injection and
+an evaluation harness. Start with its [README](incident-agent/README.md).
 
-This portfolio showcases applied LLM engineering with a focus on:
-- **Reliability**: Systems that work correctly and fail gracefully
-- **Evaluation**: Automated testing to prevent regressions
-- **Security**: Defense-in-depth with guardrails at every layer
-- **Observability**: Structured logging, cost tracking, and monitoring
+**Reviewer path:** [case study](https://www.semefit.com/projects/incident-agent) → architecture →
+[recorded run](https://www.semefit.com/projects/incident-agent/trace) →
+[evaluation](https://www.semefit.com/projects/incident-agent/evals) → failure cases → security boundary →
+[code + README](incident-agent/).
 
-## Architecture
+## Platform
 
 ```
-┌─────────────────┐
-│  Portfolio Web  │  (Next.js - Vercel)
-│   Port 3000     │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Secure Gateway  │  (FastAPI - Railway)
-│   Port 8000     │
-│  • Rate Limit   │
-│  • Security     │
-│  • Cost Track   │
-└────────┬────────┘
-         │
-    ┌────┴────┬──────────┬─────────┐
-    ▼         ▼          ▼         ▼
-┌───────┐ ┌───────┐ ┌──────────┐ ┌──────────┐
-│  RAG  │ │ Eval  │ │ Incident │ │  DevOps  │ (FastAPI - Railway)
-│ 8001  │ │ 8002  │ │   8003   │ │   8004   │
-└───────┘ └───────┘ └──────────┘ └──────────┘
+                 ┌──────────────────────────┐
+ AI apps ──────► │    Secure AI Gateway     │ ──────► model providers
+ (agent, RAG,    │ service-key auth · $/day │         (Anthropic; OpenAI
+  eval, review)  │ budgets · rate limits ·  │          for older services)
+                 │ PII redaction · retries ·│
+                 │ token/cost accounting ·  │
+                 │ audit log                │
+                 └──────────────────────────┘
 ```
 
-## Projects
+| Project | What it is | Stack |
+| --- | --- | --- |
+| [incident-agent](incident-agent/) | Agentic incident investigation with gated write actions, incident lab, eval harness | FastAPI, Anthropic SDK (Claude), Pydantic |
+| [secure-ai-gateway](secure-ai-gateway/) | Shared gateway: Anthropic-compatible `/v1/messages` route with auth, budgets, PII redaction, accounting; plus proxy routes for the older services | FastAPI, token bucket |
+| [llm-eval-harness](llm-eval-harness/) | Regression suites for LLM outputs | FastAPI, Click |
+| [rag-knowledge-assistant](rag-knowledge-assistant/) | RAG with citations and strict refusal | FastAPI, ChromaDB, OpenAI |
+| [ai-incident-investigator](ai-incident-investigator/) | v1 incident analysis (single-pass RAG); predecessor of incident-agent | FastAPI, ChromaDB, OpenAI |
+| [ai-devops-control-plane](ai-devops-control-plane/) | Pre-deploy change risk analysis | FastAPI, ChromaDB, OpenAI |
+| [ai-solution-architecture-review](ai-solution-architecture-review/) | Architecture recommendations with trade-offs | FastAPI, ChromaDB, OpenAI |
+| [ai-portfolio-web](ai-portfolio-web/) | The website: case studies, trace viewer, eval dashboard, testing section | Next.js 14, TypeScript, Tailwind |
 
-| Project | Description | Tech |
-|---------|-------------|------|
-| [ai-portfolio-web](./ai-portfolio-web) | Public portfolio website with live demos | Next.js, TypeScript, TailwindCSS |
-| [rag-knowledge-assistant](./rag-knowledge-assistant) | Enterprise RAG with citations and strict mode | FastAPI, ChromaDB, OpenAI |
-| [llm-eval-harness](./llm-eval-harness) | Automated LLM evaluation and regression testing | FastAPI, Click CLI, JSONSchema |
-| [secure-ai-gateway](./secure-ai-gateway) | Production API gateway with security controls | FastAPI, Token Bucket, PII Detection |
-| [ai-incident-investigator](./ai-incident-investigator) | Root cause analysis with evidence-based hypotheses | FastAPI, RAG, LLM, ChromaDB |
-| [ai-devops-control-plane](./ai-devops-control-plane) | Deployment risk assessment with historical analysis | FastAPI, ChromaDB, RAG, LLM |
+## Run
 
-## Quick Start
-
-### Prerequisites
-- Docker and Docker Compose
-- OpenAI API key
-
-### Run Locally
-
-1. **Clone and configure:**
 ```bash
-git clone https://github.com/yourusername/ai-engineer-portfolio.git
-cd ai-engineer-portfolio
-cp .env.example .env
-# Add your OPENAI_API_KEY to .env
-```
+# Flagship, no API key needed
+cd incident-agent && pip install -e ".[dev]" && pytest && python -m incident_agent.evals.run --suite smoke
 
-2. **Start all services:**
-```bash
+# Everything
+cp .env.example .env        # add keys
 docker compose up --build
 ```
 
-3. **Access the applications:**
-- Portfolio Website: http://localhost:3000
-- Secure Gateway: http://localhost:8000
-- RAG Service: http://localhost:8001
-- Eval Service: http://localhost:8002
-- Incident Investigator: http://localhost:8003
-- DevOps Control Plane: http://localhost:8004
+Ports: web 3000 · gateway 8000 · rag 8001 · eval 8002 · incident v1 8003 · devops 8004 ·
+architecture 8005 · incident-agent 8006.
 
-### Ingest Sample Documents
+## CI
 
-```bash
-curl -X POST http://localhost:8001/ingest \
-  -H "Content-Type: application/json" \
-  -d @rag-knowledge-assistant/data/sample_documents.json
-```
+- `.github/workflows/pr-checks.yml` — every PR, no model spend: agent tests (incl. authorization and
+  budget tests), deterministic smoke eval with golden thresholds, gateway and legacy service tests,
+  web lint/typecheck/build/Playwright, Docker builds.
+- `.github/workflows/agent-eval.yml` — manual only, paid: full Claude evaluation through the gateway
+  with fallback disabled and a hard dollar cap (requires the `ANTHROPIC_API_KEY` repository secret).
+- `.github/workflows/scheduled-prod-tests.yml` — nightly Playwright/Cypress smoke against production.
 
-### Run Evaluation Suite
+## Deployment
 
-```bash
-cd llm-eval-harness
-python -m src.cli run --suite ./suites/basic.json
-```
-
-## System Flow
-
-1. **User** interacts with the portfolio website
-2. **Web frontend** sends requests to the Secure Gateway
-3. **Gateway** applies security checks:
-   - Rate limiting (token bucket)
-   - Prompt injection detection
-   - PII redaction
-   - Cost estimation
-4. **Gateway** proxies to backend services:
-   - RAG for knowledge queries
-   - Eval for running test suites
-5. **Response** flows back with metadata (cost, latency, security status)
-
-## CI/CD Strategy
-
-### Continuous Integration
-- Automated tests on every PR
-- Linting (ruff for Python, ESLint for TypeScript)
-- Docker build verification
-- All checks must pass before merge
-
-### LLM Evaluation
-- Weekly scheduled evaluation runs
-- Manual trigger for pre-release validation
-- Fail build on regression detection
-- Historical results stored as artifacts
-
-### Deployment
-- **Web**: Vercel (automatic on main branch)
-- **APIs**: Railway (Docker-based deployment)
-- Environment variables managed per environment
-
-## Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `OPENAI_API_KEY` | OpenAI API key | Required |
-| `OPENAI_API_BASE` | OpenAI API base URL | `https://api.openai.com/v1` |
-| `EMBEDDING_MODEL` | Model for embeddings | `text-embedding-3-small` |
-| `CHAT_MODEL` | Model for chat completions | `gpt-4o-mini` |
-
-## 2-Week Execution Timeline
-
-### Week 1
-- ✅ Repo scaffolding and project structure
-- ✅ RAG core pipeline (chunking, embeddings, retrieval)
-- ✅ Basic UI and chat demo
-- ✅ Docker Compose for local development
-
-### Week 2
-- ✅ Eval harness with CLI and API
-- ✅ Secure gateway middleware
-- ✅ Polished UI with all demo pages
-- ✅ Final READMEs and documentation
-- ✅ CI/CD pipelines
-
-## License
-
-MIT License - see individual project READMEs for details.
-
----
-
-Built to demonstrate production-grade AI engineering practices.
+Web on Vercel (deploys from `main`), APIs on Railway. The incident agent is not deployed as a
+service; the website replays recorded evaluation traces as static files.
