@@ -1,0 +1,68 @@
+{
+  "id": "inc-11-warehouse-db-down",
+  "title": "Storefront errors from a downstream database outage",
+  "difficulty": "medium",
+  "description": "Automated kernel patching takes the warehouse database primary offline. inventory-service fails, and the storefront alert fires two hops upstream. A storefront deploy at 04:00 is a distractor.",
+  "tags": ["downstream", "database", "infra", "no-tool-remediation"],
+  "alert": {
+    "id": "ALRT-4380",
+    "name": "StorefrontAvailability",
+    "service": "storefront",
+    "severity": "SEV1",
+    "fired_at": "2026-09-14T04:31:00Z",
+    "description": "storefront availability 71% over 5 minutes (SLO 99.9%)."
+  },
+  "topology": {
+    "storefront": {"tier": 1, "instances": 12, "version": "v12.0.3", "owner": "team-web", "depends_on": ["inventory-service", "cart-service"]},
+    "inventory-service": {"tier": 1, "instances": 4, "version": "v1.9.3", "owner": "team-inventory", "depends_on": ["warehouse-db"]},
+    "cart-service": {"tier": 1, "instances": 6, "version": "v6.3.0", "owner": "team-checkout"},
+    "warehouse-db": {"tier": 1, "instances": 2, "version": "mysql-8.0.36", "owner": "team-data"}
+  },
+  "health": {
+    "storefront": {"status": "degraded", "checks": {"http": "passing", "upstream:inventory-service": "502"}},
+    "inventory-service": {"status": "unhealthy", "checks": {"http": "failing", "db": "connection refused"}},
+    "warehouse-db": {"status": "unreachable", "checks": {"primary wh-db-01": "no response since 04:22", "replica wh-db-02": "running (replication stopped)"}, "notes": "primary host not responding to probes"}
+  },
+  "metrics": {
+    "storefront": {"error_rate_pct": {"unit": "%", "baseline": 0.2, "noise": 0.1, "changes": [{"at": "04:23", "value": 29, "ramp": 2}]}},
+    "inventory-service": {"error_rate_pct": {"unit": "%", "baseline": 0.1, "noise": 0.1, "changes": [{"at": "04:22", "value": 97, "ramp": 1}]}},
+    "warehouse-db": {"up": {"unit": "bool", "baseline": 1, "noise": 0.0, "changes": [{"at": "04:22", "value": 0}]}},
+    "cart-service": {"error_rate_pct": {"unit": "%", "baseline": 0.1, "noise": 0.1}}
+  },
+  "logs": {
+    "inventory-service": [
+      ["04:22:10", "ERROR", "Communications link failure: connect to wh-db-01:3306 refused"],
+      ["04:24:33", "ERROR", "Communications link failure: connect to wh-db-01:3306 refused"],
+      ["04:27:01", "ERROR", "GET /stock/sku_40091 500 - datasource unavailable"],
+      ["04:30:48", "ERROR", "Communications link failure: connect to wh-db-01:3306 refused"]
+    ],
+    "storefront": [
+      ["04:00:12", "INFO", "storefront v12.0.3 started"],
+      ["04:23:02", "ERROR", "GET /product/p_1181 502 from inventory-service"],
+      ["04:28:17", "ERROR", "GET /product/p_2203 502 from inventory-service"]
+    ],
+    "warehouse-db": [["04:21:54", "INFO", "Received shutdown signal from host (system reboot)"]]
+  },
+  "log_noise": {
+    "storefront": [["INFO", "GET /product/{id} 200 {ms}ms"], ["INFO", "GET / 200 {ms}ms"]],
+    "cart-service": [["INFO", "POST /cart 200 {n}ms"]]
+  },
+  "changes": [
+    {"id": "chg-9905", "kind": "infra", "service": "warehouse-db", "at": "04:15", "author": "patch-automation", "summary": "Kernel patching on host group db-wh (automated rolling reboot)"},
+    {"id": "chg-9903", "kind": "deploy", "service": "storefront", "at": "04:00", "author": "ci-bot (PR #9120)", "summary": "Image carousel lazy loading", "version": "v12.0.3", "previous_version": "v12.0.2"}
+  ],
+  "past_incidents": [],
+  "distractors": ["storefront deploy at 04:00"],
+  "ground_truth": {
+    "accepted_categories": ["downstream_outage"],
+    "accepted_services": ["warehouse-db"],
+    "summary": "Automated kernel patching rebooted the warehouse-db primary, which did not come back; inventory-service fails and storefront returns 502s.",
+    "acceptable_actions": [{"type": "manual", "service": "warehouse-db"}],
+    "critical_evidence": ["get_service_health|get_service_logs|get_service_metrics"],
+    "expected_tool_path": ["get_service_health", "get_service_health", "get_service_health", "get_deployment_history"],
+    "min_tool_calls": 3
+  },
+  "fault_variants": [
+    {"name": "inventory_logs_http_500", "faults": [{"tool": "get_service_logs", "mode": "http_500", "service": "inventory-service"}], "expected": "recover", "rationale": "Health checks show the chain."}
+  ]
+}

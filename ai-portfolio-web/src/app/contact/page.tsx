@@ -1,85 +1,28 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Github, ExternalLink } from "lucide-react";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { ContactLinks } from "@/components/contact-links";
+import { PROFILE } from "@/lib/profile";
 
-const links = [
-  {
-    name: "GitHub",
-    description: "View source code and project repositories",
-    icon: Github,
-    href: "https://github.com/SemePro/ai-engineering-portfolio",
-  },
-];
+export const metadata: Metadata = { title: "Contact" };
 
 export default function ContactPage() {
   return (
     <div className="container mx-auto px-4 py-16">
       <div className="mx-auto max-w-2xl">
-        <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold tracking-tight mb-4">Contact</h1>
-          <p className="text-muted-foreground text-lg">
-            For roles in AI platform engineering, reliability, and
-            DevOps-integrated AI systems.
-          </p>
-        </div>
-
-        <p className="text-center text-muted-foreground text-sm leading-relaxed mb-10 max-w-xl mx-auto">
-          Open to conversations around Applied AI, AI platform engineering,
-          reliability, and DevOps-integrated systems.
+        <h1 className="text-3xl font-semibold tracking-tight">Contact</h1>
+        <p className="mt-4 text-muted-foreground">
+          {PROFILE.name} · {PROFILE.title}. Open to Senior AI Engineer, Applied AI, AI Platform and agent engineering
+          roles, remote or hybrid.
         </p>
-
-        <div className="space-y-4 mb-12">
-          {links.map((link) => (
-            <Card key={link.name} className="hover:bg-muted/30 transition-colors">
-              <a
-                href={link.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block"
-              >
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                        <link.icon className="h-6 w-6 text-primary" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg">{link.name}</CardTitle>
-                        <CardDescription>{link.description}</CardDescription>
-                      </div>
-                    </div>
-                    <ExternalLink className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                </CardHeader>
-              </a>
-            </Card>
-          ))}
+        <ContactLinks className="mt-8" />
+        <div className="mt-12 border-t pt-8 text-sm text-muted-foreground space-y-2">
+          <p>Short on time? These three pages show the most:</p>
+          <ul className="space-y-1">
+            <li><Link href="/projects/incident-agent" className="text-primary hover:underline underline-offset-4">Incident Response Engine — case study</Link></li>
+            <li><Link href="/projects/incident-agent/trace" className="text-primary hover:underline underline-offset-4">A recorded investigation, step by step</Link></li>
+            <li><Link href="/projects/incident-agent/evals" className="text-primary hover:underline underline-offset-4">Evaluation results and methodology</Link></li>
+          </ul>
         </div>
-
-        <Card className="bg-muted/30">
-          <CardContent className="pt-6 text-center">
-            <p className="text-muted-foreground mb-6">
-              Available for remote opportunities in applied AI engineering,
-              platform reliability, and production ML systems.
-            </p>
-            <Button asChild>
-              <a
-                href="https://github.com/SemePro/ai-engineering-portfolio"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Github className="mr-2 h-4 w-4" />
-                GitHub
-              </a>
-            </Button>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

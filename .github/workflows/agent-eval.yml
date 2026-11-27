@@ -1,0 +1,76 @@
+name: Agent evaluation (Claude)
+
+# Paid. Manual only - run before releases or when the prompt, tools, model or grading change.
+# Hard limits: run-level $ cap (--max-cost-usd), max cases, per-investigation budgets
+# (model calls, tool calls, $, wall time), gateway daily $ cap, job timeout.
+# The provider key is only given to the gateway process; the agent gets an ephemeral gateway key.
+# Refusal fallback is disabled so every result is attributable to exactly one model.
+
+on:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: Suite
+        type: choice
+        options: [full, core, abstain, faults, caching]
+        default: full
+      max_cost_usd:
+        description: Hard spend cap for this run (USD)
+        default: "15"
+      max_cases:
+        description: Max cases
+        default: "40"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: agent-eval
+  cancel-in-progress: false
+
+jobs:
+  claude-eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: |
+          pip install -r secure-ai-gateway/requirements.txt
+          pip install -e "incident-agent[dev]"
+      - name: Start gateway (holds the provider key; fallback off; daily cap = run cap)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          MAX_COST: ${{ github.event.inputs.max_cost_usd }}
+        run: |
+          KEY="gwk_ci_$(python -c 'import secrets;print(secrets.token_urlsafe(24))')"
+          echo "::add-mask::$KEY"
+          HASH=$(python -c "import hashlib,sys;print(hashlib.sha256(sys.argv[1].encode()).hexdigest())" "$KEY")
+          export LLM_SERVICE_POLICIES="{\"incident-agent\":{\"key_sha256\":\"$HASH\",\"allowed_models\":[\"claude-opus-5-5\"],\"daily_budget_usd\":$MAX_COST,\"requests_per_minute\":120}}"
+          export LLM_ENABLE_REFUSAL_FALLBACK=false LLM_AUDIT_LOG_PATH=$RUNNER_TEMP/llm-audit.jsonl
+          (cd secure-ai-gateway && nohup uvicorn src.main:app --port 8000 > $RUNNER_TEMP/gateway.log 2>&1 &)
+          echo "GATEWAY_SERVICE_KEY=$KEY" >> "$GITHUB_ENV"
+          for i in $(seq 1 30); do curl -sf localhost:8000/health && break; sleep 1; done
+      - name: Run evaluation
+        working-directory: incident-agent
+        env:
+          GATEWAY_URL: http://127.0.0.1:8000
+        run: |
+          SUITE="${{ github.event.inputs.suite }}"
+          ARGS="--max-cost-usd ${{ github.event.inputs.max_cost_usd }} --max-cases ${{ github.event.inputs.max_cases }} --out eval-results"
+          if [ "$SUITE" = "caching" ]; then
+            python -m incident_agent.evals.run --suite caching $ARGS
+          else
+            python -m incident_agent.evals.run --suite "$SUITE" --check-thresholds $ARGS
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: claude-eval-${{ github.run_id }}
+          path: |
+            incident-agent/eval-results
+            ${{ runner.temp }}/llm-audit.jsonl
+          retention-days: 90

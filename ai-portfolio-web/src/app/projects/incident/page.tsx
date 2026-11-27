@@ -23,6 +23,14 @@ import {
 export default function IncidentProjectPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <div className="container mx-auto px-4 pt-6">
+        <p className="rounded-md border border-primary/40 bg-primary/5 px-4 py-3 text-sm">
+          This is v1 (single-pass RAG). Its successor, the{" "}
+          <Link href="/projects/incident-agent" className="text-primary underline underline-offset-4">Agentic Incident Response Engine</Link>,
+          decides what evidence to gather itself and gates operational actions behind human approval.
+        </p>
+      </div>
+
       <div className="container mx-auto px-4 py-12">
         <div className="mx-auto max-w-4xl">
           {/* Back Link */}
